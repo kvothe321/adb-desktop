@@ -1,0 +1,20 @@
+#!/bin/bash
+# Pre-commit hook to enforce code style using ktlint
+
+echo "Running ktlint check..."
+
+./gradlew ktlintCheck --daemon
+
+ktlintCheckStatus=$?
+
+# return 1 exit code if running checks fails
+if [[ $ktlintCheckStatus -ne 0 ]]; then
+  echo "*********************************************************"
+  echo "Code style violations detected. Commit aborted."
+  echo "To identify the issues: ./gradlew ktlintCheck"
+  echo "To automatically solve the issues: ./gradlew ktlintFormat"
+  echo "*********************************************************"
+  exit 1
+else
+  exit 0
+fi
