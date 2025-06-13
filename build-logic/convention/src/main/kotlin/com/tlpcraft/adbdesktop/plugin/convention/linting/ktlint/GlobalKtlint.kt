@@ -1,4 +1,6 @@
-import com.tlpcraft.adbdesktop.plugin.ensureGitHookInstalled
+package com.tlpcraft.adbdesktop.plugin.convention.linting.ktlint
+
+import com.tlpcraft.adbdesktop.plugin.convention.hooks.precommit.ensurePreCommitGitHookInstalled
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jlleitschuh.gradle.ktlint.KtlintExtension
@@ -13,7 +15,7 @@ class GlobalKtlint : Plugin<Project> {
                 extensions.configure(KtlintExtension::class.java, ktlintConfiguration)
             }
 
-            ensureGitHookInstalled()
+            ensurePreCommitGitHookInstalled()
         }
     }
 
