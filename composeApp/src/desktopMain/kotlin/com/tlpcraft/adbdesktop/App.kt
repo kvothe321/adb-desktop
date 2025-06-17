@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +47,13 @@ fun App() {
     MaterialTheme {
         Row(modifier = Modifier.fillMaxSize().background(Color(0xFF111827))) {
             SideMenu()
+
+            Divider(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(1.dp),
+                color = Color(0xFF1F2937)
+            )
 
             // Right side - content (75% width)
             Column(
@@ -109,7 +117,7 @@ fun MenuItem(text: String, imageResource: DrawableResource) {
         verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
     ) {
         Image(
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(20.dp),
             painter = painterResource(imageResource),
             contentDescription = null,
             colorFilter = ColorFilter.tint(Color(0xFF60A4F9))
@@ -117,7 +125,7 @@ fun MenuItem(text: String, imageResource: DrawableResource) {
         Spacer(modifier = Modifier.width(16.dp))
         Text(
             text = text,
-            style = TextStyle(fontSize = 18.sp, color = Color(0xFF60A4F9))
+            style = TextStyle(fontSize = 14.sp, color = Color(0xFF60A4F9))
         )
     }
 }
