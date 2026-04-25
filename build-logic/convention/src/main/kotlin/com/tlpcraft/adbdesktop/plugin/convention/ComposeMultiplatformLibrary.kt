@@ -7,6 +7,7 @@ import com.tlpcraft.adbdesktop.plugin.shared.library
 import com.tlpcraft.adbdesktop.plugin.shared.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
@@ -24,6 +25,14 @@ class ComposeMultiplatformLibrary : Plugin<Project> {
     }
 
     private fun Project.declareDefaultDependencies() {
+        dependencies {
+            add("debugImplementation", libs.library.compose.uiTooling)
+
+            // Experimental Common Compose Test
+            add("androidTestImplementation", libs.library.androidx.uiTestJunit4Android)
+            add("debugImplementation", libs.library.androidx.uiTestManifest)
+        }
+
         extensions.getByType<KotlinMultiplatformExtension>().apply {
             sourceSets.apply {
                 commonMain.dependencies {

@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 rootProject.name = "adb-desktop"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
@@ -18,6 +20,7 @@ pluginManagement {
 }
 
 dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
     repositories {
         google {
             mavenContent {
@@ -35,8 +38,25 @@ plugins {
 }
 
 include(
-    ":composeApp",
-    ":adbdesktop-ui-kit",
-    "core:data",
-    "core:domain"
+    frameworkLayer,
+    *core,
+    *features
 )
+
+include(":adbdesktop-ui-kit")
+
+val frameworkLayer
+    get() = "composeApp"
+
+val features
+    get() = listOf(
+        "feature",
+        "feature:devices",
+        "feature:apps"
+    ).toTypedArray()
+
+val core
+    get() = listOf(
+        "core:domain",
+        "core:data"
+    ).toTypedArray()
