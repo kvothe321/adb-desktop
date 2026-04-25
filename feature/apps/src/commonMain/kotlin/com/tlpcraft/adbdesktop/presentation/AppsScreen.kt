@@ -16,15 +16,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.tlpcraft.adbdesktop.domain.model.AdbDevice
+import com.tlpcraft.adbdesktop.domain.model.AppAction
 import com.tlpcraft.adbdesktop.domain.model.AppFilter
 import com.tlpcraft.adbdesktop.domain.model.AppInfo
+import com.tlpcraft.adbdesktop.presentation.component.AppActions
 import com.tlpcraft.adbdesktop.presentation.component.AppDetails
 import com.tlpcraft.adbdesktop.presentation.component.AppList
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
@@ -35,25 +34,35 @@ import org.koin.compose.viewmodel.koinViewModel
 fun AppsScreen(selectedDevice: AdbDevice?, viewModel: AppsViewModel = koinViewModel()) {
     LaunchedEffect(selectedDevice) { viewModel.updateSelectedDevice(selectedDevice) }
     val uiState by viewModel.uiState.collectAsState()
+    val selectedApp by viewModel.selectedApp.collectAsState()
+    val appDetailsState by viewModel.appDetailsState.collectAsState()
     AppsScreenContent(
         uiState = uiState,
+        selectedApp = selectedApp,
+        appDetailsState = appDetailsState,
+        actions = AppActions(
+            onOpen = { viewModel.executeAction(AppAction.OPEN) },
+            onForceStop = { viewModel.executeAction(AppAction.FORCE_STOP) },
+            onClearCache = { viewModel.executeAction(AppAction.CLEAR_CACHE) },
+            onClearData = { viewModel.executeAction(AppAction.CLEAR_DATA) },
+            onUninstall = { viewModel.executeAction(AppAction.UNINSTALL) },
+        ),
         onFilterSelected = viewModel::onFilterSelected,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
+        onAppSelected = viewModel::selectApp,
     )
 }
 
 @Composable
-fun AppsScreenContent(uiState: AppsUiState, onFilterSelected: (AppFilter) -> Unit = {}, onSearchQueryChanged: (String) -> Unit = {}) {
-    var selectedApp by remember { mutableStateOf<AppInfo?>(null) }
-
-    val deviceSerial = when (uiState) {
-        is AppsUiState.Content -> uiState.deviceSerial
-        is AppsUiState.FetchingApps -> uiState.deviceSerial
-        is AppsUiState.Error -> uiState.deviceSerial
-        else -> null
-    }
-    LaunchedEffect(deviceSerial) { selectedApp = null }
-
+fun AppsScreenContent(
+    uiState: AppsUiState,
+    selectedApp: AppInfo? = null,
+    appDetailsState: AppDetailsState = AppDetailsState.Empty,
+    actions: AppActions = AppActions(),
+    onFilterSelected: (AppFilter) -> Unit = {},
+    onSearchQueryChanged: (String) -> Unit = {},
+    onAppSelected: (AppInfo?) -> Unit = {},
+) {
     Column(modifier = Modifier.fillMaxSize()) {
         when (uiState) {
             is AppsUiState.Loading -> FullscreenMessage(
@@ -69,10 +78,12 @@ fun AppsScreenContent(uiState: AppsUiState, onFilterSelected: (AppFilter) -> Uni
             is AppsUiState.FetchingApps -> AppsLayout(
                 filteredApps = emptyList(),
                 selectedApp = selectedApp,
+                appDetailsState = appDetailsState,
+                actions = actions,
                 searchQuery = "",
                 activeFilter = uiState.activeFilter,
                 isLoading = true,
-                onAppSelected = {},
+                onAppSelected = onAppSelected,
                 onFilterSelected = onFilterSelected,
                 onSearchQueryChanged = {},
             )
@@ -80,10 +91,12 @@ fun AppsScreenContent(uiState: AppsUiState, onFilterSelected: (AppFilter) -> Uni
             is AppsUiState.Error -> AppsLayout(
                 filteredApps = emptyList(),
                 selectedApp = selectedApp,
+                appDetailsState = appDetailsState,
+                actions = actions,
                 searchQuery = "",
                 activeFilter = uiState.activeFilter,
                 listErrorMessage = uiState.message,
-                onAppSelected = {},
+                onAppSelected = onAppSelected,
                 onFilterSelected = onFilterSelected,
                 onSearchQueryChanged = {},
             )
@@ -91,9 +104,11 @@ fun AppsScreenContent(uiState: AppsUiState, onFilterSelected: (AppFilter) -> Uni
             is AppsUiState.Content -> AppsLayout(
                 filteredApps = uiState.filteredApps,
                 selectedApp = selectedApp,
+                appDetailsState = appDetailsState,
+                actions = actions,
                 searchQuery = uiState.searchQuery,
                 activeFilter = uiState.activeFilter,
-                onAppSelected = { selectedApp = it },
+                onAppSelected = onAppSelected,
                 onFilterSelected = onFilterSelected,
                 onSearchQueryChanged = onSearchQueryChanged,
             )
@@ -105,11 +120,13 @@ fun AppsScreenContent(uiState: AppsUiState, onFilterSelected: (AppFilter) -> Uni
 private fun AppsLayout(
     filteredApps: List<AppInfo>,
     selectedApp: AppInfo?,
+    appDetailsState: AppDetailsState,
+    actions: AppActions,
     searchQuery: String,
     activeFilter: AppFilter,
     isLoading: Boolean = false,
     listErrorMessage: String? = null,
-    onAppSelected: (AppInfo) -> Unit,
+    onAppSelected: (AppInfo?) -> Unit,
     onFilterSelected: (AppFilter) -> Unit,
     onSearchQueryChanged: (String) -> Unit,
 ) {
@@ -126,7 +143,10 @@ private fun AppsLayout(
             onSearchQueryChanged = onSearchQueryChanged,
         )
         VerticalDivider()
-        AppDetails(app = selectedApp)
+        AppDetails(
+            appDetailsState = appDetailsState,
+            actions = actions,
+        )
     }
 }
 
@@ -174,17 +194,6 @@ private fun AppsScreenNoDevicePreview() = PreviewContext {
 
 @UiKitPreview
 @Composable
-private fun AppsScreenFetchingPreview() = PreviewContext {
-    AppsScreenContent(
-        uiState = AppsUiState.FetchingApps(
-            deviceSerial = "emulator-5554",
-            activeFilter = AppFilter.ALL,
-        ),
-    )
-}
-
-@UiKitPreview
-@Composable
 private fun AppsScreenContentPreview() = PreviewContext {
     AppsScreenContent(
         uiState = AppsUiState.Content(
@@ -199,5 +208,7 @@ private fun AppsScreenContentPreview() = PreviewContext {
             ),
             searchQuery = "",
         ),
+        selectedApp = AppInfo("com.example.myapp"),
+        appDetailsState = AppDetailsState.Empty,
     )
 }

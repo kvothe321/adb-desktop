@@ -56,7 +56,7 @@ fun AppList(
     activeFilter: AppFilter,
     isLoading: Boolean = false,
     errorMessage: String? = null,
-    onAppSelected: (AppInfo) -> Unit,
+    onAppSelected: (AppInfo?) -> Unit,
     onFilterSelected: (AppFilter) -> Unit,
     onSearchQueryChanged: (String) -> Unit,
 ) {
@@ -138,18 +138,19 @@ private fun FilterRow(activeFilter: AppFilter, onFilterSelected: (AppFilter) -> 
 }
 
 @Composable
-private fun AppItems(apps: List<AppInfo>, selectedApp: AppInfo?, onAppSelected: (AppInfo) -> Unit) {
+private fun AppItems(apps: List<AppInfo>, selectedApp: AppInfo?, onAppSelected: (AppInfo?) -> Unit) {
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(apps, key = { it.packageName }) { app ->
             AppRow(
                 app = app,
                 isSelected = app == selectedApp,
-                onClick = { onAppSelected(app) },
+                onClick = { onAppSelected(if (app == selectedApp) null else app) },
             )
         }
     }
 }
 
+// onClick receives null when deselecting (tapping the already-selected row)
 @Composable
 private fun AppRow(app: AppInfo, isSelected: Boolean, onClick: () -> Unit) {
     val backgroundColor = if (isSelected) colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent
