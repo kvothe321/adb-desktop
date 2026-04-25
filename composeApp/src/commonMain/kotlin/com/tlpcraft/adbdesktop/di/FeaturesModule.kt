@@ -15,5 +15,5 @@ val featuresModule
     get() = listOf(
         sharedModule,
         devicesModule,
-        appsModule
+        appsModule,
     ).toTypedArray()

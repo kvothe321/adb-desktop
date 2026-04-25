@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.Flow
  * Param is the device serial string (e.g. `"emulator-5554"` or `"R5CT10ABCDE"`).
  */
 class ObserveCpuInfoUseCase(
-    private val repository: CpuRepository
+    private val repository: CpuRepository,
 ) : ReactiveUseCase<String, Flow<Outcome<CpuInfo, DeviceError>>> {
 
     override fun invoke(param: String): Flow<Outcome<CpuInfo, DeviceError>> = repository.observeCpuInfo(param)

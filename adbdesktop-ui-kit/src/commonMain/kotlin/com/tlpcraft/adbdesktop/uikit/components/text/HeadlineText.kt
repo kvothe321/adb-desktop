@@ -22,7 +22,7 @@ fun HeadlineLargeText(text: String, color: Color? = null) {
     Text(
         text = text,
         style = MaterialTheme.typography.headlineLarge,
-        color = color ?: colorScheme.onBackground
+        color = color ?: colorScheme.onBackground,
     )
 }
 
@@ -43,7 +43,7 @@ fun HeadlineMediumText(
     modifier: Modifier = Modifier,
     color: Color? = null,
     maxLines: Int = Int.MAX_VALUE,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
 ) {
     Text(
         text = text,
@@ -51,7 +51,7 @@ fun HeadlineMediumText(
         color = color ?: colorScheme.onBackground,
         modifier = modifier,
         maxLines = maxLines,
-        overflow = overflow
+        overflow = overflow,
     )
 }
 
@@ -72,7 +72,7 @@ fun HeadlineSmallText(
     modifier: Modifier = Modifier,
     color: Color? = null,
     maxLines: Int = Int.MAX_VALUE,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
 ) {
     Text(
         text = text,
@@ -80,6 +80,6 @@ fun HeadlineSmallText(
         color = color ?: colorScheme.onBackground,
         modifier = modifier,
         maxLines = maxLines,
-        overflow = overflow
+        overflow = overflow,
     )
 }

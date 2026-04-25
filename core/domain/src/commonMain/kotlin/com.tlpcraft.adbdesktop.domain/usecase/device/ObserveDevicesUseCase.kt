@@ -8,7 +8,7 @@ import com.tlpcraft.adbdesktop.domain.usecase.ReactiveUseCase
 import kotlinx.coroutines.flow.Flow
 
 class ObserveDevicesUseCase(
-    private val repository: AdbDeviceRepository
+    private val repository: AdbDeviceRepository,
 ) : ReactiveUseCase<Unit, Flow<Outcome<List<AdbDevice>, DeviceError>>> {
 
     override fun invoke(param: Unit): Flow<Outcome<List<AdbDevice>, DeviceError>> = repository.observeDevices()

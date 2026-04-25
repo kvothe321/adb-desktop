@@ -21,7 +21,7 @@ fun LabelLargeText(text: String, color: Color? = null) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelLarge,
-        color = color ?: colorScheme.onBackground
+        color = color ?: colorScheme.onBackground,
     )
 }
 
@@ -40,7 +40,7 @@ fun LabelMediumText(text: String, color: Color? = null) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelMedium,
-        color = color ?: colorScheme.onBackground
+        color = color ?: colorScheme.onBackground,
     )
 }
 
@@ -59,6 +59,6 @@ fun LabelSmallText(text: String, modifier: Modifier = Modifier, color: Color? = 
         text = text,
         modifier = modifier,
         style = MaterialTheme.typography.labelSmall,
-        color = color ?: colorScheme.onBackground
+        color = color ?: colorScheme.onBackground,
     )
 }

@@ -31,7 +31,7 @@ import kotlinx.coroutines.flow.stateIn
  * dependency on this class.
  */
 class SharedDeviceViewModel(
-    observeDevices: ObserveDevicesUseCase
+    observeDevices: ObserveDevicesUseCase,
 ) : ViewModel() {
 
     private val _selectedDevice = MutableStateFlow<AdbDevice?>(null)
@@ -51,7 +51,7 @@ class SharedDeviceViewModel(
             .stateIn(
                 scope = viewModelScope,
                 started = SharingStarted.WhileSubscribed(5_000),
-                initialValue = null
+                initialValue = null,
             )
 
     init {

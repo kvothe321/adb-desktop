@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.update
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class AppsViewModel(
-    private val getApps: GetAppsUseCase
+    private val getApps: GetAppsUseCase,
 ) : ViewModel() {
 
     private val selectedDevice = MutableStateFlow<AdbDevice?>(null)
@@ -32,7 +32,7 @@ class AppsViewModel(
 
     val uiState: StateFlow<AppsUiState> = combine(
         selectedDevice,
-        activeFilter
+        activeFilter,
     ) { selectedDevice, filter ->
         selectedDevice to filter
     }
@@ -51,17 +51,17 @@ class AppsViewModel(
                                     deviceSerial = serial,
                                     activeFilter = filter,
                                     apps = apps,
-                                    searchQuery = searchQuery.value
+                                    searchQuery = searchQuery.value,
                                 )
                             },
                             onFailure = { error ->
                                 AppsUiState.Error(
                                     deviceSerial = serial,
                                     activeFilter = filter,
-                                    message = error.message
+                                    message = error.message,
                                 )
-                            }
-                        )
+                            },
+                        ),
                     )
                 }
             }
@@ -72,7 +72,7 @@ class AppsViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = AppsUiState.Loading
+            initialValue = AppsUiState.Loading,
         )
 
     fun onFilterSelected(filter: AppFilter) {

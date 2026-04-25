@@ -13,7 +13,7 @@ import com.tlpcraft.adbdesktop.domain.usecase.UseCase
  * This is a one-shot [UseCase]: call it whenever the selected device or filter changes.
  */
 class GetAppsUseCase(
-    private val repository: AppsRepository
+    private val repository: AppsRepository,
 ) : UseCase<GetAppsUseCase.Params, Outcome<List<AppInfo>, DeviceError>> {
 
     data class Params(val deviceSerial: String, val filter: AppFilter)

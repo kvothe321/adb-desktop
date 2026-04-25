@@ -12,27 +12,27 @@ data class AppSpacing(
     val md: Dp = 16.dp,
     val lg: Dp = 24.dp,
     val xl: Dp = 32.dp,
-    val xxl: Dp = 48.dp
+    val xxl: Dp = 48.dp,
 )
 
 data class AppRadius(
     val sm: Dp = 4.dp,
     val md: Dp = 8.dp,
     val lg: Dp = 16.dp,
-    val full: Dp = 999.dp
+    val full: Dp = 999.dp,
 )
 
 data class AppStroke(
     val thin: Dp = 1.dp,
     val md: Dp = 2.dp,
-    val thick: Dp = 4.dp
+    val thick: Dp = 4.dp,
 )
 
 data class AppDimensions(
     val spacing: AppSpacing = AppSpacing(),
     val radius: AppRadius = AppRadius(),
     val stroke: AppStroke = AppStroke(),
-    val typography: TypographyTokens = TypographyTokens()
+    val typography: TypographyTokens = TypographyTokens(),
 )
 
 data class TypographyTokens(
@@ -50,7 +50,7 @@ data class TypographyTokens(
     val bodySmallTextSize: TextUnit = 13.sp,
     val labelLargeTextSize: TextUnit = 16.sp,
     val labelMediumTextSize: TextUnit = 14.sp,
-    val labelSmallTextSize: TextUnit = 12.sp
+    val labelSmallTextSize: TextUnit = 12.sp,
 )
 
 val LocalAppDimensions = staticCompositionLocalOf { AppDimensions() }

@@ -13,5 +13,5 @@ enum class AppFilter(val label: String) {
     ALL("All"),
     USER("User"),
     SYSTEM("System"),
-    DISABLED("Disabled")
+    DISABLED("Disabled"),
 }

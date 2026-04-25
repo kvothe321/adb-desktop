@@ -23,7 +23,7 @@ fun TitleLargeText(
     text: String,
     color: Color? = null,
     fontWeight: FontWeight? = null,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
@@ -31,7 +31,7 @@ fun TitleLargeText(
         fontWeight = fontWeight,
         style = MaterialTheme.typography.titleLarge,
         color = color ?: colorScheme.onBackground,
-        textAlign = textAlign
+        textAlign = textAlign,
     )
 }
 
@@ -50,14 +50,14 @@ fun TitleMediumText(
     text: String,
     color: Color? = null,
     fontWeight: FontWeight? = null,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
         color = color ?: colorScheme.onBackground,
         fontWeight = fontWeight,
-        textAlign = textAlign
+        textAlign = textAlign,
     )
 }
 
@@ -76,13 +76,13 @@ fun TitleSmallText(
     text: String,
     color: Color? = null,
     fontWeight: FontWeight? = null,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleSmall,
         color = color ?: colorScheme.onBackground,
         fontWeight = fontWeight,
-        textAlign = textAlign
+        textAlign = textAlign,
     )
 }

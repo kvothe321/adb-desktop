@@ -14,7 +14,7 @@ sealed interface AppsUiState {
     /** A device is connected and packages are being fetched. */
     data class FetchingApps(
         val deviceSerial: String,
-        val activeFilter: AppFilter
+        val activeFilter: AppFilter,
     ) : AppsUiState
 
     /** Package list loaded successfully. */
@@ -22,7 +22,7 @@ sealed interface AppsUiState {
         val deviceSerial: String,
         val activeFilter: AppFilter,
         val apps: List<AppInfo>,
-        val searchQuery: String
+        val searchQuery: String,
     ) : AppsUiState {
         /** Apps filtered by the current [searchQuery], case-insensitive. */
         val filteredApps: List<AppInfo>
@@ -36,6 +36,6 @@ sealed interface AppsUiState {
     data class Error(
         val deviceSerial: String,
         val activeFilter: AppFilter,
-        val message: String
+        val message: String,
     ) : AppsUiState
 }

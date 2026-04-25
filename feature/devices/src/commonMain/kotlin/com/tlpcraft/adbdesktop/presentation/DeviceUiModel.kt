@@ -12,5 +12,8 @@ import com.tlpcraft.adbdesktop.domain.model.CpuInfo
 data class DeviceUiModel(
     val serial: String,
     val status: String,
-    val cpuInfo: CpuInfo?
+    val cpuInfo: CpuInfo?,
+    val modelName: String? = null,
+    val androidVersion: String? = null,
+    val batteryLevel: Int? = null,
 )

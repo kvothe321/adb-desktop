@@ -13,64 +13,64 @@ val typography
     get() = Typography(
         displayLarge = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.displayLargeTextSize
+            fontSize = dimensions.typography.displayLargeTextSize,
         ),
         displayMedium = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.displayMediumTextSize
+            fontSize = dimensions.typography.displayMediumTextSize,
         ),
         displaySmall = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.displaySmallTextSize
+            fontSize = dimensions.typography.displaySmallTextSize,
         ),
         headlineLarge = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.headlineLargeTextSize
+            fontSize = dimensions.typography.headlineLargeTextSize,
         ),
         headlineMedium = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.headlineMediumTextSize
+            fontSize = dimensions.typography.headlineMediumTextSize,
         ),
         headlineSmall = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.headlineSmallTextSize
+            fontSize = dimensions.typography.headlineSmallTextSize,
         ),
         titleLarge = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.titleLargeTextSize
+            fontSize = dimensions.typography.titleLargeTextSize,
         ),
         titleMedium = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.titleMediumTextSize
+            fontSize = dimensions.typography.titleMediumTextSize,
         ),
         titleSmall = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.titleSmallTextSize
+            fontSize = dimensions.typography.titleSmallTextSize,
         ),
         bodyLarge = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.bodyLargeTextSize
+            fontSize = dimensions.typography.bodyLargeTextSize,
         ),
         bodyMedium = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.bodyMediumTextSize
+            fontSize = dimensions.typography.bodyMediumTextSize,
         ),
         bodySmall = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.bodySmallTextSize
+            fontSize = dimensions.typography.bodySmallTextSize,
         ),
         labelLarge = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.labelLargeTextSize
+            fontSize = dimensions.typography.labelLargeTextSize,
         ),
         labelMedium = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.labelMediumTextSize
+            fontSize = dimensions.typography.labelMediumTextSize,
         ),
         labelSmall = TextStyle(
             fontFamily = jetbrainsMonoRegular,
-            fontSize = dimensions.typography.labelSmallTextSize
-        )
+            fontSize = dimensions.typography.labelSmallTextSize,
+        ),
     )
 
 val jetbrainsMonoRegular

@@ -20,7 +20,7 @@ fun DisplayLargeText(text: String, color: Color? = null) {
     Text(
         text = text,
         style = MaterialTheme.typography.displayLarge,
-        color = color ?: colorScheme.onBackground
+        color = color ?: colorScheme.onBackground,
     )
 }
 
@@ -38,7 +38,7 @@ fun DisplayMediumText(text: String, color: Color? = null) {
     Text(
         text = text,
         style = MaterialTheme.typography.displayMedium,
-        color = color ?: colorScheme.onBackground
+        color = color ?: colorScheme.onBackground,
     )
 }
 
@@ -56,6 +56,6 @@ fun DisplaySmallText(text: String, color: Color? = null) {
     Text(
         text = text,
         style = MaterialTheme.typography.displaySmall,
-        color = color ?: colorScheme.onBackground
+        color = color ?: colorScheme.onBackground,
     )
 }

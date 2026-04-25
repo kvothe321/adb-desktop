@@ -26,7 +26,7 @@ fun BodyLargeText(text: String, color: Color? = null, textAlign: TextAlign? = nu
         text = text,
         style = MaterialTheme.typography.bodyLarge,
         textAlign = textAlign,
-        color = color ?: colorScheme.onBackground
+        color = color ?: colorScheme.onBackground,
     )
 }
 
@@ -47,7 +47,7 @@ fun BodyMediumText(
     color: Color? = null,
     fontStyle: FontStyle? = null,
     fontWeight: FontWeight? = null,
-    textAlign: TextAlign? = null
+    textAlign: TextAlign? = null,
 ) {
     Text(
         text = text,
@@ -56,7 +56,7 @@ fun BodyMediumText(
         fontWeight = fontWeight,
         textAlign = textAlign,
         color = color ?: colorScheme.onBackground,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -76,7 +76,7 @@ fun BodySmallText(
     modifier: Modifier = Modifier,
     color: Color? = null,
     maxLines: Int = Int.MAX_VALUE,
-    overflow: TextOverflow = TextOverflow.Clip
+    overflow: TextOverflow = TextOverflow.Clip,
 ) {
     Text(
         text = text,
@@ -84,6 +84,6 @@ fun BodySmallText(
         color = color ?: colorScheme.onBackground,
         modifier = modifier,
         maxLines = maxLines,
-        overflow = overflow
+        overflow = overflow,
     )
 }

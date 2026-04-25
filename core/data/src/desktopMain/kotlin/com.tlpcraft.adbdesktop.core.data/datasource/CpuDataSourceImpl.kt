@@ -22,7 +22,7 @@ import kotlinx.coroutines.withContext
  * All blocking [ProcessBuilder] I/O is confined to [DispatcherProvider.io].
  */
 class CpuDataSourceImpl(
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider,
 ) : CpuDataSource {
 
     override suspend fun getCpuStats(deviceSerial: String): CpuInfo = withContext(dispatcherProvider.io) {
@@ -44,7 +44,7 @@ class CpuDataSourceImpl(
         CpuInfo(
             usagePercent = usagePercent,
             coreCount = coreCount,
-            maxFrequencyMHz = maxFreqMHz
+            maxFrequencyMHz = maxFreqMHz,
         )
     }
 
@@ -67,7 +67,7 @@ class CpuDataSourceImpl(
         for (node in listOf("cpuinfo_max_freq", "scaling_max_freq")) {
             val raw = runAdbShell(
                 deviceSerial,
-                "cat /sys/devices/system/cpu/cpu0/cpufreq/$node"
+                "cat /sys/devices/system/cpu/cpu0/cpufreq/$node",
             ).toLongOrNull()
             if (raw != null && raw > 0L) return raw
         }
@@ -75,7 +75,7 @@ class CpuDataSourceImpl(
         // 3 – read all cores and pick the maximum
         val allCoresRaw = runAdbShell(
             deviceSerial,
-            "cat /sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_max_freq"
+            "cat /sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_max_freq",
         )
         val fromAllCores = allCoresRaw.lineSequence()
             .mapNotNull { it.trim().toLongOrNull() }
@@ -115,7 +115,7 @@ class CpuDataSourceImpl(
             iowait = parts[5].toLong(),
             irq = parts[6].toLong(),
             softirq = parts[7].toLong(),
-            steal = parts[8].toLong()
+            steal = parts[8].toLong(),
         )
     }
 
@@ -140,7 +140,7 @@ class CpuDataSourceImpl(
         val iowait: Long,
         val irq: Long,
         val softirq: Long,
-        val steal: Long
+        val steal: Long,
     ) {
         /** Jiffies spent doing actual work (everything except idle and iowait). */
         val busy: Long get() = user + nice + system + irq + softirq + steal

@@ -12,5 +12,5 @@ package com.tlpcraft.adbdesktop.domain.model
 data class CpuInfo(
     val usagePercent: Float,
     val coreCount: Int,
-    val maxFrequencyMHz: Long
+    val maxFrequencyMHz: Long,
 )

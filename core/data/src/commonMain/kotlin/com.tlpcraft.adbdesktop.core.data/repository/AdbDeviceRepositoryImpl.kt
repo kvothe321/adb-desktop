@@ -17,11 +17,11 @@ private const val POLLING_INTERVAL_MS = 3_000L
 
 class AdbDeviceRepositoryImpl(
     private val dispatcherProvider: DispatcherProvider,
-    private val adbDeviceDataSource: AdbDeviceDataSource
+    private val adbDeviceDataSource: AdbDeviceDataSource,
 ) : AdbDeviceRepository {
 
     override fun observeDevices(): Flow<Outcome<List<AdbDevice>, DeviceError>> = safeFlow(
-        errorMapper = ::toDeviceError
+        errorMapper = ::toDeviceError,
     ) {
         flow {
             while (true) {
@@ -32,7 +32,7 @@ class AdbDeviceRepositoryImpl(
     }.flowOn(dispatcherProvider.io)
 
     override suspend fun getDevices(): Outcome<List<AdbDevice>, DeviceError> = safeCall(
-        errorMapper = ::toDeviceError
+        errorMapper = ::toDeviceError,
     ) {
         adbDeviceDataSource.getDevices()
     }

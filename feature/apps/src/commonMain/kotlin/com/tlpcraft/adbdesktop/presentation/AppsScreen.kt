@@ -44,7 +44,7 @@ fun AppsScreen(selectedDevice: AdbDevice?, viewModel: AppsViewModel = koinViewMo
     AppsScreenContent(
         uiState = uiState,
         onFilterSelected = viewModel::onFilterSelected,
-        onSearchQueryChanged = viewModel::onSearchQueryChanged
+        onSearchQueryChanged = viewModel::onSearchQueryChanged,
     )
 }
 
@@ -54,12 +54,12 @@ fun AppsScreenContent(uiState: AppsUiState, onFilterSelected: (AppFilter) -> Uni
         when (uiState) {
             is AppsUiState.Loading -> FullscreenMessage(
                 primary = "Scanning for devices…",
-                showSpinner = true
+                showSpinner = true,
             )
 
             is AppsUiState.NoDevice -> FullscreenMessage(
                 primary = "No device selected.",
-                secondary = "Go to Devices and select an online device to browse its apps."
+                secondary = "Go to Devices and select an online device to browse its apps.",
             )
 
             is AppsUiState.FetchingApps -> {
@@ -68,7 +68,7 @@ fun AppsScreenContent(uiState: AppsUiState, onFilterSelected: (AppFilter) -> Uni
                 FullscreenMessage(
                     primary = "Loading packages…",
                     secondary = uiState.deviceSerial,
-                    showSpinner = true
+                    showSpinner = true,
                 )
             }
 
@@ -78,7 +78,7 @@ fun AppsScreenContent(uiState: AppsUiState, onFilterSelected: (AppFilter) -> Uni
                 FullscreenMessage(
                     primary = "Failed to load packages",
                     secondary = uiState.message,
-                    isError = true
+                    isError = true,
                 )
             }
 
@@ -89,7 +89,7 @@ fun AppsScreenContent(uiState: AppsUiState, onFilterSelected: (AppFilter) -> Uni
                     query = uiState.searchQuery,
                     resultCount = uiState.filteredApps.size,
                     totalCount = uiState.apps.size,
-                    onQueryChanged = onSearchQueryChanged
+                    onQueryChanged = onSearchQueryChanged,
                 )
                 HorizontalDivider()
                 AppList(apps = uiState.filteredApps)
@@ -105,13 +105,13 @@ private fun FilterBar(activeFilter: AppFilter, onFilterSelected: (AppFilter) -> 
     Row(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         AppFilter.entries.forEach { filter ->
             FilterChip(
                 selected = filter == activeFilter,
                 onClick = { onFilterSelected(filter) },
-                label = { Text(filter.label) }
+                label = { Text(filter.label) },
             )
         }
     }
@@ -124,12 +124,12 @@ private fun SearchBar(
     query: String,
     resultCount: Int,
     totalCount: Int,
-    onQueryChanged: (String) -> Unit
+    onQueryChanged: (String) -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         OutlinedTextField(
             value = query,
@@ -144,12 +144,12 @@ private fun SearchBar(
                     }
                 }
             },
-            singleLine = true
+            singleLine = true,
         )
         Text(
             text = if (query.isBlank()) "$totalCount packages" else "$resultCount / $totalCount",
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
@@ -163,7 +163,7 @@ private fun AppList(apps: List<AppInfo>) {
             Text(
                 text = "No packages match your search.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         return
@@ -180,12 +180,12 @@ private fun AppList(apps: List<AppInfo>) {
 private fun AppRow(app: AppInfo) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         Column {
             Text(
                 text = app.packageName,
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
             )
         }
     }
@@ -198,12 +198,12 @@ private fun FullscreenMessage(
     primary: String,
     secondary: String? = null,
     showSpinner: Boolean = false,
-    isError: Boolean = false
+    isError: Boolean = false,
 ) {
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         if (showSpinner) {
             CircularProgressIndicator(modifier = Modifier.size(32.dp))
@@ -212,14 +212,14 @@ private fun FullscreenMessage(
         Text(
             text = primary,
             style = MaterialTheme.typography.titleMedium,
-            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
+            color = if (isError) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
         )
         if (secondary != null) {
             Spacer(Modifier.height(4.dp))
             Text(
                 text = secondary,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -239,8 +239,8 @@ private fun AppsScreenLoadingPreview() = PreviewContext {
     AppsScreenContent(
         uiState = AppsUiState.FetchingApps(
             deviceSerial = "emulator-5554",
-            activeFilter = AppFilter.ALL
-        )
+            activeFilter = AppFilter.ALL,
+        ),
     )
 }
 
@@ -254,9 +254,9 @@ private fun AppsScreenContentPreview() = PreviewContext {
             apps = listOf(
                 AppInfo("com.example.myapp"),
                 AppInfo("com.example.another"),
-                AppInfo("com.tlpcraft.adbdesktop")
+                AppInfo("com.tlpcraft.adbdesktop"),
             ),
-            searchQuery = ""
-        )
+            searchQuery = "",
+        ),
     )
 }

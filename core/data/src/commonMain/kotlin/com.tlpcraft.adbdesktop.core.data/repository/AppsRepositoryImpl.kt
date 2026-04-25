@@ -9,7 +9,7 @@ import com.tlpcraft.adbdesktop.domain.model.AppInfo
 import com.tlpcraft.adbdesktop.domain.repository.AppsRepository
 
 class AppsRepositoryImpl(
-    private val appsDataSource: AppsDataSource
+    private val appsDataSource: AppsDataSource,
 ) : AppsRepository {
 
     override suspend fun getApps(deviceSerial: String, filter: AppFilter): Outcome<List<AppInfo>, DeviceError> = safeCall(::toDeviceError) {

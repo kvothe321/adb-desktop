@@ -40,7 +40,7 @@ plugins {
 include(
     frameworkLayer,
     *core,
-    *features
+    *features,
 )
 
 include(":adbdesktop-ui-kit")
@@ -53,11 +53,11 @@ val features
         "feature",
         "feature:devices",
         "feature:apps",
-        "feature:files"
+        "feature:files",
     ).toTypedArray()
 
 val core
     get() = listOf(
         "core:domain",
-        "core:data"
+        "core:data",
     ).toTypedArray()

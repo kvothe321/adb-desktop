@@ -5,7 +5,7 @@ import com.tlpcraft.adbdesktop.domain.service.DispatcherProvider
 import kotlinx.coroutines.withContext
 
 class AdbDeviceDataSourceImpl(
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider,
 ) : AdbDeviceDataSource {
 
     override suspend fun getDevices(): List<AdbDevice> = withContext(dispatcherProvider.io) {

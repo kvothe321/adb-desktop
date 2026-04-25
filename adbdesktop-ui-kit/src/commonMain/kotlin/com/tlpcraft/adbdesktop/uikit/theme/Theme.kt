@@ -15,11 +15,11 @@ fun AppTheme(darkTheme: Boolean = false, content: @Composable () -> Unit) {
     }
 
     CompositionLocalProvider(
-        LocalAppDimensions provides AppDimensions()
+        LocalAppDimensions provides AppDimensions(),
     ) {
         MaterialTheme(
             colorScheme = materialColorScheme,
-            content = content
+            content = content,
         )
     }
 }

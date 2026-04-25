@@ -22,7 +22,7 @@ import kotlinx.coroutines.withContext
  * All [ProcessBuilder] I/O is confined to [DispatcherProvider.io].
  */
 class AppsDataSourceImpl(
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider,
 ) : AppsDataSource {
 
     override suspend fun getApps(deviceSerial: String, filter: AppFilter): List<AppInfo> = withContext(dispatcherProvider.io) {
