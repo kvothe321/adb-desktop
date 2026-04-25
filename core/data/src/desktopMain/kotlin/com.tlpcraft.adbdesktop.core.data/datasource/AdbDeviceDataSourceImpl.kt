@@ -1,10 +1,14 @@
 package com.tlpcraft.adbdesktop.core.data.datasource
 
 import com.tlpcraft.adbdesktop.domain.model.AdbDevice
+import com.tlpcraft.adbdesktop.domain.service.DispatcherProvider
+import kotlinx.coroutines.withContext
 
-class AdbDeviceDataSourceImpl : AdbDeviceDataSource {
+class AdbDeviceDataSourceImpl(
+    private val dispatcherProvider: DispatcherProvider
+) : AdbDeviceDataSource {
 
-    override suspend fun getDevices(): List<AdbDevice> {
+    override suspend fun getDevices(): List<AdbDevice> = withContext(dispatcherProvider.io) {
         val process = ProcessBuilder("adb", "devices")
             .redirectErrorStream(true)
             .start()
@@ -12,7 +16,7 @@ class AdbDeviceDataSourceImpl : AdbDeviceDataSource {
         val output = process.inputStream.bufferedReader().readText()
         process.waitFor()
 
-        return parseAdbDevicesOutput(output)
+        parseAdbDevicesOutput(output)
     }
 
     private fun parseAdbDevicesOutput(output: String): List<AdbDevice> = output

@@ -1,14 +1,15 @@
 package com.tlpcraft.adbdesktop.core.data.di
 
-import com.tlpcraft.adbdesktop.core.data.datasource.AdbDeviceDataSource
-import com.tlpcraft.adbdesktop.core.data.datasource.AdbDeviceDataSourceImpl
 import com.tlpcraft.adbdesktop.core.data.repository.AdbDeviceRepositoryImpl
 import com.tlpcraft.adbdesktop.domain.repository.AdbDeviceRepository
+import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
+expect val platformDataModule: Module?
+
 val dataModule = module {
-    singleOf(::AdbDeviceDataSourceImpl) bind AdbDeviceDataSource::class
+    platformDataModule?.let { includes(it) }
     singleOf(::AdbDeviceRepositoryImpl) bind AdbDeviceRepository::class
 }

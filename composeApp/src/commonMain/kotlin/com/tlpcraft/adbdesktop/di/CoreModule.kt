@@ -4,5 +4,6 @@ import com.tlpcraft.adbdesktop.core.data.di.dataModule
 
 val coreModule
     get() = listOf(
+        domainModule,
         dataModule
     ).toTypedArray()
