@@ -39,11 +39,7 @@ class CpuDataSourceImpl(
         val coreCount = runAdbShell(deviceSerial, "nproc").toIntOrNull() ?: 1
 
         // ── Max clock frequency ────────────────────────────────────────────────
-        val maxFreqMHz =
-            (
-                runAdbShell(deviceSerial, "cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq")
-                    .toLongOrNull() ?: 0L
-            ) / 1_000L
+        val maxFreqMHz = readMaxFrequencyKHz(deviceSerial) / 1_000L
 
         CpuInfo(
             usagePercent = usagePercent,
@@ -53,6 +49,53 @@ class CpuDataSourceImpl(
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────────
+
+    /**
+     * Reads the hardware-ceiling clock frequency for the first available CPU core, in kHz.
+     *
+     * Tries the following sources in order until a positive value is found:
+     *
+     * 1. `cpuinfo_max_freq` — the static hardware ceiling per core (preferred).
+     * 2. `scaling_max_freq`  — the current policy ceiling (slightly lower on throttled devices).
+     * 3. All core `cpuinfo_max_freq` entries via glob — picks the highest value across cores.
+     * 4. `/proc/cpuinfo` "cpu MHz" field — last resort; not available on all kernels.
+     *
+     * Returns `0` if none of the above yields a usable value.
+     */
+    private fun readMaxFrequencyKHz(deviceSerial: String): Long {
+        // 1 & 2 – try cpu0 dedicated nodes first
+        for (node in listOf("cpuinfo_max_freq", "scaling_max_freq")) {
+            val raw = runAdbShell(
+                deviceSerial,
+                "cat /sys/devices/system/cpu/cpu0/cpufreq/$node"
+            ).toLongOrNull()
+            if (raw != null && raw > 0L) return raw
+        }
+
+        // 3 – read all cores and pick the maximum
+        val allCoresRaw = runAdbShell(
+            deviceSerial,
+            "cat /sys/devices/system/cpu/cpu*/cpufreq/cpuinfo_max_freq"
+        )
+        val fromAllCores = allCoresRaw.lineSequence()
+            .mapNotNull { it.trim().toLongOrNull() }
+            .filter { it > 0L }
+            .maxOrNull()
+        if (fromAllCores != null) return fromAllCores
+
+        // 4 – fall back to /proc/cpuinfo "cpu MHz : 2400.000" (value is in MHz, convert to kHz)
+        val cpuInfoMHz = runAdbShell(deviceSerial, "cat /proc/cpuinfo")
+            .lineSequence()
+            .firstOrNull { it.startsWith("cpu MHz", ignoreCase = true) }
+            ?.substringAfter(":")
+            ?.trim()
+            ?.toDoubleOrNull()
+        if (cpuInfoMHz != null && cpuInfoMHz > 0.0) {
+            return (cpuInfoMHz * 1_000.0).toLong() // MHz → kHz
+        }
+
+        return 0L
+    }
 
     /**
      * Reads the first `cpu` aggregate line from `/proc/stat` and returns it as a

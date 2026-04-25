@@ -14,11 +14,3 @@ data class DeviceUiModel(
     val status: String,
     val cpuInfo: CpuInfo?
 )
-
-sealed interface DevicesUiState {
-    data object Loading : DevicesUiState
-
-    data class Content(val devices: List<DeviceUiModel>) : DevicesUiState
-
-    data class Error(val message: String) : DevicesUiState
-}

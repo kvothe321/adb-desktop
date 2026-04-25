@@ -22,6 +22,7 @@ import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.PermanentDrawerSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -34,11 +35,13 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.navigation3.ui.NavDisplay
+import com.tlpcraft.adbdesktop.SharedDeviceViewModel
 import com.tlpcraft.adbdesktop.navigation.AppsRoute
 import com.tlpcraft.adbdesktop.navigation.DevicesRoute
 import com.tlpcraft.adbdesktop.navigation.config
 import com.tlpcraft.adbdesktop.presentation.AppsScreen
 import com.tlpcraft.adbdesktop.presentation.DevicesScreen
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun AppShell() {
@@ -52,6 +55,11 @@ fun AppShell() {
         is AppsRoute -> appsStack
         else -> devicesStack
     }
+
+    val sharedViewModel = koinViewModel<SharedDeviceViewModel>()
+    val devicesState by sharedViewModel.devicesState.collectAsState()
+    val selectedDevice by sharedViewModel.selectedDevice.collectAsState()
+    val deviceLabel = selectedDevice?.serial ?: "No device selected"
 
     Row(Modifier.fillMaxSize()) {
         PermanentDrawerSheet(
@@ -77,9 +85,13 @@ fun AppShell() {
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = "No device connected",
+                    text = deviceLabel,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (selectedDevice != null) {
+                        MaterialTheme.colorScheme.primary
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
                 )
             }
 
@@ -138,8 +150,15 @@ fun AppShell() {
             entryDecorators = listOf(rememberSaveableStateHolderNavEntryDecorator()),
             entryProvider = { key ->
                 when (key) {
-                    is DevicesRoute -> NavEntry(key) { DevicesScreen() }
-                    is AppsRoute -> NavEntry(key) { AppsScreen() }
+                    is DevicesRoute -> NavEntry(key) {
+                        DevicesScreen(
+                            devicesOutcome = devicesState,
+                            selectedSerial = selectedDevice?.serial,
+                            onSelectDevice = { sharedViewModel.select(it) },
+                            onDeselectDevice = { sharedViewModel.deselect() }
+                        )
+                    }
+                    is AppsRoute -> NavEntry(key) { AppsScreen(selectedDevice = selectedDevice) }
                     else -> NavEntry(key) { Text("Unknown route") }
                 }
             }
