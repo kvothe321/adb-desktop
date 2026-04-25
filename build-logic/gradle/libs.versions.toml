@@ -1,0 +1,13 @@
+[versions]
+kotlin = "2.3.20"
+agp = "8.13.2"
+composeMultiplatform = "1.10.3"
+ktlint = "14.2.0"
+detekt = "1.23.8"
+
+[libraries]
+kotlin-multiplatform-gradlePlugin = { group = "org.jetbrains.kotlin.multiplatform", name = "org.jetbrains.kotlin.multiplatform.gradle.plugin", version.ref = "kotlin" }
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }
+compose-gradlePlugin = { module = "org.jetbrains.compose:compose-gradle-plugin", version.ref = "composeMultiplatform" }
+ktlint-gradlePlugin = { group = "org.jlleitschuh.gradle.ktlint", name = "org.jlleitschuh.gradle.ktlint.gradle.plugin", version.ref = "ktlint" }
+detekt-gradlePlugin = { group = "io.gitlab.arturbosch.detekt", name = "detekt-gradle-plugin", version.ref = "detekt" }

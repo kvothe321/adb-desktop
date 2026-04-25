@@ -1,4 +1,4 @@
-rootProject.name = "ADBDesktop"
+rootProject.name = "adb-desktop"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
@@ -34,4 +34,9 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
 }
 
-include(":composeApp")
+include(
+    ":composeApp",
+    ":adbdesktop-ui-kit",
+    "core:data",
+    "core:domain"
+)
