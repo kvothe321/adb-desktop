@@ -42,7 +42,7 @@ fun SideDrawer(
     onSectionSelected: (NavKey) -> Unit,
     onToggleTheme: () -> Unit,
 ) {
-    PermanentDrawerSheet(modifier = Modifier.width(220.dp)) {
+    PermanentDrawerSheet(modifier = Modifier.width(180.dp)) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
