@@ -8,6 +8,7 @@ kotlin {
             dependencies {
                 api(projects.feature.devices)
                 api(projects.feature.apps)
+                api(projects.feature.files)
             }
         }
     }

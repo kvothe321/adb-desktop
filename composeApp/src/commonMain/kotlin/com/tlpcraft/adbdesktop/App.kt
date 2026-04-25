@@ -16,7 +16,7 @@ fun App() {
     var isDark by remember { mutableStateOf(true) }
     KoinApplication(application = { modules(appModules) }) {
         AppTheme(darkTheme = isDark) {
-            AppShell()
+            AppShell(isDark = isDark, onToggleTheme = { isDark = !isDark })
         }
     }
 }

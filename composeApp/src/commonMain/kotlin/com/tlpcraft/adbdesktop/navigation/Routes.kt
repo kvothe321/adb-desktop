@@ -16,6 +16,9 @@ data object DevicesRoute : Route
 @Serializable
 data object AppsRoute : Route
 
+@Serializable
+data object FilesRoute : Route
+
 @OptIn(ExperimentalSerializationApi::class)
 internal val config = SavedStateConfiguration {
     serializersModule = SerializersModule {
