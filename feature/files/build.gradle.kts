@@ -1,14 +1,14 @@
 plugins {
     id(libs.plugins.adbdesktop.kotlin.multiplatform.library.get().pluginId)
+    id(libs.plugins.adbdesktop.compose.multiplatform.library.get().pluginId)
 }
 
 kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api(projects.feature.devices)
-                api(projects.feature.apps)
-                api(projects.feature.files)
+                implementation(projects.adbdesktopUiKit)
+                implementation(projects.core.domain)
             }
         }
     }

@@ -35,24 +35,27 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.navigation3.ui.NavDisplay
-import com.tlpcraft.adbdesktop.SharedDeviceViewModel
 import com.tlpcraft.adbdesktop.navigation.AppsRoute
 import com.tlpcraft.adbdesktop.navigation.DevicesRoute
+import com.tlpcraft.adbdesktop.navigation.FilesRoute
 import com.tlpcraft.adbdesktop.navigation.config
 import com.tlpcraft.adbdesktop.presentation.AppsScreen
 import com.tlpcraft.adbdesktop.presentation.DevicesScreen
+import com.tlpcraft.adbdesktop.presentation.FilesScreen
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun AppShell() {
     val devicesStack = rememberNavBackStack(config, DevicesRoute)
     val appsStack = rememberNavBackStack(config, AppsRoute)
+    val filesStack = rememberNavBackStack(config, FilesRoute)
 
     var selectedSection by remember { mutableStateOf<NavKey>(DevicesRoute) }
 
     val activeStack = when (selectedSection) {
         is DevicesRoute -> devicesStack
         is AppsRoute -> appsStack
+        is FilesRoute -> filesStack
         else -> devicesStack
     }
 
@@ -132,6 +135,19 @@ fun AppShell() {
                 )
             )
 
+            NavigationDrawerItem(
+                label = { Text("Files") },
+                icon = { Icon(Icons.Default.Refresh, contentDescription = null) },
+                selected = selectedSection is FilesRoute,
+                onClick = { selectedSection = FilesRoute },
+                modifier = Modifier.padding(horizontal = 8.dp),
+                colors = NavigationDrawerItemDefaults.colors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    selectedTextColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    selectedIconColor = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            )
+
             // ── Push remaining content to bottom ──────────────────
             Spacer(Modifier.weight(1f))
 
@@ -158,7 +174,11 @@ fun AppShell() {
                             onDeselectDevice = { sharedViewModel.deselect() }
                         )
                     }
+
                     is AppsRoute -> NavEntry(key) { AppsScreen(selectedDevice = selectedDevice) }
+
+                    is FilesRoute -> NavEntry(key) { FilesScreen() }
+
                     else -> NavEntry(key) { Text("Unknown route") }
                 }
             }

@@ -52,7 +52,8 @@ val features
     get() = listOf(
         "feature",
         "feature:devices",
-        "feature:apps"
+        "feature:apps",
+        "feature:files"
     ).toTypedArray()
 
 val core
