@@ -1,5 +1,6 @@
 package com.tlpcraft.adbdesktop
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
@@ -27,6 +29,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavEntry
@@ -42,10 +45,11 @@ import com.tlpcraft.adbdesktop.navigation.config
 import com.tlpcraft.adbdesktop.presentation.AppsScreen
 import com.tlpcraft.adbdesktop.presentation.DevicesScreen
 import com.tlpcraft.adbdesktop.presentation.FilesScreen
+import com.tlpcraft.adbdesktop.uikit.theme.colorScheme
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun AppShell() {
+fun AppShell(isDark: Boolean, onToggleTheme: () -> Unit) {
     val devicesStack = rememberNavBackStack(config, DevicesRoute)
     val appsStack = rememberNavBackStack(config, AppsRoute)
     val filesStack = rememberNavBackStack(config, FilesRoute)
@@ -64,7 +68,7 @@ fun AppShell() {
     val selectedDevice by sharedViewModel.selectedDevice.collectAsState()
     val deviceLabel = selectedDevice?.serial ?: "No device selected"
 
-    Row(Modifier.fillMaxSize()) {
+    Row(Modifier.fillMaxSize().background(colorScheme.background)) {
         PermanentDrawerSheet(
             modifier = Modifier.width(220.dp),
             drawerContainerColor = MaterialTheme.colorScheme.surfaceContainer
@@ -152,12 +156,24 @@ fun AppShell() {
             Spacer(Modifier.weight(1f))
 
             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-            Text(
-                text = "v1.0.0",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(16.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "v1.0.0",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+                IconButton(onClick = onToggleTheme) {
+                    Text(
+                        text = if (isDark) "☀" else "🌙",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+            }
         }
         NavDisplay(
             backStack = activeStack,
