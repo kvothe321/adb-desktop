@@ -8,6 +8,7 @@ kotlin {
         commonMain {
             dependencies {
                 implementation(projects.adbdesktopUiKit)
+                implementation(projects.core.domain)
             }
         }
     }
