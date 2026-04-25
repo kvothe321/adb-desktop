@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
+    kotlin("plugin.serialization") version libs.versions.kotlin.get()
 }
 
 kotlin {
@@ -36,6 +37,7 @@ kotlin {
             implementation(project(":core:data"))
             implementation(project(":core:domain"))
             implementation(project(":adbdesktop-ui-kit"))
+            implementation(projects.feature)
 
             // In sync with ComposeMultiplatformLibrary convention plugin
             implementation(libs.compose.runtime)
@@ -50,6 +52,9 @@ kotlin {
             implementation(libs.koin.compose.viewModel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.androidx.lifecycle.viewmodel.compose)
+            implementation(libs.jetbrains.navigation3.ui)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.jetbrains.lifecycle.viewmodelNavigation3)
         }
 
         commonTest.dependencies {
@@ -86,6 +91,11 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+}
+
+dependencies {
+    androidTestImplementation(libs.androidx.ui.test.junit4.android)
+    debugImplementation(libs.androidx.ui.test.manifest)
 }
 
 compose.desktop {

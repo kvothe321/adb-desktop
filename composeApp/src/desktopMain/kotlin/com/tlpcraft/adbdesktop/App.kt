@@ -15,14 +15,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,7 +38,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tlpcraft.adbdesktop.di.appModules
-import com.tlpcraft.adbdesktop.feature.devices.DevicesScreen
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
@@ -54,25 +51,27 @@ fun App() {
     var isDark by remember { mutableStateOf(true) }
     KoinApplication(application = { modules(appModules) }) {
         AppTheme(darkTheme = isDark) {
-            Row(modifier = Modifier.fillMaxSize().background(colorScheme.background)) {
-                SideMenu(isDark = isDark, onToggleTheme = { isDark = !isDark })
+            AppShell()
 
-                Divider(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(1.dp),
-                    color = colorScheme.outlineVariant
-                )
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .weight(0.70f)
-                ) {
-                    Text("Menu Area", style = TextStyle(color = colorScheme.onBackground))
-                    DevicesScreen()
-                }
-            }
+//            Row(modifier = Modifier.fillMaxSize().background(colorScheme.background)) {
+//                SideMenu(isDark = isDark, onToggleTheme = { isDark = !isDark })
+//
+//                Divider(
+//                    modifier = Modifier
+//                        .fillMaxHeight()
+//                        .width(1.dp),
+//                    color = colorScheme.outlineVariant
+//                )
+//
+//                Column(
+//                    modifier = Modifier
+//                        .fillMaxHeight()
+//                        .weight(0.70f)
+//                ) {
+//                    Text("Menu Area", style = TextStyle(color = colorScheme.onBackground))
+//                    DevicesScreen()
+//                }
+//            }
         }
     }
 }
