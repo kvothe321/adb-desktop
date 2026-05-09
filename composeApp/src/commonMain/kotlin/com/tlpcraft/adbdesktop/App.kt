@@ -10,11 +10,12 @@ import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
 import org.koin.compose.KoinApplication
+import org.koin.dsl.koinConfiguration
 
 @Composable
 fun App() {
     var isDark by remember { mutableStateOf(true) }
-    KoinApplication(application = { modules(appModules) }) {
+    KoinApplication(configuration = koinConfiguration { modules(appModules) }) {
         AppTheme(darkTheme = isDark) {
             AppShell(isDark = isDark, onToggleTheme = { isDark = !isDark })
         }

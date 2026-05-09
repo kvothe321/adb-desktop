@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    compileOnly(internalLibs.kotlin.multiplatform.gradlePlugin)
-    compileOnly(internalLibs.android.gradlePlugin)
+    compileOnly(internalLibs.kotlin.gradlePlugin)
     compileOnly(internalLibs.compose.gradlePlugin)
+    compileOnly(internalLibs.android.gradlePlugin)
     implementation(internalLibs.ktlint.gradlePlugin)
     implementation(internalLibs.detekt.gradlePlugin)
 }

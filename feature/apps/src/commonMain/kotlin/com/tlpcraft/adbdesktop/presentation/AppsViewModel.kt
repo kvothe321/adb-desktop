@@ -32,7 +32,7 @@ class AppsViewModel(
     private val activeFilter = MutableStateFlow(AppFilter.ALL)
     private val searchQuery = MutableStateFlow("")
     private val _selectedApp = MutableStateFlow<AppInfo?>(null)
-    private val _detailsRefresh = MutableStateFlow(0)
+    private val detailsRefresh = MutableStateFlow(0)
 
     val selectedApp: StateFlow<AppInfo?> = _selectedApp
 
@@ -43,7 +43,7 @@ class AppsViewModel(
 
     fun selectApp(app: AppInfo?) {
         _selectedApp.value = app
-        _detailsRefresh.value = 0
+        detailsRefresh.value = 0
     }
 
     fun onFilterSelected(filter: AppFilter) {
@@ -103,7 +103,7 @@ class AppsViewModel(
     val appDetailsState: StateFlow<AppDetailsState> = combine(
         selectedDevice,
         _selectedApp,
-        _detailsRefresh,
+        detailsRefresh,
     ) { device, app, _ -> device to app }
         .flatMapLatest { (device, app) ->
             if (device == null || app == null) return@flatMapLatest flowOf<AppDetailsState>(AppDetailsState.Empty)
@@ -138,7 +138,7 @@ class AppsViewModel(
                         // Trigger list refresh by re-emitting current device
                         selectedDevice.value = selectedDevice.value
                     }
-                    else -> _detailsRefresh.value++
+                    else -> detailsRefresh.value++
                 }
             }
         }

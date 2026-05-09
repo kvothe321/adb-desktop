@@ -39,15 +39,6 @@ import com.tlpcraft.adbdesktop.uikit.theme.dimensions
 private val AppIconDetailSize = 56.dp
 private val DetailLabelWidth = 120.dp
 
-/** Callbacks for the action buttons in the details panel. */
-data class AppActions(
-    val onOpen: () -> Unit = {},
-    val onForceStop: () -> Unit = {},
-    val onClearCache: () -> Unit = {},
-    val onClearData: () -> Unit = {},
-    val onUninstall: () -> Unit = {},
-)
-
 @Composable
 fun AppDetails(appDetailsState: AppDetailsState, actions: AppActions = AppActions()) {
     when (appDetailsState) {
@@ -203,17 +194,6 @@ private fun ActionButton(label: String, isDestructive: Boolean = false, onClick:
     ) {
         LabelSmallText(label, color = contentColor)
     }
-}
-
-// ── Helpers ───────────────────────────────────────────────────────────────────
-
-private fun AppDetails.displayName(): String = packageName.substringAfterLast('.').replaceFirstChar { it.uppercaseChar() }
-
-private fun Long.toHumanReadable(): String = when {
-    this < 1_024L -> "$this B"
-    this < 1_024L * 1_024 -> "${this / 1_024} KB"
-    this < 1_024L * 1_024 * 1_024 -> "${this / (1_024L * 1_024)} MB"
-    else -> "${this / (1_024L * 1_024 * 1_024)} GB"
 }
 
 // ── Previews ──────────────────────────────────────────────────────────────────
