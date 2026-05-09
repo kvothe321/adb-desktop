@@ -46,11 +46,10 @@ include(
 include(":adbdesktop-ui-kit")
 
 val frameworkLayer
-    get() = "composeApp"
+    get() = "desktopApp"
 
 val features
     get() = listOf(
-        "feature",
         "feature:devices",
         "feature:apps",
         "feature:files",
