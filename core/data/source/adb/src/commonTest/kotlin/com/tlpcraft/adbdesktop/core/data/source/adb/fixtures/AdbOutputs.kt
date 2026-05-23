@@ -1,0 +1,115 @@
+package com.tlpcraft.adbdesktop.core.data.source.adb.fixtures
+
+/** Real adb output. Serials and addresses are anonymized, layout and wording are unchanged. */
+object AdbOutputs {
+    const val DEVICES_EMPTY = "List of devices attached\n\n"
+
+    val DEVICES_LONG = """
+        List of devices attached
+        emulator-5554          device product:sdk_gphone64_x86_64 model:sdk_gphone64_x86_64 device:emu64xa transport_id:1
+        R5CT10ABCDE            device usb:1-1 product:a52qnsxx model:SM_A525F device:a52q transport_id:3
+        192.168.1.42:5555      offline product:a52qnsxx model:SM_A525F device:a52q transport_id:4
+        adb-R5CT10ABCDE-xYz12._adb-tls-connect._tcp device product:a52qnsxx model:SM_A525F device:a52q transport_id:5
+        0123456789ABCDEF       unauthorized usb:1-2 transport_id:6
+        FA7AB1A02345           no permissions (missing udev rules? user is in the plugdev group); see [http://developer.android.com/tools/device.html] usb:1-3 transport_id:7
+
+    """.trimIndent()
+
+    const val DEVICES_WITH_DAEMON_START = "* daemon not running; starting now at tcp:5037\n* daemon started successfully\nList of devices attached\n" +
+        "emulator-5554\tdevice\n"
+
+    const val TRACK_DEVICES_EMPTY_FRAME = "0000"
+
+    const val CONNECT_SUCCESS = "connected to 192.168.1.42:5555\n"
+    const val CONNECT_ALREADY = "already connected to 192.168.1.42:5555\n"
+    const val CONNECT_REFUSED = "failed to connect to '127.0.0.1:5599': Connection refused\n"
+    const val CONNECT_NO_ROUTE = "cannot connect to 192.168.1.99:5555: No route to host (113)\n"
+
+    const val DISCONNECT_SUCCESS = "disconnected 192.168.1.42:5555\n"
+    const val DISCONNECT_UNKNOWN = "error: no such device '127.0.0.1:5599'\n"
+
+    const val PAIR_SUCCESS = "Successfully paired to 192.168.1.42:37123 [guid=adb-R5CT10ABCDE-xYz12]\n"
+    const val PAIR_WRONG_CODE = "Failed: Wrong password or connection was dropped.\n"
+    const val PAIR_PROTOCOL_FAULT = "error: protocol fault (couldn't read status message): Success\n"
+
+    const val DEVICE_NOT_FOUND = "adb: device 'nonexistent' not found\n"
+
+    val GETPROP = """
+        [ro.build.version.release]: [14]
+        [ro.build.version.sdk]: [34]
+        [ro.product.manufacturer]: [samsung]
+        [ro.product.model]: [SM-A525F]
+        [persist.sys.timezone]: []
+    """.trimIndent()
+
+    val DUMPSYS_BATTERY = """
+        Current Battery Service state:
+          AC powered: false
+          USB powered: true
+          Wireless powered: false
+          status: 2
+          health: 2
+          present: true
+          level: 87
+          scale: 100
+          voltage: 4211
+          temperature: 285
+          technology: Li-ion
+    """.trimIndent()
+
+    val CPU_SNAPSHOT = """
+        cpu  14725 1022 9480 120480 512 0 211 0 0 0
+        ---
+        8
+        ---
+        1803000
+        1803000
+        2400000
+        2400000
+    """.trimIndent()
+
+    val CPU_SNAPSHOT_NO_FREQUENCY = """
+        cpu  100 0 100 800 0 0 0 0 0 0
+        ---
+        4
+        ---
+    """.trimIndent()
+
+    val PM_LIST_PACKAGES = """
+        package:com.android.settings
+        package:com.google.android.gms
+        package:com.example.notes
+    """.trimIndent()
+
+    val PM_PATH_SPLIT = """
+        package:/data/app/~~a1b2==/com.example.notes-c3d4==/base.apk
+        package:/data/app/~~a1b2==/com.example.notes-c3d4==/split_config.arm64_v8a.apk
+    """.trimIndent()
+
+    val DUMPSYS_PACKAGE = """
+        Packages:
+          Package [com.example.notes] (5d3c1f0):
+            userId=10234
+            pkg=Package{8a1b2c3 com.example.notes}
+            codePath=/data/app/~~a1b2==/com.example.notes-c3d4==
+            versionCode=241 minSdk=26 targetSdk=34
+            versionName=2.4.1
+            flags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ALLOW_BACKUP ]
+            timeStamp=2024-11-20 14:30:21
+            firstInstallTime=2023-03-12 09:15:00
+            lastUpdateTime=2024-11-20 14:30:22
+    """.trimIndent()
+
+    val STAT_SIZES = """
+        41943040
+        1048576
+    """.trimIndent()
+
+    val APP_SIZES = """
+        Code size: 42991616
+        Data size: 12582912
+        Cache size: 2097152
+    """.trimIndent()
+
+    const val PM_FAILURE = "Failure [DELETE_FAILED_INTERNAL_ERROR]\n"
+}
