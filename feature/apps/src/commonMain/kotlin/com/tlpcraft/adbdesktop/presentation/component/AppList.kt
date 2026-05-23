@@ -37,8 +37,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.tlpcraft.adbdesktop.domain.model.AppFilter
-import com.tlpcraft.adbdesktop.domain.model.AppInfo
+import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
+import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
 import com.tlpcraft.adbdesktop.uikit.components.text.BodySmallText
 import com.tlpcraft.adbdesktop.uikit.components.text.LabelSmallText
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
@@ -131,7 +131,7 @@ private fun FilterRow(activeFilter: AppFilter, onFilterSelected: (AppFilter) -> 
             FilterChip(
                 selected = filter == activeFilter,
                 onClick = { onFilterSelected(filter) },
-                label = { LabelSmallText(filter.label) },
+                label = { LabelSmallText(filter.name) },
             )
         }
     }

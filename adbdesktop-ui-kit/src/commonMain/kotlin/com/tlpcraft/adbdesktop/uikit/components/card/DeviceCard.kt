@@ -27,7 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.tlpcraft.adbdesktop.domain.model.CpuInfo
+import com.tlpcraft.adbdesktop.core.domain.model.CpuInfo
 import com.tlpcraft.adbdesktop.uikit.components.text.BodySmallText
 import com.tlpcraft.adbdesktop.uikit.components.text.LabelSmallText
 import com.tlpcraft.adbdesktop.uikit.components.text.TitleMediumText

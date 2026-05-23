@@ -1,6 +1,6 @@
 package com.tlpcraft.adbdesktop.presentation.component
 
-import com.tlpcraft.adbdesktop.domain.model.AppDetails
+import com.tlpcraft.adbdesktop.core.domain.model.AppDetails
 
 internal fun AppDetails.displayName(): String = packageName.substringAfterLast('.').replaceFirstChar { it.uppercaseChar() }
 

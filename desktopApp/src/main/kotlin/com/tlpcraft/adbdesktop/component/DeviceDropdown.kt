@@ -30,7 +30,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import com.tlpcraft.adbdesktop.domain.model.AdbDevice
+import com.tlpcraft.adbdesktop.core.domain.model.ConnectionType
+import com.tlpcraft.adbdesktop.core.domain.model.Device
+import com.tlpcraft.adbdesktop.core.domain.model.DeviceState
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.colorScheme
 import com.tlpcraft.adbdesktop.uikit.theme.dimensions
@@ -38,9 +40,9 @@ import com.tlpcraft.adbdesktop.uikit.theme.dimensions
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeviceDropdown(
-    devices: List<AdbDevice>,
-    selectedDevice: AdbDevice?,
-    onDeviceSelected: (AdbDevice) -> Unit,
+    devices: List<Device>,
+    selectedDevice: Device?,
+    onDeviceSelected: (Device) -> Unit,
     onDeviceDeselected: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -104,9 +106,9 @@ fun DeviceDropdown(
 
 @Composable
 private fun DeviceMenuItems(
-    devices: List<AdbDevice>,
-    selectedDevice: AdbDevice?,
-    onDeviceSelected: (AdbDevice) -> Unit,
+    devices: List<Device>,
+    selectedDevice: Device?,
+    onDeviceSelected: (Device) -> Unit,
     onDeviceDeselected: () -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -157,8 +159,8 @@ private fun DeviceMenuItems(
 }
 
 @Composable
-private fun DeviceMenuItem(device: AdbDevice, isSelected: Boolean, onClick: () -> Unit) {
-    val isOnline = device.status == "device"
+private fun DeviceMenuItem(device: Device, isSelected: Boolean, onClick: () -> Unit) {
+    val isOnline = device.isOnline
     DropdownMenuItem(
         text = {
             Row(
@@ -172,7 +174,7 @@ private fun DeviceMenuItem(device: AdbDevice, isSelected: Boolean, onClick: () -
                     modifier = Modifier.weight(1f),
                 )
                 Text(
-                    text = device.status,
+                    text = device.state.name,
                     style = MaterialTheme.typography.labelSmall,
                     color = if (isOnline) {
                         colorScheme.primary.copy(alpha = 0.7f)
@@ -198,9 +200,9 @@ private fun DeviceMenuItem(device: AdbDevice, isSelected: Boolean, onClick: () -
 @Composable
 private fun DeviceDropdownPreview() {
     val devices = listOf(
-        AdbDevice(serial = "emulator-5554", status = "device"),
-        AdbDevice(serial = "emulator-5556", status = "offline"),
-        AdbDevice(serial = "emulator-5558", status = "device"),
+        Device("emulator-5554", DeviceState.ONLINE, ConnectionType.USB),
+        Device("emulator-5556", DeviceState.OFFLINE, ConnectionType.USB),
+        Device("emulator-5558", DeviceState.ONLINE, ConnectionType.USB),
     )
     Column {
         DeviceDropdown(
@@ -211,7 +213,7 @@ private fun DeviceDropdownPreview() {
         )
         DeviceDropdown(
             devices = devices,
-            selectedDevice = devices.firstOrNull { it.status == "device" },
+            selectedDevice = devices.firstOrNull { it.isOnline },
             onDeviceSelected = {},
             onDeviceDeselected = {},
         )

@@ -2,13 +2,15 @@ package com.tlpcraft.adbdesktop.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tlpcraft.adbdesktop.domain.model.AdbDevice
-import com.tlpcraft.adbdesktop.domain.model.AppAction
-import com.tlpcraft.adbdesktop.domain.model.AppFilter
-import com.tlpcraft.adbdesktop.domain.model.AppInfo
-import com.tlpcraft.adbdesktop.domain.usecase.apps.ExecuteAppActionUseCase
-import com.tlpcraft.adbdesktop.domain.usecase.apps.GetAppDetailsUseCase
-import com.tlpcraft.adbdesktop.domain.usecase.apps.GetAppsUseCase
+import com.tlpcraft.adbdesktop.core.common.fold
+import com.tlpcraft.adbdesktop.core.common.onSuccess
+import com.tlpcraft.adbdesktop.core.domain.model.AppAction
+import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
+import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
+import com.tlpcraft.adbdesktop.core.domain.model.Device
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ExecuteAppActionUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.GetAppDetailsUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.GetAppsUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,7 +30,7 @@ class AppsViewModel(
     private val executeAppAction: ExecuteAppActionUseCase,
 ) : ViewModel() {
 
-    private val selectedDevice = MutableStateFlow<AdbDevice?>(null)
+    private val selectedDevice = MutableStateFlow<Device?>(null)
     private val activeFilter = MutableStateFlow(AppFilter.ALL)
     private val searchQuery = MutableStateFlow("")
     private val _selectedApp = MutableStateFlow<AppInfo?>(null)
@@ -36,7 +38,7 @@ class AppsViewModel(
 
     val selectedApp: StateFlow<AppInfo?> = _selectedApp
 
-    fun updateSelectedDevice(device: AdbDevice?) {
+    fun updateSelectedDevice(device: Device?) {
         selectedDevice.value = device
         _selectedApp.value = null
     }
@@ -60,7 +62,7 @@ class AppsViewModel(
         device to filter
     }
         .flatMapLatest { (device, filter) ->
-            if (device == null || device.status != "device") {
+            if (device == null || device.isOnline.not()) {
                 flowOf<AppsUiState>(AppsUiState.NoDevice)
             } else {
                 val serial = device.serial

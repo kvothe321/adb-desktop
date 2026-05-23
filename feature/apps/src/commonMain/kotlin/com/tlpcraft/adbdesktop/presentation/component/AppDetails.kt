@@ -25,7 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.tlpcraft.adbdesktop.domain.model.AppDetails
+import com.tlpcraft.adbdesktop.core.domain.model.AppDetails
 import com.tlpcraft.adbdesktop.presentation.AppDetailsState
 import com.tlpcraft.adbdesktop.uikit.components.text.BodyMediumText
 import com.tlpcraft.adbdesktop.uikit.components.text.BodySmallText
@@ -153,9 +153,9 @@ private fun DetailsSection(details: AppDetails) {
                 DetailRow("Min SDK", details.minSdk?.toString() ?: "—")
                 DetailRow("Installed", details.firstInstallTime ?: "—")
                 DetailRow("Updated", details.lastUpdateTime ?: "—")
-                DetailRow("APK Size", details.codeSize?.toHumanReadable() ?: "—")
-                DetailRow("Data Size", details.dataSize?.toHumanReadable() ?: "—")
-                DetailRow("Cache Size", details.cacheSize?.toHumanReadable() ?: "—")
+                DetailRow("APK Size", details.codeSizeBytes?.toHumanReadable() ?: "—")
+                DetailRow("Data Size", details.dataSizeBytes?.toHumanReadable() ?: "—")
+                DetailRow("Cache Size", details.cacheSizeBytes?.toHumanReadable() ?: "—")
             }
         }
     }
@@ -223,9 +223,9 @@ private fun AppDetailsReadyPreview() = PreviewContext {
                 minSdk = 26,
                 firstInstallTime = "2023-03-12 09:15:00",
                 lastUpdateTime = "2024-11-20 14:30:22",
-                codeSize = 41_943_040L,
-                dataSize = 12_582_912L,
-                cacheSize = 2_097_152L,
+                codeSizeBytes = 41_943_040L,
+                dataSizeBytes = 12_582_912L,
+                cacheSizeBytes = 2_097_152L,
             ),
         ),
     )

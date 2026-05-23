@@ -19,10 +19,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.tlpcraft.adbdesktop.domain.Outcome
-import com.tlpcraft.adbdesktop.domain.error.DeviceError
-import com.tlpcraft.adbdesktop.domain.model.AdbDevice
-import com.tlpcraft.adbdesktop.domain.model.CpuInfo
+import com.tlpcraft.adbdesktop.core.common.Outcome
+import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
+import com.tlpcraft.adbdesktop.core.domain.model.CpuInfo
+import com.tlpcraft.adbdesktop.core.domain.model.Device
+import com.tlpcraft.adbdesktop.core.domain.model.DeviceState
 import com.tlpcraft.adbdesktop.uikit.components.card.DeviceCard
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
@@ -39,7 +40,7 @@ import org.koin.compose.viewmodel.koinViewModel
  */
 @Composable
 fun DevicesScreen(
-    devicesOutcome: Outcome<List<AdbDevice>, DeviceError>?,
+    devicesOutcome: Outcome<List<Device>, DeviceError>?,
     selectedSerial: String?,
     onSelectDevice: (String) -> Unit,
     onDeselectDevice: () -> Unit,
@@ -60,12 +61,12 @@ fun DevicesScreen(
             val cpuBySerial by viewModel.cpuBySerial.collectAsState()
             val deviceInfoBySerial by viewModel.deviceInfoBySerial.collectAsState()
             val deviceModels = devices.map { device ->
-                val info = if (device.status == "device") deviceInfoBySerial[device.serial] else null
+                val info = if (device.isOnline) deviceInfoBySerial[device.serial] else null
                 DeviceUiModel(
                     serial = device.serial,
-                    status = device.status,
-                    cpuInfo = if (device.status == "device") cpuBySerial[device.serial] else null,
-                    modelName = info?.name,
+                    state = device.state,
+                    cpuInfo = if (device.isOnline) cpuBySerial[device.serial] else null,
+                    modelName = info?.let { "${it.manufacturer} ${it.model}" },
                     androidVersion = info?.androidVersion,
                     batteryLevel = info?.batteryLevel,
                 )
@@ -144,13 +145,13 @@ private fun DevicesContentView(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         items(devices, key = { it.serial }) { device ->
-            val isOnline = device.status == "device"
+            val isOnline = device.isOnline
             val isSelected = device.serial == selectedSerial
-            val statusText = when (device.status) {
-                "device" -> "Online"
-                "offline" -> "Offline"
-                "unauthorized" -> "Unauthorized"
-                else -> device.status
+            val statusText = when (device.state) {
+                DeviceState.ONLINE -> "Online"
+                DeviceState.OFFLINE -> "Offline"
+                DeviceState.UNAUTHORIZED -> "Unauthorized"
+                else -> device.state.name
             }
             DeviceCard(
                 deviceName = device.modelName ?: device.serial,
@@ -190,9 +191,9 @@ private fun DevicesScreenEmptyPreview() = PreviewContext {
 private fun DevicesScreenContentPreview() = PreviewContext {
     DevicesContentView(
         devices = listOf(
-            DeviceUiModel("emulator-5554", "device", CpuInfo(23.4f, 8, 2400), "Android 14", batteryLevel = 87),
-            DeviceUiModel("R5CT10ABCDE", "device", null, "Android 13", androidVersion = "14"),
-            DeviceUiModel("192.168.1.42:5555", "offline", null),
+            DeviceUiModel("emulator-5554", DeviceState.ONLINE, CpuInfo(23.4f, 8, 2400), "Android 14", batteryLevel = 87),
+            DeviceUiModel("R5CT10ABCDE", DeviceState.ONLINE, null, "Android 13", androidVersion = "14"),
+            DeviceUiModel("192.168.1.42:5555", DeviceState.OFFLINE, null),
         ),
         selectedSerial = "emulator-5554",
         onSelectDevice = {},

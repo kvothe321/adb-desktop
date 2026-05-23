@@ -7,8 +7,10 @@ import com.tlpcraft.adbdesktop.plugin.shared.library
 import com.tlpcraft.adbdesktop.plugin.shared.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.invoke
+import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 /**
@@ -16,6 +18,8 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
  *
  * The app ships on desktop only, but shared modules stay multiplatform so that pure code (domain,
  * presentation, design system) can't reach for JVM-only APIs by accident.
+ *
+ * Tests are written with Kotest, kotlinx-coroutines-test and Turbine, and run on the JUnit Platform.
  */
 class KotlinMultiplatformLibrary : Plugin<Project> {
     override fun apply(target: Project) {
@@ -31,7 +35,20 @@ class KotlinMultiplatformLibrary : Plugin<Project> {
                         // Coroutines are an intended direct dependency of every module: Flow is part of the domain contracts.
                         implementation(libs.library("kotlinx-coroutines-core"))
                     }
+                    commonTest.dependencies {
+                        implementation(libs.library("kotest-framework-engine"))
+                        implementation(libs.library("kotest-assertions-core"))
+                        implementation(libs.library("kotlinx-coroutines-test"))
+                        implementation(libs.library("turbine"))
+                    }
+                    jvmTest.dependencies {
+                        implementation(libs.library("kotest-runner-junit5"))
+                    }
                 }
+            }
+
+            tasks.withType<Test>().configureEach {
+                useJUnitPlatform()
             }
         }
     }

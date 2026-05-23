@@ -21,7 +21,10 @@ import androidx.navigation3.scene.SinglePaneSceneStrategy
 import androidx.navigation3.ui.NavDisplay
 import com.tlpcraft.adbdesktop.component.SideDrawer
 import com.tlpcraft.adbdesktop.component.TopAppBar
-import com.tlpcraft.adbdesktop.domain.model.AdbDevice
+import com.tlpcraft.adbdesktop.core.common.fold
+import com.tlpcraft.adbdesktop.core.domain.model.ConnectionType
+import com.tlpcraft.adbdesktop.core.domain.model.Device
+import com.tlpcraft.adbdesktop.core.domain.model.DeviceState
 import com.tlpcraft.adbdesktop.navigation.AppsRoute
 import com.tlpcraft.adbdesktop.navigation.DevicesRoute
 import com.tlpcraft.adbdesktop.navigation.FilesRoute
@@ -94,12 +97,12 @@ fun AppShell(isDark: Boolean, onToggleTheme: () -> Unit) {
 @Composable
 fun AppShellContent(
     selectedSection: NavKey,
-    devices: List<AdbDevice>,
-    selectedDevice: AdbDevice?,
+    devices: List<Device>,
+    selectedDevice: Device?,
     isDark: Boolean,
     onSectionSelected: (NavKey) -> Unit,
     onToggleTheme: () -> Unit,
-    onDeviceSelected: (AdbDevice) -> Unit,
+    onDeviceSelected: (Device) -> Unit,
     onDeviceDeselected: () -> Unit,
     content: @Composable () -> Unit,
 ) {
@@ -127,7 +130,7 @@ fun AppShellContent(
 private fun AppShellPreview() = PreviewContext {
     AppShellContent(
         selectedSection = DevicesRoute,
-        devices = listOf(AdbDevice("emulator-5554", "device")),
+        devices = listOf(Device("emulator-5554", DeviceState.ONLINE, ConnectionType.USB)),
         selectedDevice = null,
         isDark = false,
         onSectionSelected = {},

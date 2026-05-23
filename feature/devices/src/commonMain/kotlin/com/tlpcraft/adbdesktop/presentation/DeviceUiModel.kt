@@ -1,6 +1,7 @@
 package com.tlpcraft.adbdesktop.presentation
 
-import com.tlpcraft.adbdesktop.domain.model.CpuInfo
+import com.tlpcraft.adbdesktop.core.domain.model.CpuInfo
+import com.tlpcraft.adbdesktop.core.domain.model.DeviceState
 
 /**
  * Presentation model for a single ADB device row, bundling identity fields with
@@ -11,9 +12,12 @@ import com.tlpcraft.adbdesktop.domain.model.CpuInfo
  */
 data class DeviceUiModel(
     val serial: String,
-    val status: String,
+    val state: DeviceState,
     val cpuInfo: CpuInfo?,
     val modelName: String? = null,
     val androidVersion: String? = null,
     val batteryLevel: Int? = null,
-)
+) {
+    val isOnline: Boolean
+        get() = state == DeviceState.ONLINE
+}

@@ -57,6 +57,11 @@ val features
 
 val core
     get() = listOf(
+        "core:common",
+        "core:logger",
         "core:domain",
-        "core:data",
+        "core:testing",
+        "core:data:repository",
+        "core:data:source:adb",
+        "core:data:source:preferences",
     ).toTypedArray()

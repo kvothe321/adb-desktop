@@ -19,10 +19,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.tlpcraft.adbdesktop.domain.model.AdbDevice
-import com.tlpcraft.adbdesktop.domain.model.AppAction
-import com.tlpcraft.adbdesktop.domain.model.AppFilter
-import com.tlpcraft.adbdesktop.domain.model.AppInfo
+import com.tlpcraft.adbdesktop.core.domain.model.AppAction
+import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
+import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
+import com.tlpcraft.adbdesktop.core.domain.model.Device
 import com.tlpcraft.adbdesktop.presentation.component.AppActions
 import com.tlpcraft.adbdesktop.presentation.component.AppDetails
 import com.tlpcraft.adbdesktop.presentation.component.AppList
@@ -31,7 +31,7 @@ import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
-fun AppsScreen(selectedDevice: AdbDevice?, viewModel: AppsViewModel = koinViewModel()) {
+fun AppsScreen(selectedDevice: Device?, viewModel: AppsViewModel = koinViewModel()) {
     LaunchedEffect(selectedDevice) { viewModel.updateSelectedDevice(selectedDevice) }
     val uiState by viewModel.uiState.collectAsState()
     val selectedApp by viewModel.selectedApp.collectAsState()

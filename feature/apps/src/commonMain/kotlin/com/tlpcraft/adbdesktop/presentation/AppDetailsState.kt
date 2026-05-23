@@ -1,6 +1,6 @@
 package com.tlpcraft.adbdesktop.presentation
 
-import com.tlpcraft.adbdesktop.domain.model.AppDetails
+import com.tlpcraft.adbdesktop.core.domain.model.AppDetails
 
 sealed interface AppDetailsState {
     data object Empty : AppDetailsState
