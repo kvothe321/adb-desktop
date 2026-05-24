@@ -1,0 +1,5 @@
+<resources>
+    <string name="files_title">Files</string>
+    <string name="files_unavailable_title">File explorer is not available yet</string>
+    <string name="files_unavailable_description">Browsing, pushing and pulling files is planned next. See the roadmap in docs/ROADMAP.md.</string>
+</resources>

@@ -6,7 +6,12 @@ plugins {
 kotlin {
     sourceSets {
         commonMain.dependencies {
-            implementation(projects.core.domain)
+            implementation(libs.compose.material3)
+            implementation(libs.material.icons.core)
         }
     }
+}
+
+compose.resources {
+    packageOfResClass = "com.tlpcraft.adbdesktop.uikit.resources"
 }
