@@ -18,6 +18,20 @@ description: Use when writing or editing any Kotlin, Gradle, Markdown, strings.x
 - No section-divider comments (`// ── Helpers ──`). Split the file instead.
 - No dead code, no commented-out code. Unfinished work gets a linked note in `docs/`, not a TODO.
 
+## Idiomatic Kotlin
+
+- Expression bodies for single-expression functions; `when` over `if`/`else` chains.
+- Null safety through `?.`, `?:`, `let`/`takeIf` and smart casts, never `!!`.
+- `val` and immutable collections by default; `data class`, `sealed interface`, `enum class` and `value class`
+  to model data and states.
+- Collection operations (`map`, `filter`, `associate`, `firstOrNull`, `buildList`) over manual loops and
+  mutable accumulators, unless a loop is clearly simpler.
+- Extension functions for mappers and small helpers; named arguments when a call has several values of the
+  same type or boolean flags.
+- Scope functions only where they make the intent clearer; do not nest them.
+- `require`/`check`/`error` for preconditions, not hand-thrown `IllegalArgumentException`/`IllegalStateException`.
+- No Java-isms: no getters/setters, no static utility classes, no `Optional`, no explicit `Unit` returns.
+
 ## Punctuation
 
 - Never use the em dash character (U+2014). Use a comma, colon, parentheses or a plain hyphen.
