@@ -12,7 +12,7 @@ fun Project.ensurePreCommitGitHookInstalled() {
     if (needsUpdate) {
         installPreCommitGitHook(expectedContent)
     } else {
-        println("[BUILD LOGIC] - Git pre-commit hook is up-to-date")
+        logger.info("Git pre-commit hook is up-to-date")
     }
 }
 
@@ -28,5 +28,5 @@ private fun Project.installPreCommitGitHook(scriptContent: String) {
         }
     }
 
-    println("[BUILD LOGIC] - Installed Git pre-commit hook for ktlintFormat")
+    logger.lifecycle("Installed Git pre-commit hook for ktlintFormat")
 }

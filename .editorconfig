@@ -127,5 +127,14 @@ ktlint_standard_class-signature = disabled
 ktlint_standard_annotation = disabled
 ktlint_function_naming_ignore_when_annotated_with = Composable
 
+compose_allowed_composition_locals = LocalAppColors,LocalAppTypography,LocalAppSpacing,LocalAppShapes,LocalContentTone
+compose_view_model_factories = koinViewModel
+compose_disallow_material2 = true
+compose_allowed_from_m2 = icons.Icons,icons.filled,icons.automirrored.filled
+compose_preview_naming_enabled = true
+compose_preview_naming_strategy = suffix
+# The project's multipreview annotation is deliberately named UiKitPreview.
+ktlint_compose_preview-annotation-naming = disabled
+
 [{**/androidTest/**.kt,**/test/**.kt}]
 max_line_length = 10000
