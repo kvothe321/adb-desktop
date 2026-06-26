@@ -75,6 +75,7 @@ kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", versi
 # Plugins defined by the included build-logic
 adbdesktop-global-ktlint = { id = "com.tlpcraft.adbdesktop.plugin.convention.linting.ktlint", version = "unspecified" }
 adbdesktop-global-detekt = { id = "com.tlpcraft.adbdesktop.plugin.convention.detekt", version = "unspecified" }
+adbdesktop-module-graph = { id = "com.tlpcraft.adbdesktop.plugin.convention.graph", version = "unspecified" }
 adbdesktop-commitlint = { id = "com.tlpcraft.adbdesktop.plugin.convention.linting.commitlint", version = "unspecified" }
 adbdesktop-kotlin-multiplatform-library = { id = "com.tlpcraft.adbdesktop.plugin.convention.kotlin.multiplatform.library", version = "unspecified" }
 adbdesktop-compose-multiplatform-library = { id = "com.tlpcraft.adbdesktop.plugin.convention.compose.multiplatform.library", version = "unspecified" }
