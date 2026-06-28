@@ -35,6 +35,13 @@ Keyboard shortcuts: `Ctrl+1` Devices, `Ctrl+2` Apps, `Ctrl+3` Files (`Cmd` on ma
 `./gradlew check` must pass before every commit. The build installs two git hooks: `pre-commit` runs
 `ktlintFormat`, `commit-msg` enforces [Conventional Commits](https://www.conventionalcommits.org).
 
+## Continuous integration
+
+- [`ci.yml`](.github/workflows/ci.yml) runs `./gradlew check` on Linux, macOS and Windows for pushes to `main` and
+  for pull requests. Lint and test reports are uploaded when it fails.
+- [`package.yml`](.github/workflows/package.yml) builds the deb, dmg and msi on their native runners when a `v*` tag
+  is pushed, or on demand, and uploads them as artifacts.
+
 ## Modules
 
 ```mermaid

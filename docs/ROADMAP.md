@@ -17,4 +17,4 @@ Next features, highest priority first. Each one lands as its own feature module 
 Engineering follow-ups:
 
 - Compose UI tests for the screen contents.
-- CI workflow running `./gradlew check` on Linux, macOS and Windows, and packaging native distributions.
+- Publish the packaged installers as GitHub release assets and derive `packageVersion` from the tag.

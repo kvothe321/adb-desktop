@@ -70,6 +70,21 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "ADB Desktop"
             packageVersion = "1.0.0"
+
+            linux {
+                // Debian package names must be lowercase without spaces.
+                packageName = "adb-desktop"
+                shortcut = true
+            }
+            macOS {
+                bundleID = "com.tlpcraft.adbdesktop"
+            }
+            windows {
+                menu = true
+                shortcut = true
+                // Fixed so that newer installers upgrade an existing installation.
+                upgradeUuid = "08e86cef-7455-46d1-be02-923919d8ab5f"
+            }
         }
     }
 }
