@@ -13,6 +13,9 @@ private fun getScriptContent(isWindows: Boolean) = """
 
     echo "Running ktlint format..."
 
+    # Remember what is staged now, so formatting never pulls unrelated working-tree changes into the commit.
+    stagedFiles=${'$'}(git diff --cached --name-only --diff-filter=ACMR)
+
     ./gradlew${if (isWindows) ".bat" else ""} ktlintFormat --daemon
 
     ktlintFormatStatus=${'$'}?
@@ -27,9 +30,9 @@ private fun getScriptContent(isWindows: Boolean) = """
         exit 1
     fi
 
-    # Stage any files that ktlintFormat may have changed
-    git diff --name-only | while read file; do
-        if [ -f "${'$'}file" ]; then
+    # Re-stage the staged files that ktlintFormat changed
+    printf '%s\n' "${'$'}stagedFiles" | while IFS= read -r file; do
+        if [ -n "${'$'}file" ] && [ -f "${'$'}file" ] && ! git diff --quiet -- "${'$'}file"; then
             git add "${'$'}file"
             echo "Re-staged: ${'$'}file"
         fi
