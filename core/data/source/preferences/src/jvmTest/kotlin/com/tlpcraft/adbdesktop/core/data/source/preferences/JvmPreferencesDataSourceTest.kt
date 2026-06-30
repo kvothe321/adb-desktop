@@ -2,6 +2,7 @@ package com.tlpcraft.adbdesktop.core.data.source.preferences
 
 import app.cash.turbine.test
 import com.tlpcraft.adbdesktop.core.common.dispatcher.DispatcherProvider
+import io.kotest.core.annotation.Tags
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -10,6 +11,7 @@ import java.util.prefs.Preferences
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 
+@Tags("platform")
 class JvmPreferencesDataSourceTest : FunSpec({
     val node = Preferences.userRoot().node("com/tlpcraft/adbdesktop/test-${UUID.randomUUID()}")
     val dispatchers = object : DispatcherProvider {
