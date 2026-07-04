@@ -37,8 +37,10 @@ Keyboard shortcuts: `Ctrl+1` Devices, `Ctrl+2` Apps, `Ctrl+3` Files (`Cmd` on ma
 
 ## Continuous integration
 
-- [`ci.yml`](.github/workflows/ci.yml) runs `./gradlew check` on Linux, macOS and Windows for pushes to `main` and
-  for pull requests. Lint and test reports are uploaded when it fails.
+- [`ci.yml`](.github/workflows/ci.yml) runs `./gradlew check` once on Linux for pushes to `main` and for pull
+  requests. On macOS and Windows it runs only the specs tagged `platform`, which cover the code that depends on the
+  host (finding and running executables, the preferences store):
+  `./gradlew :core:data:source:adb:jvmTest :core:data:source:preferences:jvmTest -Pkotest.tags=platform`.
 - [`package.yml`](.github/workflows/package.yml) builds the deb, dmg and msi on their native runners when a `v*` tag
   is pushed, or on demand, and uploads them as artifacts.
 
