@@ -12,7 +12,7 @@ fun Project.ensureCommitMsgGitHookInstalled() {
     if (needsUpdate) {
         installCommitMsgGitHook(expectedContent)
     } else {
-        println("[BUILD LOGIC] - Git commit-msg hook is up-to-date")
+        logger.info("Git commit-msg hook is up-to-date")
     }
 }
 
@@ -28,5 +28,5 @@ private fun Project.installCommitMsgGitHook(scriptContent: String) {
         }
     }
 
-    println("[BUILD LOGIC] - Installed commit-msg Git hook for commit message linting")
+    logger.lifecycle("Installed commit-msg Git hook for commit message linting")
 }

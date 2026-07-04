@@ -1,0 +1,42 @@
+<resources>
+    <string name="apps_title">Apps</string>
+    <string name="apps_no_device_title">No device selected</string>
+    <string name="apps_no_device_description">Pick an online device in the sidebar to browse its apps.</string>
+    <string name="apps_search_placeholder">Search packages</string>
+    <string name="apps_filter_all">All</string>
+    <string name="apps_filter_user">User</string>
+    <string name="apps_filter_system">System</string>
+    <string name="apps_filter_disabled">Disabled</string>
+    <string name="apps_empty">No packages match</string>
+    <string name="apps_load_failed">Could not list packages</string>
+    <string name="apps_retry">Retry</string>
+    <string name="apps_details_empty_title">Select an app</string>
+    <string name="apps_details_empty_description">Pick a package from the list to see its details and actions.</string>
+    <string name="apps_details_failed">Could not load details</string>
+
+    <string name="app_detail_version">Version</string>
+    <string name="app_detail_version_code">Version code</string>
+    <string name="app_detail_target_sdk">Target SDK</string>
+    <string name="app_detail_min_sdk">Min SDK</string>
+    <string name="app_detail_installed">Installed</string>
+    <string name="app_detail_updated">Updated</string>
+    <string name="app_detail_apk_size">APK size</string>
+    <string name="app_detail_data_size">Data size</string>
+    <string name="app_detail_cache_size">Cache size</string>
+    <string name="app_detail_unknown">Unknown</string>
+
+    <string name="app_action_open">Open</string>
+    <string name="app_action_force_stop">Force stop</string>
+    <string name="app_action_clear_cache">Clear cache</string>
+    <string name="app_action_clear_data">Clear data</string>
+    <string name="app_action_uninstall">Uninstall</string>
+
+    <string name="app_confirm_clear_data_title">Clear app data?</string>
+    <string name="app_confirm_clear_data_message">All data of %1$s will be deleted, including accounts and settings.</string>
+    <string name="app_confirm_uninstall_title">Uninstall app?</string>
+    <string name="app_confirm_uninstall_message">%1$s and its data will be removed from the device.</string>
+    <string name="app_confirm_cancel">Cancel</string>
+
+    <string name="message_action_succeeded">%1$s: %2$s</string>
+    <string name="message_action_failed">%1$s failed for %2$s</string>
+</resources>

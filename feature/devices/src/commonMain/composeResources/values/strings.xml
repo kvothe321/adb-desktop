@@ -1,0 +1,57 @@
+<resources>
+    <string name="devices_title">Devices</string>
+    <string name="devices_connect_wifi">Connect over Wi-Fi</string>
+    <string name="devices_loading">Looking for devices</string>
+    <string name="devices_empty_title">No devices</string>
+    <string name="devices_empty_description">Plug in a device with USB debugging enabled, start an emulator, or connect over Wi-Fi.</string>
+    <string name="devices_retry">Retry</string>
+    <string name="devices_unavailable_title">Cannot reach adb</string>
+    <string name="devices_adb_missing_title">adb not found</string>
+    <string name="devices_adb_missing_description">Install Android platform-tools, set ANDROID_HOME, or choose the adb executable below.</string>
+    <string name="devices_adb_invalid_title">The configured adb path does not work</string>
+    <string name="devices_adb_invalid_description">%1$s is not an executable file. Choose another one, or clear the field to detect adb automatically.</string>
+    <string name="devices_adb_path_label">adb executable</string>
+    <string name="devices_adb_path_placeholder">/path/to/platform-tools/adb</string>
+    <string name="devices_adb_path_save">Use this path</string>
+
+    <string name="device_state_online">Online</string>
+    <string name="device_state_offline">Offline</string>
+    <string name="device_state_unauthorized">Unauthorized</string>
+    <string name="device_state_authorizing">Authorizing</string>
+    <string name="device_state_connecting">Connecting</string>
+    <string name="device_state_no_permissions">No permissions</string>
+    <string name="device_state_bootloader">Bootloader</string>
+    <string name="device_state_recovery">Recovery</string>
+    <string name="device_state_sideload">Sideload</string>
+    <string name="device_state_unknown">Unknown</string>
+    <string name="device_connection_usb">USB</string>
+    <string name="device_connection_wireless">Wi-Fi</string>
+    <string name="device_connection_emulator">Emulator</string>
+    <string name="device_android_version">Android %1$s</string>
+    <string name="device_battery">Battery</string>
+    <string name="device_cpu">CPU</string>
+    <string name="device_disconnect">Disconnect</string>
+    <string name="device_unauthorized_hint">Accept the debugging prompt on the device.</string>
+
+    <string name="connect_title">Connect over Wi-Fi</string>
+    <string name="connect_mode_connect">Connect</string>
+    <string name="connect_mode_pair">Pair with code</string>
+    <string name="connect_address_label">IP address and port</string>
+    <string name="connect_address_placeholder">192.168.1.42:5555</string>
+    <string name="connect_pairing_address_label">Pairing IP address and port</string>
+    <string name="connect_pairing_address_placeholder">192.168.1.42:37123</string>
+    <string name="connect_pairing_code_label">Pairing code</string>
+    <string name="connect_pairing_code_placeholder">123456</string>
+    <string name="connect_hint_connect">Enable Wireless debugging on the device. Port 5555 is used when none is given.</string>
+    <string name="connect_hint_pair">On the device, open Wireless debugging, choose "Pair device with pairing code" and enter the address and code it shows.</string>
+    <string name="connect_error_address">Enter an address such as 192.168.1.42:5555</string>
+    <string name="connect_error_code">The pairing code has 6 digits</string>
+    <string name="connect_cancel">Cancel</string>
+    <string name="connect_submit">Connect</string>
+    <string name="connect_pair_submit">Pair</string>
+
+    <string name="message_connected">Connected to %1$s</string>
+    <string name="message_paired">Paired with %1$s</string>
+    <string name="message_disconnected">Disconnected %1$s</string>
+    <string name="message_disconnect_failed">Could not disconnect %1$s</string>
+</resources>
