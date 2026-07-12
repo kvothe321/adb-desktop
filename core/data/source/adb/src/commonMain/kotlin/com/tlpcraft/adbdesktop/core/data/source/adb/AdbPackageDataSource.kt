@@ -10,4 +10,7 @@ interface AdbPackageDataSource {
     suspend fun readPackageDetails(serial: String, packageName: String): PackageDetailsDto
 
     suspend fun runAction(serial: String, packageName: String, action: PackageActionDto)
+
+    /** Installs one APK, or several as the splits of a single app. Replaces an existing installation. */
+    suspend fun install(serial: String, apkPaths: List<String>)
 }

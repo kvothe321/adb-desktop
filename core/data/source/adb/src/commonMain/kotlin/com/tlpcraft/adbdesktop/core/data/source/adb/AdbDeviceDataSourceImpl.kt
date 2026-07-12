@@ -2,7 +2,9 @@ package com.tlpcraft.adbdesktop.core.data.source.adb
 
 import com.tlpcraft.adbdesktop.core.data.source.adb.client.AdbClient
 import com.tlpcraft.adbdesktop.core.data.source.adb.dto.DeviceDto
+import com.tlpcraft.adbdesktop.core.data.source.adb.dto.MdnsServiceDto
 import com.tlpcraft.adbdesktop.core.data.source.adb.parser.DeviceListParser
+import com.tlpcraft.adbdesktop.core.data.source.adb.parser.MdnsServicesParser
 import com.tlpcraft.adbdesktop.core.data.source.adb.parser.TrackDevicesDecoder
 import com.tlpcraft.adbdesktop.core.data.source.adb.parser.WirelessOutputParser
 import kotlinx.coroutines.flow.Flow
@@ -34,4 +36,6 @@ class AdbDeviceDataSourceImpl(private val client: AdbClient) : AdbDeviceDataSour
         val output = client.execute("pair", address, pairingCode).let { it.stdout + it.stderr }
         if (!WirelessOutputParser.isPairSuccess(output)) throw AdbException.PairFailed(WirelessOutputParser.failureReason(output))
     }
+
+    override suspend fun discoverServices(): List<MdnsServiceDto> = MdnsServicesParser.parse(client.run(listOf("mdns", "services")))
 }

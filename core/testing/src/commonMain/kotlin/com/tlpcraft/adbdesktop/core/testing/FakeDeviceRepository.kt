@@ -4,6 +4,7 @@ import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.Device
 import com.tlpcraft.adbdesktop.core.domain.model.WirelessEndpoint
+import com.tlpcraft.adbdesktop.core.domain.model.WirelessService
 import com.tlpcraft.adbdesktop.core.domain.repository.DeviceRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,8 @@ class FakeDeviceRepository(initialDevices: List<Device> = emptyList()) : DeviceR
     var connectResult: Outcome<Unit, DeviceError> = Outcome.Success(Unit)
     var disconnectResult: Outcome<Unit, DeviceError> = Outcome.Success(Unit)
     var pairResult: Outcome<Unit, DeviceError> = Outcome.Success(Unit)
+
+    var discoveredServices: List<WirelessService> = emptyList()
 
     val connectedEndpoints = mutableListOf<WirelessEndpoint>()
     val disconnectedSerials = mutableListOf<String>()
@@ -34,4 +37,6 @@ class FakeDeviceRepository(initialDevices: List<Device> = emptyList()) : DeviceR
         pairings += endpoint to pairingCode
         return pairResult
     }
+
+    override suspend fun discoverWirelessServices(): Outcome<List<WirelessService>, DeviceError> = Outcome.Success(discoveredServices)
 }

@@ -4,6 +4,7 @@ import com.tlpcraft.adbdesktop.core.data.source.adb.client.AdbClient
 import com.tlpcraft.adbdesktop.core.data.source.adb.dto.PackageActionDto
 import com.tlpcraft.adbdesktop.core.data.source.adb.dto.PackageDetailsDto
 import com.tlpcraft.adbdesktop.core.data.source.adb.dto.PackageFilterDto
+import com.tlpcraft.adbdesktop.core.data.source.adb.parser.InstallOutputParser
 import com.tlpcraft.adbdesktop.core.data.source.adb.parser.PackageDumpParser
 import com.tlpcraft.adbdesktop.core.data.source.adb.parser.PackageListParser
 import com.tlpcraft.adbdesktop.core.data.source.adb.parser.ShellFailureParser
@@ -38,6 +39,16 @@ class AdbPackageDataSourceImpl(private val client: AdbClient) : AdbPackageDataSo
         val output = client.shell(serial, args)
         if (action != PackageActionDto.LAUNCH && ShellFailureParser.isFailure(output)) {
             throw AdbException.CommandFailed(listOf("shell") + args, exitCode = 0, output = output.trim())
+        }
+    }
+
+    override suspend fun install(serial: String, apkPaths: List<String>) {
+        val command = if (apkPaths.size == 1) "install" else "install-multiple"
+        val args = listOf("-s", serial, command, "-r") + apkPaths
+        val result = client.execute(args)
+        val output = result.stdout + result.stderr
+        if (!InstallOutputParser.isSuccess(output)) {
+            throw AdbException.CommandFailed(args, result.exitCode, InstallOutputParser.failureReason(output))
         }
     }
 

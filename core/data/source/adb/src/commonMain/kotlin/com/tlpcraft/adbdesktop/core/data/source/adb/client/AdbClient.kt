@@ -16,7 +16,9 @@ class AdbClient(
     private val logger: AppLogger,
 ) {
     /** Runs a command and returns its result without judging the exit code. */
-    suspend fun execute(vararg args: String): CommandResult = executor.execute(command(args.asList()))
+    suspend fun execute(vararg args: String): CommandResult = execute(args.asList())
+
+    suspend fun execute(args: List<String>): CommandResult = executor.execute(command(args))
 
     /** Runs a command and returns stdout, failing on a non-zero exit code. */
     suspend fun run(args: List<String>): String {

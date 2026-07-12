@@ -8,4 +8,8 @@ interface PreferencesDataSource {
     suspend fun readAdbPath(): String?
 
     suspend fun writeAdbPath(path: String?)
+
+    fun observeThemeMode(): Flow<String?>
+
+    suspend fun writeThemeMode(mode: String)
 }
