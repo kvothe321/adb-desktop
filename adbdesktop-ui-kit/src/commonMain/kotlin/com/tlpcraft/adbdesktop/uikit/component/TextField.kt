@@ -11,8 +11,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -27,7 +31,8 @@ import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
 
 /**
  * Single-line text input. [error] replaces the hint below the field and colors the border.
- * Pressing Enter calls [onSubmit]. `modifier` is for layout only.
+ * Enter calls [onSubmit]; the Up and Down keys call [onArrowUp] and [onArrowDown] when set, for command
+ * history. With [autoFocus] the field takes the keyboard focus when it appears. `modifier` is for layout only.
  */
 @Composable
 fun TextField(
@@ -40,11 +45,19 @@ fun TextField(
     leadingIcon: IconName? = null,
     monospace: Boolean = false,
     enabled: Boolean = true,
+    autoFocus: Boolean = false,
     onSubmit: (() -> Unit)? = null,
+    onArrowUp: (() -> Unit)? = null,
+    onArrowDown: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
     val textStyle = if (monospace) AppTheme.typography.mono else AppTheme.typography.body
     val borderColor = if (error != null) AppTheme.colors.error else AppTheme.colors.border
+    val focusRequester = remember { FocusRequester() }
+
+    LaunchedEffect(autoFocus) {
+        if (autoFocus) focusRequester.requestFocus()
+    }
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.xs)) {
         if (label != null) Text(label, variant = TextVariant.Label, emphasis = TextEmphasis.Medium)
@@ -57,11 +70,17 @@ fun TextField(
             cursorBrush = SolidColor(AppTheme.colors.accent),
             modifier = Modifier
                 .fillMaxWidth()
+                .focusRequester(focusRequester)
                 .onPreviewKeyEvent { event ->
-                    val submit = onSubmit
-                    val isSubmit = submit != null && event.key == Key.Enter && event.type == KeyEventType.KeyDown
-                    if (isSubmit) submit()
-                    isSubmit
+                    val action = when (event.key) {
+                        Key.Enter -> onSubmit
+                        Key.DirectionUp -> onArrowUp
+                        Key.DirectionDown -> onArrowDown
+                        else -> null
+                    }
+                    val handled = action != null && event.type == KeyEventType.KeyDown
+                    if (handled) action()
+                    handled
                 },
             decorationBox = { innerTextField ->
                 Row(

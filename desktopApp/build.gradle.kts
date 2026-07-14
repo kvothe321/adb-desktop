@@ -23,6 +23,10 @@ dependencies {
     implementation(projects.feature.devices)
     implementation(projects.feature.apps)
     implementation(projects.feature.files)
+    implementation(projects.feature.logcat)
+    implementation(projects.feature.shell)
+    implementation(projects.feature.screen)
+    implementation(projects.feature.settings)
 
     implementation(compose.desktop.currentOs)
     implementation(libs.kotlinx.coroutines.swing)
@@ -68,6 +72,8 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            // jlink only bundles what is listed here; the settings store needs java.prefs at runtime.
+            modules("java.prefs")
             packageName = "ADB Desktop"
             packageVersion = "1.0.0"
 

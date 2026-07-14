@@ -17,4 +17,6 @@ sealed interface AppsIntent {
     data object ActionCancelled : AppsIntent
 
     data object RetryClicked : AppsIntent
+
+    data object InstallClicked : AppsIntent
 }

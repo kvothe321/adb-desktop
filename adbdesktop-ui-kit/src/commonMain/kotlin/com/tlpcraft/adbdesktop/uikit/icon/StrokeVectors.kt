@@ -211,3 +211,103 @@ internal val TerminalVector: ImageVector by lazy {
         },
     )
 }
+
+internal val CameraVector: ImageVector by lazy {
+    strokeIcon(
+        "Camera",
+        {
+            moveTo(3f, 7f)
+            horizontalLineTo(7.5f)
+            lineTo(9f, 4.5f)
+            horizontalLineTo(15f)
+            lineTo(16.5f, 7f)
+            horizontalLineTo(21f)
+            verticalLineTo(19.5f)
+            horizontalLineTo(3f)
+            close()
+        },
+        {
+            moveTo(12f, 9f)
+            arcTo(4f, 4f, 0f, isMoreThanHalf = true, isPositiveArc = true, x1 = 12f, y1 = 17f)
+            arcTo(4f, 4f, 0f, isMoreThanHalf = true, isPositiveArc = true, x1 = 12f, y1 = 9f)
+            close()
+        },
+    )
+}
+
+internal val FileVector: ImageVector by lazy {
+    strokeIcon(
+        "File",
+        {
+            moveTo(14f, 2.5f)
+            horizontalLineTo(6f)
+            verticalLineTo(21.5f)
+            horizontalLineTo(18f)
+            verticalLineTo(6.5f)
+            close()
+        },
+        {
+            moveTo(14f, 2.5f)
+            verticalLineTo(6.5f)
+            horizontalLineTo(18f)
+        },
+    )
+}
+
+internal val DownloadVector: ImageVector by lazy {
+    strokeIcon(
+        "Download",
+        {
+            moveTo(12f, 3f)
+            verticalLineTo(15f)
+            moveTo(7f, 10.5f)
+            lineTo(12f, 15.5f)
+            lineTo(17f, 10.5f)
+        },
+        {
+            moveTo(4f, 20.5f)
+            horizontalLineTo(20f)
+        },
+    )
+}
+
+internal val UploadVector: ImageVector by lazy {
+    strokeIcon(
+        "Upload",
+        {
+            moveTo(12f, 16f)
+            verticalLineTo(4f)
+            moveTo(7f, 8.5f)
+            lineTo(12f, 3.5f)
+            lineTo(17f, 8.5f)
+        },
+        {
+            moveTo(4f, 20.5f)
+            horizontalLineTo(20f)
+        },
+    )
+}
+
+internal val PauseVector: ImageVector by lazy {
+    strokeIcon(
+        "Pause",
+        {
+            moveTo(8.5f, 5f)
+            verticalLineTo(19f)
+        },
+        {
+            moveTo(15.5f, 5f)
+            verticalLineTo(19f)
+        },
+    )
+}
+
+internal val StopVector: ImageVector by lazy {
+    strokeIcon("Stop", {
+        moveTo(6f, 6f)
+        horizontalLineTo(18f)
+        verticalLineTo(18f)
+        horizontalLineTo(6f)
+        close()
+    })
+}

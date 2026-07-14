@@ -36,6 +36,7 @@
     <string name="connect_title">Connect over Wi-Fi</string>
     <string name="connect_mode_connect">Connect</string>
     <string name="connect_mode_pair">Pair with code</string>
+    <string name="connect_discovered">Found on this network</string>
     <string name="connect_address_label">IP address and port</string>
     <string name="connect_address_placeholder">192.168.1.42:5555</string>
     <string name="connect_pairing_address_label">Pairing IP address and port</string>

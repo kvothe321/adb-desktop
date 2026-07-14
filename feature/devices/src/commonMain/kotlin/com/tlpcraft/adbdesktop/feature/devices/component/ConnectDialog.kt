@@ -1,9 +1,12 @@
 package com.tlpcraft.adbdesktop.feature.devices.component
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
+import com.tlpcraft.adbdesktop.core.domain.model.WirelessService
 import com.tlpcraft.adbdesktop.feature.devices.contract.ConnectFormError
 import com.tlpcraft.adbdesktop.feature.devices.contract.ConnectFormState
 import com.tlpcraft.adbdesktop.feature.devices.contract.ConnectMode
@@ -11,6 +14,7 @@ import com.tlpcraft.adbdesktop.feature.devices.resources.Res
 import com.tlpcraft.adbdesktop.feature.devices.resources.connect_address_label
 import com.tlpcraft.adbdesktop.feature.devices.resources.connect_address_placeholder
 import com.tlpcraft.adbdesktop.feature.devices.resources.connect_cancel
+import com.tlpcraft.adbdesktop.feature.devices.resources.connect_discovered
 import com.tlpcraft.adbdesktop.feature.devices.resources.connect_error_address
 import com.tlpcraft.adbdesktop.feature.devices.resources.connect_error_code
 import com.tlpcraft.adbdesktop.feature.devices.resources.connect_hint_connect
@@ -28,6 +32,7 @@ import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.Chip
 import com.tlpcraft.adbdesktop.uikit.component.Dialog
+import com.tlpcraft.adbdesktop.uikit.component.ListRow
 import com.tlpcraft.adbdesktop.uikit.component.Text
 import com.tlpcraft.adbdesktop.uikit.component.TextEmphasis
 import com.tlpcraft.adbdesktop.uikit.component.TextField
@@ -69,6 +74,7 @@ internal fun ConnectDialog(
             Chip(stringResource(Res.string.connect_mode_pair), selected = isPairing, onClick = { onModeSelect(ConnectMode.Pair) })
         }
         Text(stringResource(if (isPairing) Res.string.connect_hint_pair else Res.string.connect_hint_connect), emphasis = TextEmphasis.Medium)
+        if (form.suggestions.isNotEmpty()) DiscoveredDevices(services = form.suggestions, onSelect = onAddressChange)
         TextField(
             value = form.address,
             onValueChange = onAddressChange,
@@ -93,11 +99,32 @@ internal fun ConnectDialog(
     }
 }
 
+@Composable
+private fun DiscoveredDevices(services: List<WirelessService>, onSelect: (String) -> Unit) {
+    Column {
+        Text(stringResource(Res.string.connect_discovered), variant = TextVariant.Label, emphasis = TextEmphasis.Medium)
+        services.forEach { service ->
+            key(service.address) {
+                ListRow(
+                    headline = service.name,
+                    supporting = service.address,
+                    monospaceSupporting = true,
+                    onClick = { onSelect(service.address) },
+                )
+            }
+        }
+    }
+}
+
 @UiKitPreview
 @Composable
 private fun ConnectDialogConnectPreview() = PreviewContext {
     ConnectDialog(
-        form = ConnectFormState(address = "192.168.1.42", error = ConnectFormError.Failed("Connection refused")),
+        form = ConnectFormState(
+            address = "192.168.1.42",
+            error = ConnectFormError.Failed("Connection refused"),
+            discovered = listOf(WirelessService("adb-R5CT10ABCDE", "192.168.1.42:37000", WirelessService.Kind.CONNECT)),
+        ),
         onModeSelect = {},
         onAddressChange = {},
         onPairingCodeChange = {},

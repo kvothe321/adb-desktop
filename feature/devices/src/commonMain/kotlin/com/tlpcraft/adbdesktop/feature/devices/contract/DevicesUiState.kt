@@ -2,6 +2,7 @@ package com.tlpcraft.adbdesktop.feature.devices.contract
 
 import com.tlpcraft.adbdesktop.core.domain.model.ConnectionType
 import com.tlpcraft.adbdesktop.core.domain.model.DeviceState
+import com.tlpcraft.adbdesktop.core.domain.model.WirelessService
 
 data class DevicesUiState(
     val list: DeviceListState = DeviceListState.Loading,
@@ -57,9 +58,14 @@ data class ConnectFormState(
     val pairingCode: String = "",
     val inProgress: Boolean = false,
     val error: ConnectFormError? = null,
+    val discovered: List<WirelessService> = emptyList(),
 ) {
     val canSubmit: Boolean
         get() = !inProgress && address.isNotBlank() && (mode == ConnectMode.Connect || pairingCode.isNotBlank())
+
+    /** Devices offering what the current mode needs. */
+    val suggestions: List<WirelessService>
+        get() = discovered.filter { (it.kind == WirelessService.Kind.PAIRING) == (mode == ConnectMode.Pair) }
 }
 
 sealed interface ConnectFormError {

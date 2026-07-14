@@ -3,6 +3,10 @@
     <string name="section_devices">Devices</string>
     <string name="section_apps">Apps</string>
     <string name="section_files">Files</string>
+    <string name="section_logcat">Logcat</string>
+    <string name="section_shell">Shell</string>
+    <string name="section_screen">Screen</string>
+    <string name="section_settings">Settings</string>
     <string name="shortcut_ctrl">Ctrl+%1$d</string>
     <string name="shortcut_cmd">Cmd+%1$d</string>
     <string name="device_picker_placeholder">Select a device</string>

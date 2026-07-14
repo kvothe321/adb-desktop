@@ -6,8 +6,10 @@ import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.CpuInfo
 import com.tlpcraft.adbdesktop.core.domain.model.DeviceInfo
 import com.tlpcraft.adbdesktop.core.domain.model.WirelessEndpoint
+import com.tlpcraft.adbdesktop.core.domain.model.WirelessService
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ConnectWirelessDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.DisconnectDeviceUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.device.DiscoverWirelessDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveCpuInfoUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDeviceInfoUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
@@ -63,6 +65,7 @@ class DevicesViewModelTest : FunSpec({
             connectWirelessDevice = ConnectWirelessDeviceUseCase(devices),
             pairWirelessDevice = PairWirelessDeviceUseCase(devices),
             disconnectDevice = DisconnectDeviceUseCase(devices),
+            discoverWirelessDevices = DiscoverWirelessDevicesUseCase(devices),
             setAdbPathOverride = SetAdbPathOverrideUseCase(settings),
         )
     }
@@ -150,6 +153,18 @@ class DevicesViewModelTest : FunSpec({
             val form = fixture.viewModel.uiState.value.connectForm
             form?.error shouldBe ConnectFormError.Failed("Connection refused")
             form?.inProgress?.shouldBeFalse()
+        }
+
+        test("suggests discovered devices that fit the current mode") {
+            val connect = WirelessService("phone", "10.0.0.2:37000", WirelessService.Kind.CONNECT)
+            val pairing = WirelessService("phone", "10.0.0.2:41567", WirelessService.Kind.PAIRING)
+            val fixture = Fixture().apply { devices.discoveredServices = listOf(connect, pairing) }
+
+            fixture.viewModel.reduceIntent(DevicesIntent.ConnectFormOpened)
+            fixture.viewModel.uiState.value.connectForm?.suggestions shouldBe listOf(connect)
+
+            fixture.viewModel.reduceIntent(DevicesIntent.ConnectModeSelected(ConnectMode.Pair))
+            fixture.viewModel.uiState.value.connectForm?.suggestions shouldBe listOf(pairing)
         }
 
         test("pairing needs a code before it can be submitted") {

@@ -1,6 +1,7 @@
 package com.tlpcraft.adbdesktop.shell
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,9 +25,9 @@ import com.tlpcraft.adbdesktop.resources.shortcut_cmd
 import com.tlpcraft.adbdesktop.resources.shortcut_ctrl
 import com.tlpcraft.adbdesktop.resources.theme_switch_to_dark
 import com.tlpcraft.adbdesktop.resources.theme_switch_to_light
+import com.tlpcraft.adbdesktop.shell.contract.AppShellIntent
+import com.tlpcraft.adbdesktop.shell.contract.AppShellUiState
 import com.tlpcraft.adbdesktop.shell.contract.DeviceOption
-import com.tlpcraft.adbdesktop.shell.contract.ShellIntent
-import com.tlpcraft.adbdesktop.shell.contract.ShellUiState
 import com.tlpcraft.adbdesktop.uikit.component.Dropdown
 import com.tlpcraft.adbdesktop.uikit.component.IconButton
 import com.tlpcraft.adbdesktop.uikit.component.MessageHostState
@@ -53,39 +54,39 @@ import org.koin.compose.viewmodel.koinViewModel
 fun AppShellScreen(
     currentSection: Section,
     onSectionSelect: (Section) -> Unit,
-    isDarkTheme: Boolean,
-    onThemeToggle: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: ShellViewModel = koinViewModel(),
+    viewModel: AppShellViewModel = koinViewModel(),
     content: @Composable (onShowMessage: (String) -> Unit) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val messageHostState = rememberMessageHostState()
     val scope = rememberCoroutineScope()
 
-    AppShellContent(
-        uiState = uiState,
-        currentSection = currentSection,
-        isDarkTheme = isDarkTheme,
-        messageHostState = messageHostState,
-        onIntent = viewModel::reduceIntent,
-        onSectionSelect = onSectionSelect,
-        onThemeToggle = onThemeToggle,
-        modifier = modifier,
-    ) {
-        content { message -> scope.launch { messageHostState.show(message) } }
+    val isDarkTheme = uiState.isDarkTheme(isSystemDark = isSystemInDarkTheme())
+
+    AppTheme(darkTheme = isDarkTheme) {
+        AppShellContent(
+            uiState = uiState,
+            currentSection = currentSection,
+            isDarkTheme = isDarkTheme,
+            messageHostState = messageHostState,
+            onIntent = viewModel::reduceIntent,
+            onSectionSelect = onSectionSelect,
+            modifier = modifier,
+        ) {
+            content { message -> scope.launch { messageHostState.show(message) } }
+        }
     }
 }
 
 @Composable
 fun AppShellContent(
-    uiState: ShellUiState,
+    uiState: AppShellUiState,
     currentSection: Section,
     isDarkTheme: Boolean,
     messageHostState: MessageHostState,
-    onIntent: (ShellIntent) -> Unit,
+    onIntent: (AppShellIntent) -> Unit,
     onSectionSelect: (Section) -> Unit,
-    onThemeToggle: () -> Unit,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit,
 ) {
@@ -94,8 +95,8 @@ fun AppShellContent(
         messageHostState = messageHostState,
         sidebar = {
             Sidebar(
-                header = { SidebarHeader(uiState = uiState, onDeviceSelect = { onIntent(ShellIntent.DeviceSelected(it.serial)) }) },
-                footer = { ThemeToggle(isDarkTheme = isDarkTheme, onThemeToggle = onThemeToggle) },
+                header = { SidebarHeader(uiState = uiState, onDeviceSelect = { onIntent(AppShellIntent.DeviceSelected(it.serial)) }) },
+                footer = { ThemeToggle(isDarkTheme = isDarkTheme, onThemeToggle = { onIntent(AppShellIntent.ThemeToggled(isDarkTheme)) }) },
             ) {
                 Section.entries.forEach { section ->
                     SidebarItem(
@@ -113,7 +114,7 @@ fun AppShellContent(
 }
 
 @Composable
-private fun SidebarHeader(uiState: ShellUiState, onDeviceSelect: (DeviceOption) -> Unit) {
+private fun SidebarHeader(uiState: AppShellUiState, onDeviceSelect: (DeviceOption) -> Unit) {
     Column(verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.md)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm)) {
             Image(painterResource(Res.drawable.app_logo), contentDescription = null, modifier = Modifier.size(28.dp))
@@ -146,12 +147,11 @@ private fun ThemeToggle(isDarkTheme: Boolean, onThemeToggle: () -> Unit) {
 @Composable
 private fun AppShellContentPreview() = PreviewContext {
     AppShellContent(
-        uiState = ShellUiState(devices = listOf(DeviceOption("R5CT10ABCDE", "SM-A525F")), selectedSerial = "R5CT10ABCDE"),
+        uiState = AppShellUiState(devices = listOf(DeviceOption("R5CT10ABCDE", "SM-A525F")), selectedSerial = "R5CT10ABCDE"),
         currentSection = Section.Devices,
         isDarkTheme = false,
         messageHostState = rememberMessageHostState(),
         onIntent = {},
         onSectionSelect = {},
-        onThemeToggle = {},
     ) {}
 }

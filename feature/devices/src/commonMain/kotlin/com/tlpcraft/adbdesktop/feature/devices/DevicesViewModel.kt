@@ -8,6 +8,7 @@ import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.Device
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ConnectWirelessDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.DisconnectDeviceUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.device.DiscoverWirelessDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveCpuInfoUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDeviceInfoUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
@@ -51,6 +52,7 @@ class DevicesViewModel(
     private val connectWirelessDevice: ConnectWirelessDeviceUseCase,
     private val pairWirelessDevice: PairWirelessDeviceUseCase,
     private val disconnectDevice: DisconnectDeviceUseCase,
+    private val discoverWirelessDevices: DiscoverWirelessDevicesUseCase,
     private val setAdbPathOverride: SetAdbPathOverrideUseCase,
 ) : ViewModel() {
 
@@ -75,12 +77,19 @@ class DevicesViewModel(
             is DevicesIntent.DisconnectClicked -> disconnect(intent.serial)
             is DevicesIntent.AdbPathChanged -> _uiState.update { it.copy(adbPathInput = intent.value) }
             DevicesIntent.AdbPathSubmitted -> saveAdbPath()
-            DevicesIntent.ConnectFormOpened -> _uiState.update { it.copy(connectForm = ConnectFormState()) }
+            DevicesIntent.ConnectFormOpened -> openConnectForm()
             DevicesIntent.ConnectFormDismissed -> _uiState.update { it.copy(connectForm = null) }
             is DevicesIntent.ConnectModeSelected -> updateForm { it.copy(mode = intent.mode, error = null) }
             is DevicesIntent.AddressChanged -> updateForm { it.copy(address = intent.value, error = null) }
             is DevicesIntent.PairingCodeChanged -> updateForm { it.copy(pairingCode = intent.value, error = null) }
             DevicesIntent.ConnectSubmitted -> submitConnectForm()
+        }
+    }
+
+    private fun openConnectForm() {
+        _uiState.update { it.copy(connectForm = ConnectFormState()) }
+        viewModelScope.launch {
+            discoverWirelessDevices(Unit).getOrNull()?.let { services -> updateForm { it.copy(discovered = services) } }
         }
     }
 

@@ -19,11 +19,16 @@ import com.tlpcraft.adbdesktop.feature.apps.contract.AppsIntent
 import com.tlpcraft.adbdesktop.feature.apps.contract.AppsSideEffect
 import com.tlpcraft.adbdesktop.feature.apps.contract.AppsUiState
 import com.tlpcraft.adbdesktop.feature.apps.resources.Res
+import com.tlpcraft.adbdesktop.feature.apps.resources.apps_install
 import com.tlpcraft.adbdesktop.feature.apps.resources.apps_no_device_description
 import com.tlpcraft.adbdesktop.feature.apps.resources.apps_no_device_title
 import com.tlpcraft.adbdesktop.feature.apps.resources.apps_title
 import com.tlpcraft.adbdesktop.feature.apps.resources.message_action_failed
 import com.tlpcraft.adbdesktop.feature.apps.resources.message_action_succeeded
+import com.tlpcraft.adbdesktop.feature.apps.resources.message_install_failed
+import com.tlpcraft.adbdesktop.feature.apps.resources.message_installed
+import com.tlpcraft.adbdesktop.uikit.component.Button
+import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.EmptyState
 import com.tlpcraft.adbdesktop.uikit.component.SplitPane
 import com.tlpcraft.adbdesktop.uikit.component.TopBar
@@ -50,7 +55,17 @@ fun AppsScreen(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier, v
 @Composable
 fun AppsContent(uiState: AppsUiState, onIntent: (AppsIntent) -> Unit, modifier: Modifier = Modifier) {
     Column(modifier.fillMaxSize()) {
-        TopBar(title = stringResource(Res.string.apps_title))
+        TopBar(title = stringResource(Res.string.apps_title)) {
+            if (uiState.serial != null) {
+                Button(
+                    text = stringResource(Res.string.apps_install),
+                    onClick = { onIntent(AppsIntent.InstallClicked) },
+                    variant = ButtonVariant.Primary,
+                    icon = IconName.Upload,
+                    loading = uiState.isInstalling,
+                )
+            }
+        }
         Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) {
             if (uiState.list == AppListState.NoDevice) {
                 EmptyState(
@@ -99,6 +114,8 @@ fun AppsContent(uiState: AppsUiState, onIntent: (AppsIntent) -> Unit, modifier: 
 private suspend fun AppsSideEffect.message(): String = when (this) {
     is AppsSideEffect.ActionSucceeded -> getString(Res.string.message_action_succeeded, getString(action.label), packageName)
     is AppsSideEffect.ActionFailed -> getString(Res.string.message_action_failed, getString(action.label), packageName)
+    is AppsSideEffect.Installed -> getString(Res.string.message_installed, fileCount)
+    is AppsSideEffect.InstallFailed -> getString(Res.string.message_install_failed, reason)
 }
 
 @UiKitPreview
