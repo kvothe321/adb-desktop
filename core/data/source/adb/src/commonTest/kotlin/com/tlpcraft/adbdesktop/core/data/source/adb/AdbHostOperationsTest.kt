@@ -117,7 +117,7 @@ class AdbHostOperationsTest : FunSpec({
 
     context("install") {
         test("several APKs install as one app") {
-            val executor = FakeCommandExecutor().apply { respond("-s", "pixel", "install-multiple", "-r", "a.apk", "b.apk", stdout = "Success\n") }
+            val executor = FakeCommandExecutor().apply { respond("-s", "pixel", "install-multiple", "-r", "-t", "a.apk", "b.apk", stdout = "Success\n") }
 
             AdbPackageDataSourceImpl(testAdbClient(executor)).install("pixel", listOf("a.apk", "b.apk"))
         }
@@ -129,6 +129,7 @@ class AdbHostOperationsTest : FunSpec({
                     "pixel",
                     "install",
                     "-r",
+                    "-t",
                     "a.apk",
                     stderr = "adb: failed to install a.apk: Failure [INSTALL_FAILED_OLDER_SDK: nope]",
                     exitCode = 1,
