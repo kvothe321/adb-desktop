@@ -91,6 +91,10 @@ class StreamingParsersTest : FunSpec({
         InstallOutputParser.failureReason("adb: failed to install a.apk: Failure [INSTALL_FAILED_OLDER_SDK: nope]") shouldBe "INSTALL_FAILED_OLDER_SDK: nope"
     }
 
+    test("an install that crashes reports the root cause, not the stack trace") {
+        InstallOutputParser.failureReason(AdbOutputs.INSTALL_EXCEPTION) shouldBe "Requested internal only, but not enough space"
+    }
+
     test("shell quoting survives spaces and quotes") {
         "/sdcard/it's a file".shellQuoted() shouldBe "'/sdcard/it'\\''s a file'"
     }

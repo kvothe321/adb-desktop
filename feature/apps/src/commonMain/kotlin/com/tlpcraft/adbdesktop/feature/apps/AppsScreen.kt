@@ -113,7 +113,7 @@ fun AppsContent(uiState: AppsUiState, onIntent: (AppsIntent) -> Unit, modifier: 
 
 private suspend fun AppsSideEffect.message(): String = when (this) {
     is AppsSideEffect.ActionSucceeded -> getString(Res.string.message_action_succeeded, getString(action.label), packageName)
-    is AppsSideEffect.ActionFailed -> getString(Res.string.message_action_failed, getString(action.label), packageName)
+    is AppsSideEffect.ActionFailed -> getString(Res.string.message_action_failed, getString(action.label), packageName, reason)
     is AppsSideEffect.Installed -> getString(Res.string.message_installed, fileCount)
     is AppsSideEffect.InstallFailed -> getString(Res.string.message_install_failed, reason)
 }

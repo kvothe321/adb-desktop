@@ -160,7 +160,7 @@ class AppsViewModel(
             _uiState.update { it.copy(runningAction = null) }
             when (result) {
                 is Outcome.Success -> onActionSucceeded(action, packageName)
-                is Outcome.Failure -> _sideEffects.send(AppsSideEffect.ActionFailed(action, packageName))
+                is Outcome.Failure -> _sideEffects.send(AppsSideEffect.ActionFailed(action, packageName, result.error.detailsForUser()))
             }
         }
     }

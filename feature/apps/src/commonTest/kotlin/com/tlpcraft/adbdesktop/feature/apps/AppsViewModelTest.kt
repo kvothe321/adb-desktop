@@ -162,7 +162,7 @@ class AppsViewModelTest : FunSpec({
 
             fixture.viewModel.sideEffects.test {
                 fixture.viewModel.reduceIntent(AppsIntent.ActionClicked(AppAction.FORCE_STOP))
-                awaitItem() shouldBe AppsSideEffect.ActionFailed(AppAction.FORCE_STOP, "com.example.notes")
+                awaitItem() shouldBe AppsSideEffect.ActionFailed(AppAction.FORCE_STOP, "com.example.notes", "Failure [NOT_INSTALLED]")
             }
         }
     }

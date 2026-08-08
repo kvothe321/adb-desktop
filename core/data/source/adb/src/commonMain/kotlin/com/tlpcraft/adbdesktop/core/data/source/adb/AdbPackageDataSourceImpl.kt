@@ -9,6 +9,9 @@ import com.tlpcraft.adbdesktop.core.data.source.adb.parser.PackageDumpParser
 import com.tlpcraft.adbdesktop.core.data.source.adb.parser.PackageListParser
 import com.tlpcraft.adbdesktop.core.data.source.adb.parser.ShellFailureParser
 import com.tlpcraft.adbdesktop.core.data.source.adb.parser.StorageParser
+import com.tlpcraft.adbdesktop.core.data.source.adb.parser.shellQuoted
+import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.withTimeoutOrNull
 
 class AdbPackageDataSourceImpl(private val client: AdbClient) : AdbPackageDataSource {
 
@@ -36,7 +39,8 @@ class AdbPackageDataSourceImpl(private val client: AdbClient) : AdbPackageDataSo
 
     override suspend fun runAction(serial: String, packageName: String, action: PackageActionDto) {
         val args = action.shellArgs(packageName)
-        val output = client.shell(serial, args)
+        val output = withTimeoutOrNull(ACTION_TIMEOUT) { client.shell(serial, args) }
+            ?: throw AdbException.CommandFailed(listOf("shell") + args, exitCode = TIMED_OUT_EXIT_CODE, output = "Timed out")
         if (action != PackageActionDto.LAUNCH && ShellFailureParser.isFailure(output)) {
             throw AdbException.CommandFailed(listOf("shell") + args, exitCode = 0, output = output.trim())
         }
@@ -66,8 +70,19 @@ class AdbPackageDataSourceImpl(private val client: AdbClient) : AdbPackageDataSo
     private fun PackageActionDto.shellArgs(packageName: String): List<String> = when (this) {
         PackageActionDto.LAUNCH -> listOf("monkey", "-p", packageName, "-c", "android.intent.category.LAUNCHER", "1")
         PackageActionDto.FORCE_STOP -> listOf("am", "force-stop", packageName)
-        PackageActionDto.CLEAR_CACHE -> listOf("pm", "clear", "--cache-only", packageName)
+        PackageActionDto.CLEAR_CACHE -> listOf("run-as", packageName, "sh", "-c", CLEAR_CACHE_SCRIPT.shellQuoted())
         PackageActionDto.CLEAR_DATA -> listOf("pm", "clear", packageName)
         PackageActionDto.UNINSTALL -> listOf("pm", "uninstall", packageName)
+    }
+
+    private companion object {
+        val ACTION_TIMEOUT = 60.seconds
+        const val TIMED_OUT_EXIT_CODE = -1
+
+        /**
+         * `pm clear --cache-only` needs a permission the adb shell lacks: Android ignores the request and the
+         * command never returns. `run-as` works, but only for debuggable apps; others fail with adb's reason.
+         */
+        const val CLEAR_CACHE_SCRIPT = "rm -rf cache/* code_cache/*"
     }
 }

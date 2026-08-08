@@ -201,6 +201,12 @@ class DeviceIntegrationTest : FunSpec({
             apps.executeAction(serial, packageName, AppAction.FORCE_STOP).orFail()
         }
 
+        test("clearing the cache of a non-debuggable app fails with a reason instead of hanging") {
+            val result = withTimeout(TIMEOUT) { apps.executeAction(serial, packageName, AppAction.CLEAR_CACHE) }
+
+            result.shouldBeInstanceOf<Outcome.Failure<DeviceError>>().error.message shouldContain "run-as"
+        }
+
         test("a broken APK is refused with a reason") {
             val fake = File.createTempFile("broken", ".apk").apply { writeText("not an apk") }
 

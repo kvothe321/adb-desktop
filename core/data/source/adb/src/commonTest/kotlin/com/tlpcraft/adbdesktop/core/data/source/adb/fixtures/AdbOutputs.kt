@@ -154,5 +154,17 @@ object AdbOutputs {
         "adb-EMULATOR36X2X12X0\t_adb._tcp\t10.0.2.16:5555\n" +
         "adb-R5CT10ABCDE-xYz12\t_adb-tls-pairing._tcp\t192.168.1.42:41567\n"
 
+    val INSTALL_EXCEPTION = """
+        Performing Streamed Install
+        adb: failed to install /tmp/real.apk:
+        Exception occurred while executing 'install':
+        android.os.ParcelableException: java.io.IOException: Requested internal only, but not enough space
+        	at android.util.ExceptionUtils.wrap(ExceptionUtils.java:34)
+        	at com.android.server.pm.PackageInstallerService.createSession(PackageInstallerService.java:671)
+        Caused by: java.io.IOException: Requested internal only, but not enough space
+        	at com.android.internal.content.InstallLocationUtils.resolveInstallVolume(InstallLocationUtils.java:242)
+        	... 13 more
+    """.trimIndent()
+
     const val PM_FAILURE = "Failure [DELETE_FAILED_INTERNAL_ERROR]\n"
 }
