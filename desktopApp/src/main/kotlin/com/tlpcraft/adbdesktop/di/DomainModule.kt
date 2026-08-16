@@ -17,7 +17,7 @@ import com.tlpcraft.adbdesktop.core.domain.usecase.files.CreateFolderUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.DeleteFileUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.DownloadFileUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.ListFilesUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.files.UploadFilesUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.files.UploadFileUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.logcat.ClearLogcatUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.logcat.ObserveLogcatUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.CaptureScreenshotUseCase
@@ -53,7 +53,7 @@ val domainModule = module {
     factoryOf(::DeleteFileUseCase)
     factoryOf(::DownloadFileUseCase)
     factoryOf(::ListFilesUseCase)
-    factoryOf(::UploadFilesUseCase)
+    factoryOf(::UploadFileUseCase)
     factoryOf(::ClearLogcatUseCase)
     factoryOf(::ObserveLogcatUseCase)
     factoryOf(::CaptureScreenshotUseCase)

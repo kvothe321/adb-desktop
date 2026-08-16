@@ -2,6 +2,7 @@ package com.tlpcraft.adbdesktop.core.data.source.adb
 
 import app.cash.turbine.test
 import com.tlpcraft.adbdesktop.core.data.source.adb.dto.PackageActionDto
+import com.tlpcraft.adbdesktop.core.data.source.adb.fake.FakeAdbEnvironment
 import com.tlpcraft.adbdesktop.core.data.source.adb.fake.FakeCommandExecutor
 import com.tlpcraft.adbdesktop.core.data.source.adb.fake.testAdbClient
 import com.tlpcraft.adbdesktop.core.data.source.adb.fixtures.AdbOutputs
@@ -38,13 +39,13 @@ class AdbHostOperationsTest : FunSpec({
         test("lists with a trailing slash so links to directories are followed, and quotes the path") {
             val executor = FakeCommandExecutor().apply { respond("-s", "pixel", "shell", "ls", "-la", "'/sdcard/a b/'", stdout = AdbOutputs.LS_SPACES) }
 
-            AdbFileDataSourceImpl(testAdbClient(executor)).list("pixel", "/sdcard/a b").single().name shouldBe "it's a file.txt"
+            AdbFileDataSourceImpl(testAdbClient(executor), FakeAdbEnvironment()).list("pixel", "/sdcard/a b").single().name shouldBe "it's a file.txt"
         }
 
         test("the root directory is not doubled") {
             val executor = FakeCommandExecutor().apply { respond("-s", "pixel", "shell", "ls", "-la", "'/'", stdout = AdbOutputs.LS_ROOT) }
 
-            AdbFileDataSourceImpl(testAdbClient(executor)).list("pixel", "/").size shouldBe 4
+            AdbFileDataSourceImpl(testAdbClient(executor), FakeAdbEnvironment()).list("pixel", "/").size shouldBe 4
         }
 
         test("a partly unreadable directory still lists what it can") {
@@ -52,7 +53,7 @@ class AdbHostOperationsTest : FunSpec({
                 respond("-s", "pixel", "shell", "ls", "-la", "'/'", stdout = AdbOutputs.LS_ROOT, stderr = "ls: /x: Permission denied", exitCode = 1)
             }
 
-            AdbFileDataSourceImpl(testAdbClient(executor)).list("pixel", "/").size shouldBe 4
+            AdbFileDataSourceImpl(testAdbClient(executor), FakeAdbEnvironment()).list("pixel", "/").size shouldBe 4
         }
 
         test("a missing directory fails with adb's message") {
@@ -60,14 +61,27 @@ class AdbHostOperationsTest : FunSpec({
                 respond("-s", "pixel", "shell", "ls", "-la", "'/nonexistent/'", stderr = AdbOutputs.LS_MISSING, exitCode = 1)
             }
 
-            shouldThrow<AdbException.CommandFailed> { AdbFileDataSourceImpl(testAdbClient(executor)).list("pixel", "/nonexistent") }.output shouldBe
+            shouldThrow<AdbException.CommandFailed> {
+                AdbFileDataSourceImpl(testAdbClient(executor), FakeAdbEnvironment()).list("pixel", "/nonexistent")
+            }.output shouldBe
                 "ls: /nonexistent: No such file or directory"
+        }
+
+        test("a file that does not exist yet has no size") {
+            val executor = FakeCommandExecutor().apply {
+                respond("-s", "pixel", "shell", "stat", "-c", "%s", "'/sdcard/a.bin'", stdout = "1024\n")
+                respond("-s", "pixel", "shell", "stat", "-c", "%s", "'/sdcard/b.bin'", stderr = "stat: No such file", exitCode = 1)
+            }
+            val source = AdbFileDataSourceImpl(testAdbClient(executor), FakeAdbEnvironment())
+
+            source.remoteFileSize("pixel", "/sdcard/a.bin") shouldBe 1024L
+            source.remoteFileSize("pixel", "/sdcard/b.bin") shouldBe null
         }
 
         test("deleting quotes the path") {
             val executor = FakeCommandExecutor()
 
-            AdbFileDataSourceImpl(testAdbClient(executor)).delete("pixel", "/sdcard/it's")
+            AdbFileDataSourceImpl(testAdbClient(executor), FakeAdbEnvironment()).delete("pixel", "/sdcard/it's")
 
             executor.executed shouldContain listOf("-s", "pixel", "shell", "rm", "-rf", "'/sdcard/it'\\''s'")
         }

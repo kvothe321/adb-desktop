@@ -15,6 +15,10 @@ sealed interface FilesIntent {
 
     data object UploadClicked : FilesIntent
 
+    data class FilesDropped(val paths: List<String>) : FilesIntent
+
+    data object CancelTransferClicked : FilesIntent
+
     data class DownloadClicked(val file: RemoteFile) : FilesIntent
 
     data class DeleteClicked(val file: RemoteFile) : FilesIntent

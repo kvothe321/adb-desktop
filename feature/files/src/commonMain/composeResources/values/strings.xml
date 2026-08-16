@@ -22,6 +22,11 @@
     <string name="files_delete_title">Delete %1$s?</string>
     <string name="files_delete_message">This permanently removes it from the device, including everything inside a folder.</string>
 
+    <string name="files_drop_hint">Drop to upload to this folder</string>
+    <string name="files_transfer_batch">%1$s (%2$d of %3$d)</string>
+    <string name="files_transfer_cancel">Cancel transfer</string>
+
+    <string name="message_transfer_cancelled">Transfer cancelled</string>
     <string name="message_uploaded">Uploaded to %1$s</string>
     <string name="message_downloaded">Downloaded %1$s to %2$s</string>
     <string name="message_deleted">Deleted %1$s</string>

@@ -47,6 +47,7 @@ import org.koin.dsl.koinApplication
 private val testSerial: String? = System.getenv("ADB_TEST_SERIAL")
 private val TIMEOUT = 60.seconds
 private val RECORDING_LENGTH = 3.seconds
+private const val LARGE_FILE_MEGABYTES = 200
 
 private fun <T> Outcome<T, DeviceError>.orFail(): T = withClue(this) { getOrNull().shouldNotBeNull() }
 
@@ -125,18 +126,31 @@ class DeviceIntegrationTest : FunSpec({
             val target = Files.createTempDirectory("adb-desktop-pull").toFile()
 
             files.createDirectory(serial, directory).orFail()
-            files.upload(serial, listOf(upload.path), directory).orFail()
+            withTimeout(TIMEOUT) { files.upload(serial, upload.path, directory).toList() }.last().orFail().fraction shouldBe 1f
 
             val listed = files.list(serial, directory).orFail().single()
             listed.name shouldBe upload.name
             listed.sizeBytes shouldBe upload.length()
 
-            files.download(serial, listed.path, target.path).orFail()
+            withTimeout(TIMEOUT) { files.download(serial, listed, target.path).toList() }.last().orFail().fraction shouldBe 1f
             File(target, upload.name).readText() shouldBe "hello device"
 
             files.delete(serial, directory).orFail()
             files.list(serial, "/sdcard/Download").orFail().map { it.name }.contains("adb desktop's test") shouldBe false
         }
+    }
+
+    test("cancelling a large upload stops it and removes the partial file") {
+        val files = koin.get<FilesRepository>()
+        val large = File.createTempFile("adb-desktop-large", ".bin").apply {
+            outputStream().use { stream -> repeat(LARGE_FILE_MEGABYTES) { stream.write(ByteArray(1_048_576)) } }
+            deleteOnExit()
+        }
+
+        withTimeout(TIMEOUT) { files.upload(serial, large.path, "/sdcard/Download").first() }.orFail()
+
+        val remaining = files.list(serial, "/sdcard/Download").orFail().map { it.name }
+        remaining.contains(large.name) shouldBe false
     }
 
     test("logcat streams and parses real entries") {

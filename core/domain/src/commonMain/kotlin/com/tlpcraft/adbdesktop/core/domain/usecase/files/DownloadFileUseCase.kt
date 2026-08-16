@@ -2,14 +2,17 @@ package com.tlpcraft.adbdesktop.core.domain.usecase.files
 
 import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
+import com.tlpcraft.adbdesktop.core.domain.model.RemoteFile
+import com.tlpcraft.adbdesktop.core.domain.model.TransferProgress
 import com.tlpcraft.adbdesktop.core.domain.repository.FilesRepository
-import com.tlpcraft.adbdesktop.core.domain.usecase.UseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.ReactiveUseCase
+import kotlinx.coroutines.flow.Flow
 
 class DownloadFileUseCase(
     private val repository: FilesRepository,
-) : UseCase<DownloadFileUseCase.Params, Outcome<Unit, DeviceError>> {
+) : ReactiveUseCase<DownloadFileUseCase.Params, Flow<Outcome<TransferProgress, DeviceError>>> {
 
-    data class Params(val serial: String, val remotePath: String, val localDirectory: String)
+    data class Params(val serial: String, val file: RemoteFile, val localDirectory: String)
 
-    override suspend fun invoke(param: Params): Outcome<Unit, DeviceError> = repository.download(param.serial, param.remotePath, param.localDirectory)
+    override fun invoke(param: Params): Flow<Outcome<TransferProgress, DeviceError>> = repository.download(param.serial, param.file, param.localDirectory)
 }

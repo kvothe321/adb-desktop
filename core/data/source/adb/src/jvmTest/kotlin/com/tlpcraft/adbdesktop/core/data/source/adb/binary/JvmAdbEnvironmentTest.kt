@@ -25,6 +25,16 @@ class JvmAdbEnvironmentTest : FunSpec({
         environment.variable("ADB_DESKTOP_UNSET_VARIABLE_FOR_TESTS").shouldBe(null)
     }
 
+    test("reports the size of files, not folders, and deletes them") {
+        val file = File(tempdir(), "file.txt").apply { writeText("four") }
+
+        environment.fileSize(file.path) shouldBe 4L
+        environment.fileSize(tempdir().path) shouldBe null
+
+        environment.deleteFile(file.path)
+        environment.fileSize(file.path) shouldBe null
+    }
+
     test("accepts executable files only") {
         val executable = tempfile().apply { setExecutable(true) }
 

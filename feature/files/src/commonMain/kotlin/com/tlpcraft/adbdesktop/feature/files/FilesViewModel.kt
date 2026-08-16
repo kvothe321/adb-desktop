@@ -6,19 +6,21 @@ import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.RemoteFile
 import com.tlpcraft.adbdesktop.core.domain.model.RemotePath
+import com.tlpcraft.adbdesktop.core.domain.model.TransferProgress
 import com.tlpcraft.adbdesktop.core.domain.service.HostFiles
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.CreateFolderUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.DeleteFileUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.DownloadFileUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.ListFilesUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.files.UploadFilesUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.files.UploadFileUseCase
 import com.tlpcraft.adbdesktop.feature.files.contract.DEFAULT_DIRECTORY
 import com.tlpcraft.adbdesktop.feature.files.contract.FileListing
 import com.tlpcraft.adbdesktop.feature.files.contract.FilesIntent
 import com.tlpcraft.adbdesktop.feature.files.contract.FilesSideEffect
 import com.tlpcraft.adbdesktop.feature.files.contract.FilesUiState
 import com.tlpcraft.adbdesktop.feature.files.contract.NewFolderForm
+import com.tlpcraft.adbdesktop.feature.files.contract.TransferState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -34,7 +36,7 @@ import kotlinx.coroutines.launch
 class FilesViewModel(
     private val observeSelectedDevice: ObserveSelectedDeviceUseCase,
     private val listFiles: ListFilesUseCase,
-    private val uploadFiles: UploadFilesUseCase,
+    private val uploadFile: UploadFileUseCase,
     private val downloadFile: DownloadFileUseCase,
     private val deleteFile: DeleteFileUseCase,
     private val createFolder: CreateFolderUseCase,
@@ -48,6 +50,7 @@ class FilesViewModel(
     val sideEffects: Flow<FilesSideEffect> = _sideEffects.receiveAsFlow()
 
     private var listingJob: Job? = null
+    private var operationJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -62,7 +65,9 @@ class FilesViewModel(
             is FilesIntent.PathChanged -> _uiState.update { it.copy(pathInput = intent.value) }
             FilesIntent.PathSubmitted -> _uiState.value.pathInput.trim().takeIf { it.startsWith(RemotePath.ROOT) }?.let(::open)
             FilesIntent.RefreshClicked -> open(_uiState.value.directory)
-            FilesIntent.UploadClicked -> upload()
+            FilesIntent.UploadClicked -> runExclusive { uploadAll(hostFiles.pickFiles()) }
+            is FilesIntent.FilesDropped -> runExclusive { uploadAll(intent.paths) }
+            FilesIntent.CancelTransferClicked -> cancelTransfer()
             is FilesIntent.DownloadClicked -> download(intent.file)
             is FilesIntent.DeleteClicked -> _uiState.update { it.copy(pendingDelete = intent.file) }
             FilesIntent.DeleteConfirmed -> confirmDelete()
@@ -93,25 +98,45 @@ class FilesViewModel(
         }
     }
 
-    private fun upload() {
+    private suspend fun uploadAll(paths: List<String>) {
         val state = _uiState.value
         val serial = state.serial ?: return
-        runExclusive {
-            val paths = hostFiles.pickFiles()
-            if (paths.isNotEmpty()) {
-                report(uploadFiles(UploadFilesUseCase.Params(serial, paths, state.directory))) { FilesSideEffect.Uploaded(state.directory) }
-                open(state.directory)
-            }
+        if (paths.isEmpty()) return
+
+        val failure = paths.withIndex().firstNotNullOfOrNull { (index, path) ->
+            track(position = index + 1, count = paths.size, uploadFile(UploadFileUseCase.Params(serial, path, state.directory)))
         }
+        _sideEffects.send(failure?.let { FilesSideEffect.OperationFailed(it.detailsForUser()) } ?: FilesSideEffect.Uploaded(state.directory))
+        open(state.directory)
     }
 
     private fun download(file: RemoteFile) {
         val serial = _uiState.value.serial ?: return
         runExclusive {
             hostFiles.pickDirectory()?.let { directory ->
-                report(downloadFile(DownloadFileUseCase.Params(serial, file.path, directory))) { FilesSideEffect.Downloaded(file.name, directory) }
+                val failure = track(position = 1, count = 1, downloadFile(DownloadFileUseCase.Params(serial, file, directory)))
+                _sideEffects.send(failure?.let { FilesSideEffect.OperationFailed(it.detailsForUser()) } ?: FilesSideEffect.Downloaded(file.name, directory))
             }
         }
+    }
+
+    /** Follows one transfer until it ends and returns what went wrong, if anything. */
+    private suspend fun track(position: Int, count: Int, transfer: Flow<Outcome<TransferProgress, DeviceError>>): DeviceError? {
+        var failure: DeviceError? = null
+        transfer.collect { outcome ->
+            when (outcome) {
+                is Outcome.Success -> _uiState.update { it.copy(transfer = TransferState(outcome.data.name, outcome.data.fraction, position, count)) }
+                is Outcome.Failure -> failure = outcome.error
+            }
+        }
+        return failure
+    }
+
+    private fun cancelTransfer() {
+        if (_uiState.value.transfer == null) return
+        operationJob?.cancel()
+        _sideEffects.trySend(FilesSideEffect.TransferCancelled)
+        open(_uiState.value.directory)
     }
 
     private fun confirmDelete() {
@@ -157,9 +182,12 @@ class FilesViewModel(
     private fun runExclusive(operation: suspend () -> Unit) {
         if (_uiState.value.isBusy) return
         _uiState.update { it.copy(isBusy = true) }
-        viewModelScope.launch {
-            operation()
-            _uiState.update { it.copy(isBusy = false) }
+        operationJob = viewModelScope.launch {
+            try {
+                operation()
+            } finally {
+                _uiState.update { it.copy(isBusy = false, transfer = null) }
+            }
         }
     }
 

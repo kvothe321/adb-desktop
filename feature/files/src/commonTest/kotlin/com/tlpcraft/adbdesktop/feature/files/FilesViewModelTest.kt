@@ -8,7 +8,7 @@ import com.tlpcraft.adbdesktop.core.domain.usecase.files.CreateFolderUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.DeleteFileUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.DownloadFileUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.ListFilesUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.files.UploadFilesUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.files.UploadFileUseCase
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceSelectionRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeFilesRepository
@@ -25,6 +25,7 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -45,7 +46,7 @@ class FilesViewModelTest : FunSpec({
                 FakeDeviceSelectionRepository(selectedSerial),
             ),
             listFiles = ListFilesUseCase(files),
-            uploadFiles = UploadFilesUseCase(files),
+            uploadFile = UploadFileUseCase(files),
             downloadFile = DownloadFileUseCase(files),
             deleteFile = DeleteFileUseCase(files),
             createFolder = CreateFolderUseCase(files),
@@ -117,6 +118,33 @@ class FilesViewModelTest : FunSpec({
             }
             fixture.files.uploads shouldContainExactly listOf("/home/me/a.txt" to "/sdcard")
             fixture.state.isBusy.shouldBeFalse()
+        }
+
+        test("dropped files upload like picked ones") {
+            val fixture = Fixture()
+
+            fixture.viewModel.reduceIntent(FilesIntent.FilesDropped(listOf("/home/me/a.txt", "/home/me/b.txt")))
+
+            fixture.files.uploads shouldContainExactly listOf("/home/me/a.txt" to "/sdcard", "/home/me/b.txt" to "/sdcard")
+        }
+
+        test("progress shows while a transfer runs, and it can be cancelled") {
+            val fixture = Fixture().apply { files.transferGate = CompletableDeferred() }
+
+            fixture.viewModel.sideEffects.test {
+                fixture.viewModel.reduceIntent(FilesIntent.FilesDropped(listOf("/home/me/a.txt", "/home/me/b.txt")))
+
+                fixture.state.transfer.shouldNotBeNull().fraction shouldBe 0.5f
+                fixture.state.transfer.shouldNotBeNull().position shouldBe 1
+                fixture.state.isBusy shouldBe true
+
+                fixture.viewModel.reduceIntent(FilesIntent.CancelTransferClicked)
+
+                awaitItem() shouldBe FilesSideEffect.TransferCancelled
+            }
+            fixture.state.transfer.shouldBeNull()
+            fixture.state.isBusy.shouldBeFalse()
+            fixture.files.uploads.size shouldBe 1
         }
 
         test("cancelling the file dialog does nothing") {
