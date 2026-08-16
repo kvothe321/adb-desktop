@@ -2,9 +2,16 @@
 
 A desktop GUI for `adb`, built with Compose Multiplatform for Windows, macOS and Linux.
 
-Today it lists attached devices live (USB, emulators and Wi-Fi), shows battery and CPU usage, connects and pairs
-devices over Wi-Fi, and lets you browse and manage the installed apps of the selected device.
-See [docs/ROADMAP.md](docs/ROADMAP.md) for what comes next.
+- **Devices**: live list over USB, emulator and Wi-Fi with battery and CPU usage, connect, pair and disconnect over
+  Wi-Fi, including devices discovered on the network.
+- **Apps**: browse and filter packages, see details, open, force stop, clear cache or data, uninstall, install APKs.
+- **Files**: browse the device, upload, download, delete and create folders.
+- **Logcat**: live stream with level and text filters, pause and clear.
+- **Shell**: interactive session with command history.
+- **Screen**: screenshots and screen recording.
+- **Settings**: choose the adb executable and the theme.
+
+Actions apply to the device picked in the sidebar. See [docs/ROADMAP.md](docs/ROADMAP.md) for what comes next.
 
 ## Requirements
 
@@ -22,7 +29,7 @@ See [docs/ROADMAP.md](docs/ROADMAP.md) for what comes next.
 ./gradlew :desktopApp:packageDistributionForCurrentOS  # build a native installer (dmg, msi or deb)
 ```
 
-Keyboard shortcuts: `Ctrl+1` Devices, `Ctrl+2` Apps, `Ctrl+3` Files (`Cmd` on macOS).
+Keyboard shortcuts: `Ctrl+1` to `Ctrl+7` open the sections in sidebar order (`Cmd` on macOS).
 
 ## Check
 
@@ -32,8 +39,21 @@ Keyboard shortcuts: `Ctrl+1` Devices, `Ctrl+2` Apps, `Ctrl+3` Files (`Cmd` on ma
 ./gradlew checkModuleGraph # dependency direction only
 ```
 
+To also run the real app graph against a device or emulator (`check` itself never needs one):
+
+```bash
+ADB_TEST_SERIAL=emulator-5554 ./gradlew :desktopApp:test --rerun --tests '*DeviceIntegrationTest'
+```
+
 `./gradlew check` must pass before every commit. The build installs two git hooks: `pre-commit` runs
 `ktlintFormat`, `commit-msg` enforces [Conventional Commits](https://www.conventionalcommits.org).
+
+## Known Android limits
+
+- **Clear cache** only works on debuggable apps. Android does not let adb clear another app's cache, so the app uses
+  `run-as` and reports the reason when the device refuses.
+- **Data and cache sizes** need a recent Android version; older ones show them as unknown.
+- **Screen recording** stops after 3 minutes, which is Android's limit.
 
 ## Continuous integration
 
@@ -51,15 +71,27 @@ graph LR
     desktopApp --> feature_devices[feature:devices]
     desktopApp --> feature_apps[feature:apps]
     desktopApp --> feature_files[feature:files]
+    desktopApp --> feature_logcat[feature:logcat]
+    desktopApp --> feature_shell[feature:shell]
+    desktopApp --> feature_screen[feature:screen]
+    desktopApp --> feature_settings[feature:settings]
     desktopApp --> repository[core:data:repository]
     desktopApp --> logger[core:logger]
 
     feature_devices --> domain[core:domain]
     feature_apps --> domain
     feature_files --> domain
+    feature_logcat --> domain
+    feature_shell --> domain
+    feature_screen --> domain
+    feature_settings --> domain
     feature_devices --> uikit[adbdesktop-ui-kit]
     feature_apps --> uikit
     feature_files --> uikit
+    feature_logcat --> uikit
+    feature_shell --> uikit
+    feature_screen --> uikit
+    feature_settings --> uikit
 
     repository --> domain
     repository --> adb[core:data:source:adb]
