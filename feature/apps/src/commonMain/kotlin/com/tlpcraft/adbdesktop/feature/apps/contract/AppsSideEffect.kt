@@ -8,6 +8,8 @@ sealed interface AppsSideEffect {
     /** [reason] is the device's message, shown as it is. */
     data class ActionFailed(val action: AppAction, val packageName: String, val reason: String) : AppsSideEffect
 
+    data object NoApkDropped : AppsSideEffect
+
     data class Installed(val fileCount: Int) : AppsSideEffect
 
     /** [reason] is the package manager's message, shown as it is. */

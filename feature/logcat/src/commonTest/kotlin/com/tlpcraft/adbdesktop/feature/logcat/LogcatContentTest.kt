@@ -3,7 +3,7 @@ package com.tlpcraft.adbdesktop.feature.logcat
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.v2.runComposeUiTest
 import com.tlpcraft.adbdesktop.core.domain.model.LogEntry
 import com.tlpcraft.adbdesktop.core.domain.model.LogLevel
 import com.tlpcraft.adbdesktop.feature.logcat.contract.LogRow

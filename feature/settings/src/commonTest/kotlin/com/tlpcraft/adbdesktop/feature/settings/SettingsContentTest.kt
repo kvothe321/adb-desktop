@@ -3,7 +3,7 @@ package com.tlpcraft.adbdesktop.feature.settings
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.v2.runComposeUiTest
 import com.tlpcraft.adbdesktop.core.domain.model.AdbInfo
 import com.tlpcraft.adbdesktop.core.domain.model.ThemeMode
 import com.tlpcraft.adbdesktop.feature.settings.contract.AdbStatus

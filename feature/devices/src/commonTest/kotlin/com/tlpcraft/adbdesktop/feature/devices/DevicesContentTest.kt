@@ -3,7 +3,7 @@ package com.tlpcraft.adbdesktop.feature.devices
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.v2.runComposeUiTest
 import com.tlpcraft.adbdesktop.core.domain.model.ConnectionType
 import com.tlpcraft.adbdesktop.core.domain.model.DeviceState
 import com.tlpcraft.adbdesktop.feature.devices.contract.ConnectFormState
