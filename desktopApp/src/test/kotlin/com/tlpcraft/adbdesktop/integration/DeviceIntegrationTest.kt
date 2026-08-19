@@ -160,6 +160,12 @@ class DeviceIntegrationTest : FunSpec({
         batch.first().tag.isNotEmpty().shouldBeTrue()
     }
 
+    test("a running package resolves to its processes") {
+        val processIds = withTimeout(TIMEOUT) { koin.get<LogcatRepository>().observeProcessIds(serial, "com.android.systemui").first() }
+
+        processIds.shouldNotBeEmpty()
+    }
+
     test("the shell keeps state between commands and ends on exit") {
         val commands = Channel<String>(Channel.UNLIMITED)
         val script = listOf("cd /sdcard", "pwd", "echo done-marker", "exit")

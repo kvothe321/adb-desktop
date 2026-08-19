@@ -35,6 +35,17 @@ class AdbHostOperationsTest : FunSpec({
         }
     }
 
+    test("a package maps to its running processes, or none") {
+        val executor = FakeCommandExecutor().apply {
+            respond("-s", "pixel", "shell", "pidof", "'com.example.notes'", stdout = "1234 5678\n")
+            respond("-s", "pixel", "shell", "pidof", "'com.example.stopped'", exitCode = 1)
+        }
+        val source = AdbLogcatDataSourceImpl(testAdbClient(executor))
+
+        source.readProcessIds("pixel", "com.example.notes") shouldBe setOf(1234, 5678)
+        source.readProcessIds("pixel", "com.example.stopped") shouldBe emptySet()
+    }
+
     context("files") {
         test("lists with a trailing slash so links to directories are followed, and quotes the path") {
             val executor = FakeCommandExecutor().apply { respond("-s", "pixel", "shell", "ls", "-la", "'/sdcard/a b/'", stdout = AdbOutputs.LS_SPACES) }
