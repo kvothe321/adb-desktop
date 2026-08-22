@@ -7,7 +7,8 @@ import com.tlpcraft.adbdesktop.core.domain.model.TransferProgress
 import kotlinx.coroutines.flow.Flow
 
 interface FilesRepository {
-    suspend fun list(serial: String, directory: String): Outcome<List<RemoteFile>, DeviceError>
+    /** Emits the content of [directory] on every change, whatever caused it. */
+    fun observeFiles(serial: String, directory: String): Flow<Outcome<List<RemoteFile>, DeviceError>>
 
     /**
      * Copies one file or folder to the device, emitting progress until it is done. A failure ends the flow.

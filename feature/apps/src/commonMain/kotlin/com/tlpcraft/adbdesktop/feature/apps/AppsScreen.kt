@@ -35,6 +35,7 @@ import com.tlpcraft.adbdesktop.uikit.component.EmptyState
 import com.tlpcraft.adbdesktop.uikit.component.FileDropArea
 import com.tlpcraft.adbdesktop.uikit.component.SplitPane
 import com.tlpcraft.adbdesktop.uikit.component.TopBar
+import com.tlpcraft.adbdesktop.uikit.component.VisibilityEffect
 import com.tlpcraft.adbdesktop.uikit.icon.IconName
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
@@ -48,6 +49,7 @@ fun AppsScreen(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier, v
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentOnShowMessage by rememberUpdatedState(onShowMessage)
 
+    VisibilityEffect { viewModel.reduceIntent(AppsIntent.VisibilityChanged(it)) }
     LaunchedEffect(viewModel) {
         viewModel.sideEffects.collect { effect -> currentOnShowMessage(effect.message()) }
     }
@@ -89,7 +91,6 @@ fun AppsContent(uiState: AppsUiState, onIntent: (AppsIntent) -> Unit, modifier: 
                                 onFilterSelect = { onIntent(AppsIntent.FilterSelected(it)) },
                                 onQueryChange = { onIntent(AppsIntent.QueryChanged(it)) },
                                 onAppClick = { onIntent(AppsIntent.AppClicked(it)) },
-                                onRetry = { onIntent(AppsIntent.RetryClicked) },
                             )
                         },
                         end = {

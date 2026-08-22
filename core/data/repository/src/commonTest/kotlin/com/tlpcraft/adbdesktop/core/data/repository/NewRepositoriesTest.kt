@@ -16,8 +16,17 @@ import com.tlpcraft.adbdesktop.core.domain.model.WirelessService
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 
 class NewRepositoriesTest : FunSpec({
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+    afterSpec { scope.cancel() }
+
     test("logcat priorities map to levels") {
         val entry = LogEntryDto("10-31 23:05:50.598", 1, 2, 'W', "Tag", "message")
 
@@ -45,7 +54,7 @@ class NewRepositoriesTest : FunSpec({
             )
         }
 
-        DeviceRepositoryImpl(source, FakePreferencesDataSource()).discoverWirelessServices() shouldBe Outcome.Success(
+        DeviceRepositoryImpl(source, FakePreferencesDataSource(), scope).observeWirelessServices().first() shouldBe Outcome.Success(
             listOf(
                 WirelessService("a", "10.0.0.2:41567", WirelessService.Kind.PAIRING),
                 WirelessService("a", "10.0.0.2:37000", WirelessService.Kind.CONNECT),

@@ -8,7 +8,7 @@ import com.tlpcraft.adbdesktop.core.domain.model.WirelessService
 import kotlinx.coroutines.flow.Flow
 
 interface DeviceRepository {
-    /** Emits the full device list on every change. A failure completes the flow. */
+    /** Emits the full device list on every change. After a failure it keeps trying and recovers on its own. */
     fun observeDevices(): Flow<Outcome<List<Device>, DeviceError>>
 
     suspend fun connect(endpoint: WirelessEndpoint): Outcome<Unit, DeviceError>
@@ -17,5 +17,6 @@ interface DeviceRepository {
 
     suspend fun pair(endpoint: WirelessEndpoint, pairingCode: String): Outcome<Unit, DeviceError>
 
-    suspend fun discoverWirelessServices(): Outcome<List<WirelessService>, DeviceError>
+    /** Emits the wireless devices announcing themselves on the network, on every change. */
+    fun observeWirelessServices(): Flow<Outcome<List<WirelessService>, DeviceError>>
 }

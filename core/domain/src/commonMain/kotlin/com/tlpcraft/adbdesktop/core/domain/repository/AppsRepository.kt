@@ -6,11 +6,14 @@ import com.tlpcraft.adbdesktop.core.domain.model.AppAction
 import com.tlpcraft.adbdesktop.core.domain.model.AppDetails
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
 import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
+import kotlinx.coroutines.flow.Flow
 
 interface AppsRepository {
-    suspend fun getApps(serial: String, filter: AppFilter): Outcome<List<AppInfo>, DeviceError>
+    /** Emits the installed apps on every change, whatever caused it. */
+    fun observeApps(serial: String, filter: AppFilter): Flow<Outcome<List<AppInfo>, DeviceError>>
 
-    suspend fun getAppDetails(serial: String, packageName: String): Outcome<AppDetails, DeviceError>
+    /** Emits the details of one app on every change. */
+    fun observeAppDetails(serial: String, packageName: String): Flow<Outcome<AppDetails, DeviceError>>
 
     suspend fun executeAction(serial: String, packageName: String, action: AppAction): Outcome<Unit, DeviceError>
 

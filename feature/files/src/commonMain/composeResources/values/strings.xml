@@ -3,14 +3,12 @@
     <string name="files_no_device_title">No device selected</string>
     <string name="files_no_device_description">Pick an online device in the sidebar to browse its files.</string>
     <string name="files_up">Parent folder</string>
-    <string name="files_refresh">Refresh</string>
     <string name="files_upload">Upload</string>
     <string name="files_new_folder">New folder</string>
     <string name="files_download">Download</string>
     <string name="files_delete">Delete</string>
     <string name="files_empty">This folder is empty</string>
     <string name="files_load_failed">Could not open this folder</string>
-    <string name="files_retry">Retry</string>
     <string name="files_path_label">Path</string>
 
     <string name="files_new_folder_title">New folder</string>

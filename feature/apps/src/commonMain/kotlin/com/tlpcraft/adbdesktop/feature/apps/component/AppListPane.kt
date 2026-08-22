@@ -17,7 +17,6 @@ import com.tlpcraft.adbdesktop.feature.apps.contract.AppListState
 import com.tlpcraft.adbdesktop.feature.apps.resources.Res
 import com.tlpcraft.adbdesktop.feature.apps.resources.apps_empty
 import com.tlpcraft.adbdesktop.feature.apps.resources.apps_load_failed
-import com.tlpcraft.adbdesktop.feature.apps.resources.apps_retry
 import com.tlpcraft.adbdesktop.feature.apps.resources.apps_search_placeholder
 import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.Chip
@@ -44,7 +43,6 @@ internal fun AppListPane(
     onFilterSelect: (AppFilter) -> Unit,
     onQueryChange: (String) -> Unit,
     onAppClick: (String) -> Unit,
-    onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxSize()) {
@@ -67,7 +65,6 @@ internal fun AppListPane(
                     title = stringResource(Res.string.apps_load_failed),
                     description = list.details,
                     tone = Tone.Error,
-                    action = { Button(text = stringResource(Res.string.apps_retry), onClick = onRetry, icon = IconName.Refresh) },
                 )
 
                 is AppListState.Loaded -> if (visiblePackages.isEmpty()) {
@@ -109,7 +106,6 @@ private fun AppListPaneLoadedPreview() = PreviewContext {
         onFilterSelect = {},
         onQueryChange = {},
         onAppClick = {},
-        onRetry = {},
     )
 }
 
@@ -125,6 +121,5 @@ private fun AppListPaneFailedPreview() = PreviewContext {
         onFilterSelect = {},
         onQueryChange = {},
         onAppClick = {},
-        onRetry = {},
     )
 }

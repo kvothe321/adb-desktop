@@ -4,7 +4,6 @@
     <string name="devices_loading">Looking for devices</string>
     <string name="devices_empty_title">No devices</string>
     <string name="devices_empty_description">Plug in a device with USB debugging enabled, start an emulator, or connect over Wi-Fi.</string>
-    <string name="devices_retry">Retry</string>
     <string name="devices_unavailable_title">Cannot reach adb</string>
     <string name="devices_adb_missing_title">adb not found</string>
     <string name="devices_adb_missing_description">Install Android platform-tools, set ANDROID_HOME, or choose the adb executable below.</string>

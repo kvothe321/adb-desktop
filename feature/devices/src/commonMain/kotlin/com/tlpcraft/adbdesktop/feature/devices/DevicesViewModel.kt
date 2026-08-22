@@ -3,18 +3,20 @@ package com.tlpcraft.adbdesktop.feature.devices
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tlpcraft.adbdesktop.core.common.Outcome
+import com.tlpcraft.adbdesktop.core.common.flow.whileActive
 import com.tlpcraft.adbdesktop.core.common.getOrNull
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.Device
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ConnectWirelessDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.DisconnectDeviceUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.device.DiscoverWirelessDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveCpuInfoUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDeviceInfoUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveWirelessDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.PairWirelessDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.SelectDeviceUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.settings.ObserveAdbPathOverrideUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.settings.SetAdbPathOverrideUseCase
 import com.tlpcraft.adbdesktop.feature.devices.contract.ConnectFormError
 import com.tlpcraft.adbdesktop.feature.devices.contract.ConnectFormState
@@ -27,7 +29,6 @@ import com.tlpcraft.adbdesktop.feature.devices.contract.DevicesIntent
 import com.tlpcraft.adbdesktop.feature.devices.contract.DevicesSideEffect
 import com.tlpcraft.adbdesktop.feature.devices.contract.DevicesUiState
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -36,13 +37,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalCoroutinesApi::class)
 class DevicesViewModel(
     private val observeDevices: ObserveDevicesUseCase,
     private val observeSelectedDevice: ObserveSelectedDeviceUseCase,
@@ -52,7 +51,8 @@ class DevicesViewModel(
     private val connectWirelessDevice: ConnectWirelessDeviceUseCase,
     private val pairWirelessDevice: PairWirelessDeviceUseCase,
     private val disconnectDevice: DisconnectDeviceUseCase,
-    private val discoverWirelessDevices: DiscoverWirelessDevicesUseCase,
+    private val observeWirelessDevices: ObserveWirelessDevicesUseCase,
+    private val observeAdbPathOverride: ObserveAdbPathOverrideUseCase,
     private val setAdbPathOverride: SetAdbPathOverrideUseCase,
 ) : ViewModel() {
 
@@ -62,22 +62,24 @@ class DevicesViewModel(
     private val _sideEffects = Channel<DevicesSideEffect>(Channel.BUFFERED)
     val sideEffects: Flow<DevicesSideEffect> = _sideEffects.receiveAsFlow()
 
-    private val trackingRequests = MutableStateFlow(0)
+    private val isVisible = MutableStateFlow(false)
 
     init {
         trackDevices()
         trackSelection()
         trackStatsOfOnlineDevices()
+        trackWirelessDevices()
+        trackAdbPath()
     }
 
     fun reduceIntent(intent: DevicesIntent) {
         when (intent) {
-            DevicesIntent.RetryClicked -> trackingRequests.update { it + 1 }
+            is DevicesIntent.VisibilityChanged -> isVisible.value = intent.isVisible
             is DevicesIntent.DeviceClicked -> toggleSelection(intent.serial)
             is DevicesIntent.DisconnectClicked -> disconnect(intent.serial)
             is DevicesIntent.AdbPathChanged -> _uiState.update { it.copy(adbPathInput = intent.value) }
             DevicesIntent.AdbPathSubmitted -> saveAdbPath()
-            DevicesIntent.ConnectFormOpened -> openConnectForm()
+            DevicesIntent.ConnectFormOpened -> _uiState.update { it.copy(connectForm = ConnectFormState()) }
             DevicesIntent.ConnectFormDismissed -> _uiState.update { it.copy(connectForm = null) }
             is DevicesIntent.ConnectModeSelected -> updateForm { it.copy(mode = intent.mode, error = null) }
             is DevicesIntent.AddressChanged -> updateForm { it.copy(address = intent.value, error = null) }
@@ -86,17 +88,18 @@ class DevicesViewModel(
         }
     }
 
-    private fun openConnectForm() {
-        _uiState.update { it.copy(connectForm = ConnectFormState()) }
-        viewModelScope.launch {
-            discoverWirelessDevices(Unit).getOrNull()?.let { services -> updateForm { it.copy(discovered = services) } }
+    private fun trackDevices() = viewModelScope.launch {
+        observeDevices(Unit).collect { outcome -> _uiState.update { it.copy(list = outcome.toListState()) } }
+    }
+
+    private fun trackWirelessDevices() = viewModelScope.launch {
+        observeWirelessDevices(Unit).whileActive(_uiState.map { it.connectForm != null }).collect { outcome ->
+            outcome.getOrNull()?.let { services -> updateForm { it.copy(discovered = services) } }
         }
     }
 
-    private fun trackDevices() = viewModelScope.launch {
-        trackingRequests.flatMapLatest { observeDevices(Unit) }.collect { outcome ->
-            _uiState.update { it.copy(list = outcome.toListState()) }
-        }
+    private fun trackAdbPath() = viewModelScope.launch {
+        observeAdbPathOverride(Unit).collect { path -> _uiState.update { it.copy(adbPathInput = path.orEmpty()) } }
     }
 
     private fun trackSelection() = viewModelScope.launch {
@@ -112,14 +115,14 @@ class DevicesViewModel(
 
     private fun CoroutineScope.launchStatsCollection(serial: String) {
         launch {
-            observeDeviceInfo(serial).collect { outcome ->
+            observeDeviceInfo(serial).whileActive(isVisible).collect { outcome ->
                 outcome.getOrNull()?.let { info ->
                     updateStats(serial) { it.copy(androidVersion = info.androidVersion, batteryLevel = info.batteryLevel) }
                 }
             }
         }
         launch {
-            observeCpuInfo(serial).collect { outcome ->
+            observeCpuInfo(serial).whileActive(isVisible).collect { outcome ->
                 outcome.getOrNull()?.let { cpu -> updateStats(serial) { it.copy(cpuUsagePercent = cpu.usagePercent) } }
             }
         }

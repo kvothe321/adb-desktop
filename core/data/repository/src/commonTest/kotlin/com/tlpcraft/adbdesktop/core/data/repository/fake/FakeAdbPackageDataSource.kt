@@ -7,13 +7,14 @@ import com.tlpcraft.adbdesktop.core.data.source.adb.dto.PackageDetailsDto
 import com.tlpcraft.adbdesktop.core.data.source.adb.dto.PackageFilterDto
 
 class FakeAdbPackageDataSource : AdbPackageDataSource {
+    var packages = listOf("com.example.notes")
     val requestedFilters = mutableListOf<PackageFilterDto>()
     val actions = mutableListOf<PackageActionDto>()
     val installed = mutableListOf<List<String>>()
 
     override suspend fun listPackages(serial: String, filter: PackageFilterDto): List<String> {
         requestedFilters += filter
-        return listOf("com.example.notes")
+        return packages
     }
 
     override suspend fun readPackageDetails(serial: String, packageName: String): PackageDetailsDto = throw AdbException.DeviceNotFound(serial)

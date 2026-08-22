@@ -1,5 +1,6 @@
 package com.tlpcraft.adbdesktop.core.data.repository.di
 
+import com.tlpcraft.adbdesktop.core.common.dispatcher.DispatcherProvider
 import com.tlpcraft.adbdesktop.core.data.repository.AdbSettingsRepositoryImpl
 import com.tlpcraft.adbdesktop.core.data.repository.AppearanceRepositoryImpl
 import com.tlpcraft.adbdesktop.core.data.repository.AppsRepositoryImpl
@@ -24,6 +25,8 @@ import com.tlpcraft.adbdesktop.core.domain.repository.FilesRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.LogcatRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.ScreenRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.ShellRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
@@ -31,12 +34,12 @@ import org.koin.dsl.module
 
 val repositoryModule = module {
     single { AdbPathOverrideProvider { get<PreferencesDataSource>().observeAdbPath().first() } }
-    singleOf(::DeviceRepositoryImpl) bind DeviceRepository::class
+    single<DeviceRepository> { DeviceRepositoryImpl(get(), get(), CoroutineScope(get<DispatcherProvider>().io + SupervisorJob())) }
     singleOf(::DeviceSelectionRepositoryImpl) bind DeviceSelectionRepository::class
     single<DeviceInfoRepository> { DeviceInfoRepositoryImpl(get()) }
     single<CpuRepository> { CpuRepositoryImpl(get()) }
-    singleOf(::AppsRepositoryImpl) bind AppsRepository::class
-    singleOf(::AdbSettingsRepositoryImpl) bind AdbSettingsRepository::class
+    single<AppsRepository> { AppsRepositoryImpl(get()) }
+    single<AdbSettingsRepository> { AdbSettingsRepositoryImpl(get(), get()) }
     singleOf(::AppearanceRepositoryImpl) bind AppearanceRepository::class
     single<LogcatRepository> { LogcatRepositoryImpl(get()) }
     singleOf(::ShellRepositoryImpl) bind ShellRepository::class

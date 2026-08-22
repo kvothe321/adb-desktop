@@ -6,14 +6,16 @@ import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
 import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
 import com.tlpcraft.adbdesktop.core.domain.repository.AppsRepository
-import com.tlpcraft.adbdesktop.core.domain.usecase.UseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.ReactiveUseCase
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-class GetAppsUseCase(
+class ObserveAppsUseCase(
     private val repository: AppsRepository,
-) : UseCase<GetAppsUseCase.Params, Outcome<List<AppInfo>, DeviceError>> {
+) : ReactiveUseCase<ObserveAppsUseCase.Params, Flow<Outcome<List<AppInfo>, DeviceError>>> {
 
     data class Params(val serial: String, val filter: AppFilter)
 
-    override suspend fun invoke(param: Params): Outcome<List<AppInfo>, DeviceError> = repository.getApps(param.serial, param.filter)
-        .map { apps -> apps.sortedBy { it.packageName } }
+    override fun invoke(param: Params): Flow<Outcome<List<AppInfo>, DeviceError>> = repository.observeApps(param.serial, param.filter)
+        .map { outcome -> outcome.map { apps -> apps.sortedBy { it.packageName } } }
 }

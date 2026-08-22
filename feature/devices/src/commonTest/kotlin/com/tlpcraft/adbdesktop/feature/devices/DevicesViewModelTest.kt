@@ -9,13 +9,14 @@ import com.tlpcraft.adbdesktop.core.domain.model.WirelessEndpoint
 import com.tlpcraft.adbdesktop.core.domain.model.WirelessService
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ConnectWirelessDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.DisconnectDeviceUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.device.DiscoverWirelessDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveCpuInfoUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDeviceInfoUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveWirelessDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.PairWirelessDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.SelectDeviceUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.settings.ObserveAdbPathOverrideUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.settings.SetAdbPathOverrideUseCase
 import com.tlpcraft.adbdesktop.core.testing.FakeAdbSettingsRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeCpuRepository
@@ -54,6 +55,7 @@ class DevicesViewModelTest : FunSpec({
         val settings: FakeAdbSettingsRepository = FakeAdbSettingsRepository(),
         infoBySerial: Map<String, DeviceInfo> = emptyMap(),
         cpuBySerial: Map<String, CpuInfo> = emptyMap(),
+        isVisible: Boolean = true,
     ) {
         private val observeDevices = ObserveDevicesUseCase(devices)
         val viewModel = DevicesViewModel(
@@ -65,9 +67,20 @@ class DevicesViewModelTest : FunSpec({
             connectWirelessDevice = ConnectWirelessDeviceUseCase(devices),
             pairWirelessDevice = PairWirelessDeviceUseCase(devices),
             disconnectDevice = DisconnectDeviceUseCase(devices),
-            discoverWirelessDevices = DiscoverWirelessDevicesUseCase(devices),
+            observeWirelessDevices = ObserveWirelessDevicesUseCase(devices),
+            observeAdbPathOverride = ObserveAdbPathOverrideUseCase(settings),
             setAdbPathOverride = SetAdbPathOverrideUseCase(settings),
-        )
+        ).apply { reduceIntent(DevicesIntent.VisibilityChanged(isVisible)) }
+    }
+
+    test("shows the stored adb path") {
+        Fixture(settings = FakeAdbSettingsRepository("/opt/adb")).viewModel.uiState.value.adbPathInput shouldBe "/opt/adb"
+    }
+
+    test("stats are not collected while the screen is hidden") {
+        val info = DeviceInfo("Google", "Pixel 8", "15", 80)
+
+        Fixture(infoBySerial = mapOf("pixel" to info), isVisible = false).viewModel.uiState.value.stats["pixel"]?.batteryLevel.shouldBeNull()
     }
 
     test("lists devices online first") {
@@ -158,13 +171,26 @@ class DevicesViewModelTest : FunSpec({
         test("suggests discovered devices that fit the current mode") {
             val connect = WirelessService("phone", "10.0.0.2:37000", WirelessService.Kind.CONNECT)
             val pairing = WirelessService("phone", "10.0.0.2:41567", WirelessService.Kind.PAIRING)
-            val fixture = Fixture().apply { devices.discoveredServices = listOf(connect, pairing) }
+            val fixture = Fixture().apply { devices.discoveredServices.value = listOf(connect, pairing) }
 
             fixture.viewModel.reduceIntent(DevicesIntent.ConnectFormOpened)
             fixture.viewModel.uiState.value.connectForm?.suggestions shouldBe listOf(connect)
 
             fixture.viewModel.reduceIntent(DevicesIntent.ConnectModeSelected(ConnectMode.Pair))
             fixture.viewModel.uiState.value.connectForm?.suggestions shouldBe listOf(pairing)
+        }
+
+        test("a device announcing itself while the form is open appears, and is not looked for otherwise") {
+            val fixture = Fixture()
+            val service = WirelessService("Pixel", "10.0.0.2:37000", WirelessService.Kind.CONNECT)
+            fixture.devices.discoveredServices.value = listOf(service)
+            fixture.viewModel.uiState.value.connectForm.shouldBeNull()
+
+            fixture.viewModel.reduceIntent(DevicesIntent.ConnectFormOpened)
+            fixture.viewModel.uiState.value.connectForm?.discovered shouldBe listOf(service)
+
+            fixture.devices.discoveredServices.value = emptyList()
+            fixture.viewModel.uiState.value.connectForm?.discovered shouldBe emptyList()
         }
 
         test("pairing needs a code before it can be submitted") {

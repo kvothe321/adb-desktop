@@ -11,6 +11,6 @@ interface AdbSettingsRepository {
 
     suspend fun setAdbPathOverride(path: String?)
 
-    /** Locates adb and asks it for its version. */
-    suspend fun readAdbInfo(): Outcome<AdbInfo, DeviceError>
+    /** Where adb is and which version it has, updated when the override or the installation changes. */
+    fun observeAdbInfo(): Flow<Outcome<AdbInfo, DeviceError>>
 }

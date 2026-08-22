@@ -16,7 +16,7 @@ sealed interface AppsIntent {
 
     data object ActionCancelled : AppsIntent
 
-    data object RetryClicked : AppsIntent
+    data class VisibilityChanged(val isVisible: Boolean) : AppsIntent
 
     data object InstallClicked : AppsIntent
 
