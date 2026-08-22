@@ -24,12 +24,13 @@ import com.tlpcraft.adbdesktop.core.domain.repository.FilesRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.LogcatRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.ScreenRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.ShellRepository
+import kotlinx.coroutines.flow.first
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val repositoryModule = module {
-    single { AdbPathOverrideProvider { get<PreferencesDataSource>().readAdbPath() } }
+    single { AdbPathOverrideProvider { get<PreferencesDataSource>().observeAdbPath().first() } }
     singleOf(::DeviceRepositoryImpl) bind DeviceRepository::class
     singleOf(::DeviceSelectionRepositoryImpl) bind DeviceSelectionRepository::class
     single<DeviceInfoRepository> { DeviceInfoRepositoryImpl(get()) }

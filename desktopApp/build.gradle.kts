@@ -72,8 +72,8 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            // jlink only bundles what is listed here; the settings store needs java.prefs at runtime.
-            modules("java.prefs")
+            // jlink only bundles what is listed here; the settings store needs sun.misc.Unsafe at runtime.
+            modules("jdk.unsupported")
             packageName = "ADB Desktop"
             packageVersion = "1.0.0"
 

@@ -40,7 +40,7 @@ jobs:
           retention-days: 7
 
   # Only code that touches the host differs between operating systems: locating and running executables and the
-  # per-user preferences store. Those specs are tagged `platform`.
+  # per-user settings file. Those specs are tagged `platform`.
   platform-tests:
     name: Platform tests (${{ matrix.os }})
     strategy:
