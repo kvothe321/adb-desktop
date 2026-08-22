@@ -2,6 +2,7 @@ package com.tlpcraft.adbdesktop.core.data.source.adb.process
 
 import com.tlpcraft.adbdesktop.core.common.dispatcher.DispatcherProvider
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbException
+import java.io.IOException
 import java.io.InputStream
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -11,6 +12,7 @@ import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.flowOn
@@ -69,10 +71,18 @@ class ProcessCommandExecutor(private val dispatchers: DispatcherProvider) : Comm
     private suspend fun <T> runToCompletion(command: List<String>, block: suspend CoroutineScope.(Process) -> T): T = coroutineScope {
         val process = ProcessBuilder(command).start()
         val reaper = killOnCancellation(process)
-        block(process).also { reaper.cancel() }
+        try {
+            block(process).also { reaper.cancel() }
+        } catch (failure: IOException) {
+            ensureActive()
+            throw failure
+        }
     }
 
-    /** Reads on a blocked process stream ignore coroutine cancellation; killing the process is what unblocks them. */
+    /**
+     * Reads on a blocked process stream ignore coroutine cancellation; killing the process is what unblocks them.
+     * That can fail the read with an [IOException], which readers must take for the cancellation it really is.
+     */
     private fun CoroutineScope.killOnCancellation(process: Process): Job = launch(start = CoroutineStart.UNDISPATCHED) {
         try {
             awaitCancellation()
@@ -84,9 +94,14 @@ class ProcessCommandExecutor(private val dispatchers: DispatcherProvider) : Comm
     private suspend fun ProducerScope<String>.sendOutputOf(process: Process) {
         val reader = process.inputStream.bufferedReader()
         val buffer = CharArray(BUFFER_SIZE)
-        generateSequence { reader.read(buffer) }
-            .takeWhile { it >= 0 }
-            .forEach { read -> send(String(buffer, 0, read)) }
+        try {
+            generateSequence { reader.read(buffer) }
+                .takeWhile { it >= 0 }
+                .forEach { read -> send(String(buffer, 0, read)) }
+        } catch (failure: IOException) {
+            ensureActive()
+            throw failure
+        }
     }
 
     private fun InputStream.readText(): String = bufferedReader().use { it.readText() }

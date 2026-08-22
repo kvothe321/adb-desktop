@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withTimeout
 
 private val CANCEL_TIMEOUT = 20.seconds
+private const val REPEATED_CANCELLATIONS = 25
 
 private fun javaSource(className: String, body: String): String = File.createTempFile(className, ".java").let { temp ->
     val source = File(temp.parentFile, "$className.java")
@@ -66,6 +67,14 @@ class ProcessCommandExecutorTest : FunSpec({
 
         withTimeout(CANCEL_TIMEOUT) {
             executor.stream(listOf(java, endless)).first() shouldContain "ready"
+        }
+    }
+
+    test("killing a process in the middle of a read counts as cancellation, not as a failure") {
+        val flood = javaSource("Flood", """while (true) { System.out.println("line"); }""")
+
+        repeat(REPEATED_CANCELLATIONS) {
+            withTimeout(CANCEL_TIMEOUT) { executor.stream(listOf(java, flood)).first() }.shouldNotBeBlank()
         }
     }
 
