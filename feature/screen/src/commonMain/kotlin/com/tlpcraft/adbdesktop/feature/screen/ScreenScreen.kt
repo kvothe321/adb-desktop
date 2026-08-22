@@ -24,8 +24,10 @@ import com.tlpcraft.adbdesktop.feature.screen.resources.Res
 import com.tlpcraft.adbdesktop.feature.screen.resources.message_recording_discarded
 import com.tlpcraft.adbdesktop.feature.screen.resources.message_recording_saved
 import com.tlpcraft.adbdesktop.feature.screen.resources.message_screen_failed
+import com.tlpcraft.adbdesktop.feature.screen.resources.message_screenshot_copied
 import com.tlpcraft.adbdesktop.feature.screen.resources.message_screenshot_saved
 import com.tlpcraft.adbdesktop.feature.screen.resources.screen_capture
+import com.tlpcraft.adbdesktop.feature.screen.resources.screen_copy
 import com.tlpcraft.adbdesktop.feature.screen.resources.screen_empty_description
 import com.tlpcraft.adbdesktop.feature.screen.resources.screen_empty_title
 import com.tlpcraft.adbdesktop.feature.screen.resources.screen_no_device_description
@@ -53,6 +55,8 @@ import org.jetbrains.compose.resources.decodeToImageBitmap
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
+
+private const val SECONDS_PER_MINUTE = 60
 
 /** Screenshots and screen recordings of the selected device. One-shot results go through [onShowMessage]. */
 @Composable
@@ -97,7 +101,7 @@ fun ScreenContent(uiState: ScreenUiState, onIntent: (ScreenIntent) -> Unit, modi
 
 @Composable
 private fun RowScope.ScreenActions(uiState: ScreenUiState, onIntent: (ScreenIntent) -> Unit) {
-    uiState.recording.statusText()?.let { status -> Badge(status, tone = Tone.Error) }
+    uiState.recording.statusText(uiState.recordingSeconds)?.let { status -> Badge(status, tone = Tone.Error) }
     if (uiState.recording == RecordingState.Recording) {
         Button(text = stringResource(Res.string.screen_stop), onClick = {
             onIntent(ScreenIntent.StopClicked)
@@ -111,6 +115,7 @@ private fun RowScope.ScreenActions(uiState: ScreenUiState, onIntent: (ScreenInte
         )
     }
     if (uiState.screenshot != null) {
+        Button(text = stringResource(Res.string.screen_copy), onClick = { onIntent(ScreenIntent.CopyScreenshotClicked) }, variant = ButtonVariant.Ghost)
         Button(text = stringResource(Res.string.screen_save), onClick = { onIntent(ScreenIntent.SaveScreenshotClicked) }, icon = IconName.Download)
     }
     Button(
@@ -123,9 +128,9 @@ private fun RowScope.ScreenActions(uiState: ScreenUiState, onIntent: (ScreenInte
 }
 
 @Composable
-private fun RecordingState.statusText(): String? = when (this) {
+private fun RecordingState.statusText(elapsedSeconds: Int): String? = when (this) {
     RecordingState.Idle -> null
-    RecordingState.Recording -> stringResource(Res.string.screen_recording)
+    RecordingState.Recording -> stringResource(Res.string.screen_recording, elapsedSeconds.toClockTime())
     RecordingState.Stopping -> stringResource(Res.string.screen_stopping)
     RecordingState.Saving -> stringResource(Res.string.screen_saving)
 }
@@ -136,8 +141,11 @@ private fun ScreenshotPreview(screenshot: Screenshot) {
     Image(bitmap, contentDescription = stringResource(Res.string.screen_preview_description), modifier = Modifier.fillMaxSize())
 }
 
+private fun Int.toClockTime(): String = "${(this / SECONDS_PER_MINUTE).toString().padStart(2, '0')}:${(this % SECONDS_PER_MINUTE).toString().padStart(2, '0')}"
+
 private suspend fun ScreenSideEffect.message(): String = when (this) {
     is ScreenSideEffect.ScreenshotSaved -> getString(Res.string.message_screenshot_saved, path)
+    ScreenSideEffect.ScreenshotCopied -> getString(Res.string.message_screenshot_copied)
     is ScreenSideEffect.RecordingSaved -> getString(Res.string.message_recording_saved, path)
     ScreenSideEffect.RecordingDiscarded -> getString(Res.string.message_recording_discarded)
     is ScreenSideEffect.Failed -> getString(Res.string.message_screen_failed, details)

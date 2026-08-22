@@ -5,6 +5,7 @@ data class ScreenUiState(
     val screenshot: Screenshot? = null,
     val isCapturing: Boolean = false,
     val recording: RecordingState = RecordingState.Idle,
+    val recordingSeconds: Int = 0,
 ) {
     val canCapture: Boolean
         get() = serial != null && !isCapturing
