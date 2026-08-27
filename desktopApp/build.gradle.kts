@@ -75,7 +75,7 @@ compose.desktop {
             // jlink only bundles what is listed here; the settings store needs sun.misc.Unsafe at runtime.
             modules("jdk.unsupported")
             packageName = "ADB Desktop"
-            packageVersion = "1.0.0"
+            packageVersion = providers.gradleProperty("appVersion").getOrElse("1.0.0")
 
             linux {
                 // Debian package names must be lowercase without spaces.
