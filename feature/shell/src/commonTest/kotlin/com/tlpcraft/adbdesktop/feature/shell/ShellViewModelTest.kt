@@ -1,16 +1,19 @@
 package com.tlpcraft.adbdesktop.feature.shell
 
+import com.tlpcraft.adbdesktop.core.domain.model.TerminalSize
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.shell.RunShellSessionUseCase
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceSelectionRepository
+import com.tlpcraft.adbdesktop.core.testing.FakeHostClipboard
 import com.tlpcraft.adbdesktop.core.testing.FakeShellRepository
 import com.tlpcraft.adbdesktop.core.testing.onlineDevice
 import com.tlpcraft.adbdesktop.feature.shell.contract.SessionState
 import com.tlpcraft.adbdesktop.feature.shell.contract.ShellIntent
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.Dispatchers
@@ -24,81 +27,109 @@ class ShellViewModelTest : FunSpec({
     beforeTest { Dispatchers.setMain(UnconfinedTestDispatcher()) }
     afterTest { Dispatchers.resetMain() }
 
-    class Fixture(selectedSerial: String? = "pixel") {
+    class Fixture(selectedSerial: String? = "pixel", isMeasured: Boolean = true) {
         val shell = FakeShellRepository()
         val selection = FakeDeviceSelectionRepository(selectedSerial)
+        val clipboard = FakeHostClipboard()
         val viewModel = ShellViewModel(
             observeSelectedDevice = ObserveSelectedDeviceUseCase(ObserveDevicesUseCase(FakeDeviceRepository(listOf(onlineDevice("pixel")))), selection),
             runShellSession = RunShellSessionUseCase(shell),
-        )
+            hostClipboard = clipboard,
+        ).apply { if (isMeasured) reduceIntent(ShellIntent.TerminalResized(rows = 24, columns = 80)) }
 
-        fun run(command: String) {
-            viewModel.reduceIntent(ShellIntent.InputChanged(command))
-            viewModel.reduceIntent(ShellIntent.CommandSubmitted)
-        }
+        val state get() = viewModel.uiState.value
 
-        fun transcript() = viewModel.uiState.value.lines.map { it.text }
+        fun type(text: String) = viewModel.reduceIntent(ShellIntent.InputTyped(text))
+
+        fun screen() = state.rows.map { it.text.trim() }.filter { it.isNotEmpty() }
     }
 
     test("without a device there is no session") {
         val fixture = Fixture(selectedSerial = null)
 
-        fixture.viewModel.uiState.value.session shouldBe SessionState.NoDevice
+        fixture.state.session shouldBe SessionState.NoDevice
         fixture.shell.sessionsStarted shouldBe 0
     }
 
-    test("a command is echoed, sent and followed by its output") {
-        val fixture = Fixture()
+    test("a session waits until the terminal size is known") {
+        val fixture = Fixture(isMeasured = false)
+        fixture.shell.sessionsStarted shouldBe 0
 
-        fixture.run("ls")
+        fixture.viewModel.reduceIntent(ShellIntent.TerminalResized(rows = 30, columns = 100))
 
-        fixture.transcript() shouldContainExactly listOf("ls", "output of ls")
-        fixture.viewModel.uiState.value.lines.first().isCommand shouldBe true
-        fixture.viewModel.uiState.value.input shouldBe ""
+        fixture.shell.startedWith shouldBe TerminalSize(30, 100)
     }
 
-    test("blank input is not sent") {
+    test("resizing keeps the session running") {
         val fixture = Fixture()
 
-        fixture.run("   ")
+        fixture.viewModel.reduceIntent(ShellIntent.TerminalResized(rows = 30, columns = 100))
+
+        fixture.shell.sessionsStarted shouldBe 1
+    }
+
+    test("keys go to the device as typed and output appears on the screen") {
+        val fixture = Fixture()
+
+        fixture.type("\u0003")
+
+        fixture.shell.received shouldContainExactly listOf("\u0003")
+        fixture.screen() shouldContain "output of"
+    }
+
+    test("input is ignored without a running session") {
+        val fixture = Fixture(selectedSerial = null)
+
+        fixture.type("ls")
 
         fixture.shell.received.shouldBeEmpty()
     }
 
-    test("history walks back and forward, ending on an empty prompt") {
-        val fixture = Fixture()
-        fixture.run("first")
-        fixture.run("second")
-
-        fixture.viewModel.reduceIntent(ShellIntent.PreviousCommandRequested)
-        fixture.viewModel.uiState.value.input shouldBe "second"
-        fixture.viewModel.reduceIntent(ShellIntent.PreviousCommandRequested)
-        fixture.viewModel.reduceIntent(ShellIntent.PreviousCommandRequested)
-        fixture.viewModel.uiState.value.input shouldBe "first"
-
-        fixture.viewModel.reduceIntent(ShellIntent.NextCommandRequested)
-        fixture.viewModel.reduceIntent(ShellIntent.NextCommandRequested)
-        fixture.viewModel.uiState.value.input shouldBe ""
-    }
-
-    test("exit ends the session and a new one can be started") {
+    test("the output of exit ends the session and a new one can start") {
         val fixture = Fixture()
 
-        fixture.run("exit")
-        fixture.viewModel.uiState.value.session shouldBe SessionState.Ended
+        fixture.type("exit")
+        fixture.state.session shouldBe SessionState.Ended
 
         fixture.viewModel.reduceIntent(ShellIntent.RestartClicked)
-        fixture.viewModel.uiState.value.session shouldBe SessionState.Running
+
+        fixture.state.session shouldBe SessionState.Running
         fixture.shell.sessionsStarted shouldBe 2
     }
 
-    test("clearing keeps the session open") {
+    test("switching devices starts over") {
         val fixture = Fixture()
-        fixture.run("ls")
+        fixture.type("ls")
+
+        fixture.selection.select(null)
+
+        fixture.state.session shouldBe SessionState.NoDevice
+        fixture.screen().shouldBeEmpty()
+    }
+
+    test("clearing empties the screen and asks the shell for a new prompt") {
+        val fixture = Fixture()
+        fixture.type("ls")
 
         fixture.viewModel.reduceIntent(ShellIntent.ClearClicked)
 
-        fixture.transcript().shouldBeEmpty()
-        fixture.viewModel.uiState.value.session shouldBe SessionState.Running
+        fixture.shell.received shouldContain "\u000c"
+        fixture.screen().size shouldBe 1
+    }
+
+    test("pasted lines are sent the way Enter sends them") {
+        val fixture = Fixture().apply { clipboard.text = "one\r\ntwo\n" }
+
+        fixture.viewModel.reduceIntent(ShellIntent.PasteRequested)
+
+        fixture.shell.received shouldContainExactly listOf("one\rtwo\r")
+    }
+
+    test("an empty clipboard pastes nothing") {
+        val fixture = Fixture()
+
+        fixture.viewModel.reduceIntent(ShellIntent.PasteRequested)
+
+        fixture.shell.received.shouldBeEmpty()
     }
 })

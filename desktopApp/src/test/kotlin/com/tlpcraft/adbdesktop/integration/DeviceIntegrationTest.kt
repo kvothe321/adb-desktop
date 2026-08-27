@@ -6,17 +6,24 @@ import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.AppAction
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
 import com.tlpcraft.adbdesktop.core.domain.model.RemoteFileType
+import com.tlpcraft.adbdesktop.core.domain.model.TerminalSize
 import com.tlpcraft.adbdesktop.core.domain.model.WirelessEndpoint
 import com.tlpcraft.adbdesktop.core.domain.repository.AdbSettingsRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.AppsRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.CpuRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.DeviceInfoRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.DeviceRepository
+import com.tlpcraft.adbdesktop.core.domain.repository.DeviceSelectionRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.FilesRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.LogcatRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.ScreenRepository
 import com.tlpcraft.adbdesktop.core.domain.repository.ShellRepository
+import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.shell.RunShellSessionUseCase
+import com.tlpcraft.adbdesktop.core.testing.FakeHostClipboard
 import com.tlpcraft.adbdesktop.di.appModules
+import com.tlpcraft.adbdesktop.feature.shell.ShellViewModel
+import com.tlpcraft.adbdesktop.feature.shell.contract.ShellIntent
 import io.kotest.assertions.withClue
 import io.kotest.core.annotation.Condition
 import io.kotest.core.annotation.EnabledIf
@@ -29,24 +36,38 @@ import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 import java.io.File
 import java.nio.file.Files
 import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
 import kotlinx.coroutines.withTimeout
 import org.koin.dsl.koinApplication
 
 private val testSerial: String? = System.getenv("ADB_TEST_SERIAL")
 private val TIMEOUT = 60.seconds
 private val OBSERVER_START = 1.seconds
+private val RESIZE_SETTLE = 2.seconds
+private val KEY_SETTLE = 300.milliseconds
 private val RECORDING_LENGTH = 3.seconds
 private const val LARGE_FILE_MEGABYTES = 200
 
@@ -61,6 +82,7 @@ class DeviceConfigured : Condition {
  * `ADB_TEST_SERIAL=emulator-5554 ./gradlew :desktopApp:test --rerun --tests '*DeviceIntegrationTest'`.
  * Without that variable it does nothing, so `check` and CI never need a device.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @EnabledIf(DeviceConfigured::class)
 class DeviceIntegrationTest : FunSpec({
     val serial = testSerial.orEmpty()
@@ -183,17 +205,104 @@ class DeviceIntegrationTest : FunSpec({
         processIds.shouldNotBeEmpty()
     }
 
-    test("the shell keeps state between commands and ends on exit") {
-        val commands = Channel<String>(Channel.UNLIMITED)
-        val script = listOf("cd /sdcard", "pwd", "echo done-marker", "exit")
-        script.forEach { commands.trySend(it) }
+    context("the shell") {
+        test("keeps state between commands and ends on exit") {
+            val input = Channel<String>(Channel.UNLIMITED)
+            input.trySend("cd /sdcard; pwd; echo done-marker; exit\n")
 
-        val output = withTimeout(TIMEOUT) {
-            koin.get<ShellRepository>().runSession(serial, commands.receiveAsFlow()).toList()
-        }.joinToString("") { it.orFail() }
+            val output = withTimeout(TIMEOUT) {
+                koin.get<ShellRepository>().runSession(serial, input.receiveAsFlow(), MutableStateFlow(TerminalSize(24, 80))).toList()
+            }.joinToString("") { it.orFail() }
 
-        output shouldContain "/sdcard"
-        output shouldContain "done-marker"
+            output shouldContain "/sdcard"
+            output shouldContain "done-marker"
+        }
+
+        test("runs in a terminal of the requested size, and follows a resize") {
+            val input = Channel<String>(Channel.UNLIMITED)
+            val size = MutableStateFlow(TerminalSize(24, 80))
+            val output = StringBuilder()
+            input.trySend("stty size\n")
+
+            withTimeout(TIMEOUT) {
+                koin.get<ShellRepository>().runSession(serial, input.receiveAsFlow(), size).takeWhile { chunk ->
+                    output.append(chunk.orFail())
+                    when {
+                        "42 133" in output -> {
+                            false
+                        }
+
+                        "24 80" in output && size.value.rows == 24 -> {
+                            size.value = TerminalSize(42, 133)
+                            delay(RESIZE_SETTLE)
+                            input.trySend("stty size\n")
+                            true
+                        }
+
+                        else -> {
+                            true
+                        }
+                    }
+                }.collect()
+            }
+
+            output.toString() shouldContain "42 133"
+        }
+
+        context("full-screen programs") {
+            lateinit var scope: CoroutineScope
+            lateinit var viewModel: ShellViewModel
+
+            fun screen() = viewModel.uiState.value.rows.joinToString("\n") { it.text }
+
+            suspend fun type(text: String) {
+                viewModel.reduceIntent(ShellIntent.InputTyped(text))
+                delay(KEY_SETTLE)
+            }
+
+            suspend fun awaitScreen(text: String) = withTimeout(TIMEOUT) { viewModel.uiState.first { state -> state.rows.any { text in it.text } } }
+
+            beforeEach {
+                Dispatchers.setMain(Dispatchers.Default)
+                scope = CoroutineScope(Dispatchers.Default)
+                koin.get<DeviceSelectionRepository>().select(serial)
+                viewModel = ShellViewModel(koin.get<ObserveSelectedDeviceUseCase>(), koin.get<RunShellSessionUseCase>(), FakeHostClipboard())
+                scope.launch { viewModel.uiState.collect() }
+                viewModel.reduceIntent(ShellIntent.TerminalResized(rows = 24, columns = 80))
+                awaitScreen(" $ ")
+            }
+
+            afterEach {
+                scope.cancel()
+                koin.get<DeviceSelectionRepository>().select(null)
+                Dispatchers.resetMain()
+            }
+
+            test("top draws in place, and Ctrl+C leaves it") {
+                type("top -d 1\r")
+                awaitScreen("PID USER")
+                screen().lines().size shouldBe 24
+
+                type("\u0003")
+                withTimeout(TIMEOUT) { viewModel.uiState.first { state -> state.rows.last { it.text.isNotBlank() }.text.contains(" $ ") } }
+            }
+
+            test("vi edits on the alternate screen and gives the shell back") {
+                type("echo before-vi\r")
+                awaitScreen("before-vi")
+
+                type("vi /data/local/tmp/adb-desktop-test.txt\r")
+                awaitScreen("0/0C")
+                screen() shouldNotContain "before-vi"
+
+                type("ihello terminal\u001b")
+                awaitScreen("hello terminal")
+
+                type(":q!\r")
+                awaitScreen("before-vi")
+                screen() shouldNotContain "hello terminal"
+            }
+        }
     }
 
     test("a screenshot is a real PNG") {

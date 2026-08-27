@@ -2,6 +2,7 @@ package com.tlpcraft.adbdesktop.core.data.source.adb
 
 import app.cash.turbine.test
 import com.tlpcraft.adbdesktop.core.data.source.adb.dto.PackageActionDto
+import com.tlpcraft.adbdesktop.core.data.source.adb.dto.TerminalSizeDto
 import com.tlpcraft.adbdesktop.core.data.source.adb.fake.FakeAdbEnvironment
 import com.tlpcraft.adbdesktop.core.data.source.adb.fake.FakeCommandExecutor
 import com.tlpcraft.adbdesktop.core.data.source.adb.fake.testAdbClient
@@ -11,7 +12,9 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
 
 class AdbHostOperationsTest : FunSpec({
@@ -172,12 +175,56 @@ class AdbHostOperationsTest : FunSpec({
         AdbInfoDataSourceImpl(testAdbClient(executor)).readInfo().version shouldBe "37.0.0p1-android-tools"
     }
 
-    test("the shell session sends each command as a line") {
-        val executor = FakeCommandExecutor().apply { respondStream("-s", "pixel", "shell", chunks = listOf("hello\n")) }
+    context("the terminal session") {
+        val script = "export TERM=xterm-256color; stty rows 24 cols 80; tty; exec sh"
 
-        AdbShellDataSourceImpl(testAdbClient(executor)).openSession("pixel", flowOf("echo hello")).test {
-            awaitItem() shouldBe "hello\n"
-            awaitComplete()
+        test("starts at the requested size and hides the name of the terminal") {
+            val executor = FakeCommandExecutor().apply {
+                respondStream("-s", "pixel", "shell", "-tt", script, chunks = listOf("/dev/pts", "/0\r\npixel:/ $ ", "ls"))
+            }
+
+            AdbShellDataSourceImpl(testAdbClient(executor)).openSession("pixel", flowOf(), flowOf(TerminalSizeDto(24, 80))).test {
+                awaitItem() shouldBe "pixel:/ $ "
+                awaitItem() shouldBe "ls"
+                awaitComplete()
+            }
+        }
+
+        test("input waits for the terminal, so its echo cannot come before the name") {
+            val executor = FakeCommandExecutor().apply {
+                respondStream("-s", "pixel", "shell", "-tt", script, chunks = listOf("/dev/pts"))
+            }
+            var isInputRead = false
+            val input = flow<String> { isInputRead = true }
+
+            AdbShellDataSourceImpl(testAdbClient(executor)).openSession("pixel", input, flowOf(TerminalSizeDto(24, 80))).toList()
+            isInputRead shouldBe false
+
+            executor.respondStream("-s", "pixel", "shell", "-tt", script, chunks = listOf("/dev/pts/0\r\n"))
+            AdbShellDataSourceImpl(testAdbClient(executor)).openSession("pixel", input, flowOf(TerminalSizeDto(24, 80))).toList()
+            isInputRead shouldBe true
+        }
+
+        test("output that ends before a full line still arrives") {
+            val executor = FakeCommandExecutor().apply {
+                respondStream("-s", "pixel", "shell", "-tt", script, chunks = listOf("error: closed"))
+            }
+
+            AdbShellDataSourceImpl(testAdbClient(executor)).openSession("pixel", flowOf(), flowOf(TerminalSizeDto(24, 80))).test {
+                awaitItem() shouldBe "error: closed"
+                awaitComplete()
+            }
+        }
+
+        test("passes on an error from adb instead of a terminal name") {
+            val executor = FakeCommandExecutor().apply {
+                respondStream("-s", "pixel", "shell", "-tt", script, chunks = listOf("error: device offline\n"))
+            }
+
+            AdbShellDataSourceImpl(testAdbClient(executor)).openSession("pixel", flowOf(), flowOf(TerminalSizeDto(24, 80))).test {
+                awaitItem() shouldBe "error: device offline\n"
+                awaitComplete()
+            }
         }
     }
 })
