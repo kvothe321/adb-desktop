@@ -5,6 +5,7 @@
 #   Kotlin 2.4.21  <--> Gradle 7.6.3 .. 9.7.0 (fully supported range)
 #   Gradle Wrapper 9.7.1 is the newest release inside that range.
 #   JDK toolchain 21: newest LTS validated for Compose Desktop packaging (jpackage needs >= 17).
+#                     After changing `java`, run ./gradlew updateDaemonJvm --jvm-version=<version>.
 #   AGP 9.3.x: only used to give Compose modules an Android target so IDE @Preview rendering works.
 #              The app itself ships on desktop only.
 #

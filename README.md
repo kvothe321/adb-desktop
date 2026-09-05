@@ -20,7 +20,7 @@ Actions apply to the device picked in the sidebar. See [docs/ROADMAP.md](docs/RO
 
 ## Requirements
 
-- **JDK 17 or newer** to run Gradle. The build provisions the JDK 21 toolchain it compiles and runs with.
+- **JDK 17 or newer** to start Gradle. The build provisions JDK 21 for the Gradle daemon, compiling and running.
 - **Android platform-tools** (`adb`). It is found through, in order: the path set in the app, `ANDROID_HOME`,
   `ANDROID_SDK_ROOT`, then `PATH`.
 - **An Android SDK** (`ANDROID_HOME`, or `sdk.dir` in `local.properties`). Only the build needs it: Compose modules

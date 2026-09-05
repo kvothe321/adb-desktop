@@ -29,6 +29,7 @@ class KotlinMultiplatformLibrary : Plugin<Project> {
 
             extensions.getByType<KotlinMultiplatformExtension>().apply {
                 jvmToolchain(javaToolchainVersion)
+                compilerOptions { allWarningsAsErrors.set(true) }
                 jvm()
 
                 sourceSets {
