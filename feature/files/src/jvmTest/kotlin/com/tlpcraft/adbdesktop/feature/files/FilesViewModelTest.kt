@@ -42,7 +42,7 @@ class FilesViewModelTest : FunSpec({
         val hostFiles = FakeHostFiles()
         val viewModel = FilesViewModel(
             observeSelectedDevice = ObserveSelectedDeviceUseCase(
-                ObserveDevicesUseCase(FakeDeviceRepository(listOf(onlineDevice("pixel")))),
+                ObserveDevicesUseCase(FakeDeviceRepository(listOfNotNull(selectedSerial?.let { onlineDevice(it) }))),
                 FakeDeviceSelectionRepository(selectedSerial),
             ),
             observeFiles = ObserveFilesUseCase(files),
@@ -68,6 +68,17 @@ class FilesViewModelTest : FunSpec({
 
     test("opens shared storage with folders first") {
         Fixture().names() shouldContainExactly listOf("Download", "notes.txt")
+    }
+
+    test("entries the device shell may not read cannot be opened or changed") {
+        val fixture = Fixture()
+        val restricted = fixture.file("Download").copy(permissions = "d?????????")
+
+        fixture.viewModel.reduceIntent(FilesIntent.EntryClicked(restricted))
+        fixture.viewModel.reduceIntent(FilesIntent.DeleteClicked(restricted))
+
+        fixture.state.directory shouldBe "/sdcard"
+        fixture.state.pendingDelete.shouldBeNull()
     }
 
     test("navigates into folders and back up, but files do not open") {

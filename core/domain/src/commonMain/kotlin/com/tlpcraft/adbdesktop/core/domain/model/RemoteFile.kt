@@ -8,7 +8,18 @@ data class RemoteFile(
     val modified: String?,
     val permissions: String,
     val linkTarget: String? = null,
-)
+) {
+    /** `ls` prints `?` for what the device shell may not inspect, and such entries cannot be opened or changed either. */
+    val isAccessible: Boolean
+        get() = UNKNOWN_PERMISSION !in permissions
+
+    val canOpen: Boolean
+        get() = isAccessible && type.canOpen
+
+    private companion object {
+        const val UNKNOWN_PERMISSION = '?'
+    }
+}
 
 enum class RemoteFileType {
     DIRECTORY,
