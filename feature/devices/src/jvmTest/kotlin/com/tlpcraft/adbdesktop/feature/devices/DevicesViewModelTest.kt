@@ -113,7 +113,7 @@ class DevicesViewModelTest : FunSpec({
 
     context("selection") {
         test("clicking an online device selects it, clicking again clears it") {
-            val fixture = Fixture()
+            val fixture = Fixture(devices = FakeDeviceRepository(listOf(onlineDevice("pixel"), onlineDevice("tablet"))))
 
             fixture.viewModel.reduceIntent(DevicesIntent.DeviceClicked("pixel"))
             fixture.viewModel.uiState.value.selectedSerial shouldBe "pixel"
@@ -122,12 +122,16 @@ class DevicesViewModelTest : FunSpec({
             fixture.viewModel.uiState.value.selectedSerial.shouldBeNull()
         }
 
+        test("the only online device is selected by default") {
+            Fixture().viewModel.uiState.value.selectedSerial shouldBe "pixel"
+        }
+
         test("offline devices cannot be selected") {
             val fixture = Fixture()
 
             fixture.viewModel.reduceIntent(DevicesIntent.DeviceClicked("old-phone"))
 
-            fixture.selection.selectedSerial.value.shouldBeNull()
+            fixture.selection.selectedSerial.value shouldBe "pixel"
         }
     }
 

@@ -45,7 +45,7 @@ class ScreenViewModelTest : FunSpec({
         val hostClipboard = FakeHostClipboard()
         val viewModel = ScreenViewModel(
             observeSelectedDevice = ObserveSelectedDeviceUseCase(
-                ObserveDevicesUseCase(FakeDeviceRepository(listOf(onlineDevice("pixel")))),
+                ObserveDevicesUseCase(FakeDeviceRepository(listOfNotNull(selectedSerial?.let { onlineDevice(it) }))),
                 FakeDeviceSelectionRepository(selectedSerial),
             ),
             captureScreenshot = CaptureScreenshotUseCase(screen),

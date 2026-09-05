@@ -11,6 +11,9 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 /**
  * The device the user works with, or `null`. A selected device that goes offline or disappears
  * resolves to `null` and comes back on its own when it reconnects.
+ *
+ * When the selection resolves to nothing and exactly one device is online, that device becomes the
+ * selection. It is stored rather than derived so it survives a second device connecting.
  */
 class ObserveSelectedDeviceUseCase(
     private val observeDevices: ObserveDevicesUseCase,
@@ -21,6 +24,7 @@ class ObserveSelectedDeviceUseCase(
         observeDevices(Unit),
         selectionRepository.selectedSerial,
     ) { devicesOutcome, selectedSerial ->
-        devicesOutcome.getOrNull()?.firstOrNull { it.serial == selectedSerial && it.isOnline }
+        val onlineDevices = devicesOutcome.getOrNull().orEmpty().filter { it.isOnline }
+        onlineDevices.firstOrNull { it.serial == selectedSerial } ?: onlineDevices.singleOrNull()?.also { selectionRepository.select(it.serial) }
     }.distinctUntilChanged()
 }

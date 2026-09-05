@@ -40,7 +40,7 @@ class LogcatViewModelTest : FunSpec({
         val hostFiles = FakeHostFiles()
         val viewModel = LogcatViewModel(
             observeSelectedDevice = ObserveSelectedDeviceUseCase(
-                ObserveDevicesUseCase(FakeDeviceRepository(listOf(onlineDevice("pixel")))),
+                ObserveDevicesUseCase(FakeDeviceRepository(listOfNotNull(selectedSerial?.let { onlineDevice(it) }))),
                 FakeDeviceSelectionRepository(selectedSerial),
             ),
             observeLogcat = ObserveLogcatUseCase(logcat),
