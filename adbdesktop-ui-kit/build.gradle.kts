@@ -8,7 +8,6 @@ kotlin {
         commonMain.dependencies {
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.compose.material3)
-            implementation(libs.material.icons.core)
         }
         jvmTest.dependencies {
             implementation(libs.compose.uiTest)
