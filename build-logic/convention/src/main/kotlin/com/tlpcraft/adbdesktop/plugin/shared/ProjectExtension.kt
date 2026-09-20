@@ -13,16 +13,30 @@ internal val Project.javaToolchainVersion: Int
 /** Compose Desktop with the Skia runtime of the host, which local runs and off screen UI tests need. */
 val Project.composeDesktopRuntime: String
     get() {
+        val architecture = if (isHostArm) "arm64" else "x64"
+        val version = libs.findVersion("composeMultiplatform").get().requiredVersion
+        return "org.jetbrains.compose.desktop:desktop-jvm-$hostOs-$architecture:$version"
+    }
+
+/** Classifier of the JavaCPP native libraries for the host. Installers are built per platform, so each carries only its own. */
+val Project.hostNativeClassifier: String
+    get() {
+        val os = hostOs.replace("macos", "macosx")
+        return "$os-${if (isHostArm) "arm64" else "x86_64"}"
+    }
+
+private val Project.hostOs: String
+    get() {
         val osName = providers.systemProperty("os.name").get().lowercase()
-        val platform = when {
+        return when {
             "mac" in osName -> "macos"
             "windows" in osName -> "windows"
             else -> "linux"
         }
-        val architecture = if (providers.systemProperty("os.arch").get() in ARM_ARCHITECTURES) "arm64" else "x64"
-        val version = libs.findVersion("composeMultiplatform").get().requiredVersion
-        return "org.jetbrains.compose.desktop:desktop-jvm-$platform-$architecture:$version"
     }
+
+private val Project.isHostArm: Boolean
+    get() = providers.systemProperty("os.arch").get() in ARM_ARCHITECTURES
 
 internal fun Project.getPackageLikeProjectPathName(): String = path
     .split(':')

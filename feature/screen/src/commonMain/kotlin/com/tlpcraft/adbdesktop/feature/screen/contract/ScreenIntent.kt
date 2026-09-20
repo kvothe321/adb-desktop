@@ -10,4 +10,8 @@ sealed interface ScreenIntent {
     data object RecordClicked : ScreenIntent
 
     data object StopClicked : ScreenIntent
+
+    data object MirrorClicked : ScreenIntent
+
+    data class VisibilityChanged(val isVisible: Boolean) : ScreenIntent
 }

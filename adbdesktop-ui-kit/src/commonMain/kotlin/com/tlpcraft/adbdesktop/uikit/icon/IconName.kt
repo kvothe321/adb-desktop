@@ -18,6 +18,7 @@ enum class IconName {
     Info,
     List,
     Lock,
+    Mirror,
     Moon,
     Package,
     Pause,
@@ -49,6 +50,7 @@ enum class IconName {
             Info -> InfoVector
             List -> ListVector
             Lock -> LockVector
+            Mirror -> MirrorVector
             Moon -> MoonVector
             Package -> PackageVector
             Pause -> PauseVector

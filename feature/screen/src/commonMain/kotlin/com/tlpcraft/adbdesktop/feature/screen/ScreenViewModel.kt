@@ -3,33 +3,45 @@ package com.tlpcraft.adbdesktop.feature.screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tlpcraft.adbdesktop.core.common.Outcome
+import com.tlpcraft.adbdesktop.core.common.flow.whileActive
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.service.HostClipboard
 import com.tlpcraft.adbdesktop.core.domain.service.HostFiles
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.CaptureScreenshotUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.screen.ObserveMirrorUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.RecordScreenUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.SaveRecordingUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.StopRecordingUseCase
+import com.tlpcraft.adbdesktop.feature.screen.contract.MirrorState
 import com.tlpcraft.adbdesktop.feature.screen.contract.RecordingState
 import com.tlpcraft.adbdesktop.feature.screen.contract.ScreenIntent
 import com.tlpcraft.adbdesktop.feature.screen.contract.ScreenSideEffect
 import com.tlpcraft.adbdesktop.feature.screen.contract.ScreenUiState
 import com.tlpcraft.adbdesktop.feature.screen.contract.Screenshot
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ScreenViewModel(
     private val observeSelectedDevice: ObserveSelectedDeviceUseCase,
     private val captureScreenshot: CaptureScreenshotUseCase,
+    private val observeMirror: ObserveMirrorUseCase,
     private val recordScreen: RecordScreenUseCase,
     private val stopRecording: StopRecordingUseCase,
     private val saveRecording: SaveRecordingUseCase,
@@ -43,10 +55,13 @@ class ScreenViewModel(
     private val _sideEffects = Channel<ScreenSideEffect>(Channel.BUFFERED)
     val sideEffects: Flow<ScreenSideEffect> = _sideEffects.receiveAsFlow()
 
+    private val isVisible = MutableStateFlow(false)
+
     init {
         viewModelScope.launch {
             observeSelectedDevice(Unit).collect { device -> _uiState.update { it.copy(serial = device?.serial) } }
         }
+        trackMirror()
     }
 
     fun reduceIntent(intent: ScreenIntent) {
@@ -56,8 +71,33 @@ class ScreenViewModel(
             ScreenIntent.CopyScreenshotClicked -> copyScreenshot()
             ScreenIntent.RecordClicked -> record()
             ScreenIntent.StopClicked -> stop()
+            ScreenIntent.MirrorClicked -> _uiState.update { it.copy(isMirrorOn = !it.isMirrorOn) }
+            is ScreenIntent.VisibilityChanged -> isVisible.value = intent.isVisible
         }
     }
+
+    /** Follows the selected device and only streams while the screen is on show. */
+    private fun trackMirror() = viewModelScope.launch {
+        _uiState.map { state -> state.serial.takeIf { state.isMirrorOn } }.distinctUntilChanged().flatMapLatest { serial ->
+            if (serial == null) flowOf(MirrorState.Off) else mirrorOf(serial).whileActive(isVisible).onStart { emit(MirrorState.Starting) }
+        }.collect { mirror -> _uiState.update { it.copy(mirror = mirror) } }
+    }
+
+    private fun mirrorOf(serial: String): Flow<MirrorState> = observeMirror(serial)
+        .onCompletion { cause -> if (cause == null) _uiState.update { it.copy(isMirrorOn = false) } }
+        .map { outcome ->
+            when (outcome) {
+                is Outcome.Success -> {
+                    MirrorState.Live(outcome.data)
+                }
+
+                is Outcome.Failure -> {
+                    _uiState.update { it.copy(isMirrorOn = false) }
+                    report(outcome.error)
+                    MirrorState.Off
+                }
+            }
+        }
 
     private fun capture() {
         val state = _uiState.value

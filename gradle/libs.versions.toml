@@ -21,6 +21,8 @@ composeRulesKtlint = "0.6.8"
 ktlint = "1.8.0"
 androidx-lifecycle = "2.11.0"
 androidx-datastore = "1.3.0"
+bytedecoFfmpeg = "8.1.2-1.5.14"
+bytedecoJavacpp = "1.5.14"
 kermit = "2.2.0"
 koin = "4.2.2"
 kotest = "6.2.6"
@@ -50,6 +52,9 @@ compose-uiTest = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "c
 compose-uiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
+
+bytedeco-ffmpeg = { module = "org.bytedeco:ffmpeg", version.ref = "bytedecoFfmpeg" }
+bytedeco-javacpp = { module = "org.bytedeco:javacpp", version.ref = "bytedecoJavacpp" }
 
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 
