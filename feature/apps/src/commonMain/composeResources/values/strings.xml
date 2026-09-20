@@ -9,7 +9,6 @@
     <string name="apps_filter_disabled">Disabled</string>
     <string name="apps_empty">No packages match</string>
     <string name="apps_load_failed">Could not list packages</string>
-    <string name="apps_retry">Retry</string>
     <string name="apps_details_empty_title">Select an app</string>
     <string name="apps_details_empty_description">Pick a package from the list to see its details and actions.</string>
     <string name="apps_details_failed">Could not load details</string>
@@ -37,6 +36,12 @@
     <string name="app_confirm_uninstall_message">%1$s and its data will be removed from the device.</string>
     <string name="app_confirm_cancel">Cancel</string>
 
+    <string name="apps_install">Install APK</string>
+    <string name="apps_drop_hint">Drop APK files to install</string>
+    <string name="message_no_apk_dropped">Only APK files can be installed</string>
+    <string name="message_installed">Installed %1$d APK file(s)</string>
+    <string name="message_install_failed">Install failed: %1$s</string>
+
     <string name="message_action_succeeded">%1$s: %2$s</string>
-    <string name="message_action_failed">%1$s failed for %2$s</string>
+    <string name="message_action_failed">%1$s failed for %2$s: %3$s</string>
 </resources>

@@ -10,7 +10,7 @@ import androidx.compose.ui.input.key.type
 
 val isMacOs: Boolean = System.getProperty("os.name").startsWith("Mac", ignoreCase = true)
 
-private val digitKeys = listOf(Key.One, Key.Two, Key.Three)
+private val digitKeys = listOf(Key.One, Key.Two, Key.Three, Key.Four, Key.Five, Key.Six, Key.Seven)
 
 /** The section bound to this key press, such as Ctrl+2 (Cmd+2 on macOS), or `null`. */
 fun KeyEvent.sectionShortcut(): Section? {

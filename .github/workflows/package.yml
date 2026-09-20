@@ -2,7 +2,8 @@ name: Package
 
 on:
   push:
-    tags: [ 'v*' ]
+    # The dmg format refuses a major version of 0.
+    tags: [ 'v[1-9]*' ]
   workflow_dispatch:
 
 permissions:
@@ -28,12 +29,35 @@ jobs:
 
       # Builds the deb, dmg or msi of the runner's operating system; jpackage cannot cross-compile.
       - name: Package
-        run: ./gradlew :desktopApp:packageDistributionForCurrentOS
+        run: ./gradlew :desktopApp:packageDistributionForCurrentOS ${VERSION:+-PappVersion=${VERSION#v}}
         shell: bash
+        env:
+          VERSION: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
 
       - name: Upload installer
         uses: actions/upload-artifact@v7
         with:
           name: adb-desktop-${{ matrix.os }}
-          path: desktopApp/build/compose/binaries/main/
+          path: |
+            desktopApp/build/compose/binaries/main/deb/
+            desktopApp/build/compose/binaries/main/dmg/
+            desktopApp/build/compose/binaries/main/msi/
           if-no-files-found: error
+
+  release:
+    name: Release
+    needs: package
+    if: github.ref_type == 'tag'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: installers
+          merge-multiple: true
+
+      - name: Publish installers
+        run: find installers -type f -print0 | xargs -0 gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}

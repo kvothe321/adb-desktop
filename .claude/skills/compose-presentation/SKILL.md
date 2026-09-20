@@ -27,6 +27,10 @@ Each screen has a `contract` package with up to three files:
 - Guard illegal intents in the reducer too (`if (!uiState.value.canConnect) return`), never trust the view.
 - Depend on domain use cases only. Map `DomainError` to presentation types (a string resource key, not text).
 - Long-lived streams: `stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), initial)`.
+- Everything shown is observed: repositories expose flows that re-emit on any change, so a ViewModel never reloads
+  after a mutation and screens need no refresh or retry button.
+- ViewModels outlive their screen. Wrap anything that polls the device in `whileActive(isVisible)`, fed by
+  `VisibilityEffect` in the Screen, so hidden screens do no work.
 - Unit test every ViewModel with fakes from `core:testing`, Kotest and Turbine; set `Dispatchers.setMain` per spec.
 
 ## State hoisting: Screen and Content

@@ -16,7 +16,6 @@ import com.tlpcraft.adbdesktop.feature.devices.resources.devices_adb_missing_tit
 import com.tlpcraft.adbdesktop.feature.devices.resources.devices_adb_path_label
 import com.tlpcraft.adbdesktop.feature.devices.resources.devices_adb_path_placeholder
 import com.tlpcraft.adbdesktop.feature.devices.resources.devices_adb_path_save
-import com.tlpcraft.adbdesktop.feature.devices.resources.devices_retry
 import com.tlpcraft.adbdesktop.feature.devices.resources.devices_unavailable_title
 import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
@@ -38,7 +37,6 @@ internal fun AdbSetupPanel(
     adbPathInput: String,
     onAdbPathChange: (String) -> Unit,
     onAdbPathSubmit: () -> Unit,
-    onRetry: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     when (failure) {
@@ -48,7 +46,6 @@ internal fun AdbSetupPanel(
             icon = IconName.Warning,
             tone = Tone.Error,
             modifier = modifier,
-            action = { Button(text = stringResource(Res.string.devices_retry), onClick = onRetry, icon = IconName.Refresh) },
         )
 
         is DevicesFailure.AdbNotFound -> AdbPathForm(
@@ -111,7 +108,6 @@ private fun AdbSetupPanelMissingPreview() = PreviewContext {
         adbPathInput = "",
         onAdbPathChange = {},
         onAdbPathSubmit = {},
-        onRetry = {},
     )
 }
 
@@ -123,6 +119,5 @@ private fun AdbSetupPanelUnavailablePreview() = PreviewContext {
         adbPathInput = "",
         onAdbPathChange = {},
         onAdbPathSubmit = {},
-        onRetry = {},
     )
 }

@@ -1,5 +1,34 @@
 <resources>
     <string name="files_title">Files</string>
-    <string name="files_unavailable_title">File explorer is not available yet</string>
-    <string name="files_unavailable_description">Browsing, pushing and pulling files is planned next. See the roadmap in docs/ROADMAP.md.</string>
+    <string name="files_no_device_title">No device selected</string>
+    <string name="files_no_device_description">Pick an online device in the sidebar to browse its files.</string>
+    <string name="files_up">Parent folder</string>
+    <string name="files_upload">Upload</string>
+    <string name="files_new_folder">New folder</string>
+    <string name="files_download">Download</string>
+    <string name="files_delete">Delete</string>
+    <string name="files_empty">This folder is empty</string>
+    <string name="files_load_failed">Could not open this folder</string>
+    <string name="files_no_access">No access</string>
+    <string name="files_path_label">Path</string>
+
+    <string name="files_new_folder_title">New folder</string>
+    <string name="files_new_folder_label">Name</string>
+    <string name="files_new_folder_invalid">A name cannot be empty or contain a slash</string>
+    <string name="files_create">Create</string>
+    <string name="files_cancel">Cancel</string>
+
+    <string name="files_delete_title">Delete %1$s?</string>
+    <string name="files_delete_message">This permanently removes it from the device, including everything inside a folder.</string>
+
+    <string name="files_drop_hint">Drop to upload to this folder</string>
+    <string name="files_transfer_batch">%1$s (%2$d of %3$d)</string>
+    <string name="files_transfer_cancel">Cancel transfer</string>
+
+    <string name="message_transfer_cancelled">Transfer cancelled</string>
+    <string name="message_uploaded">Uploaded to %1$s</string>
+    <string name="message_downloaded">Downloaded %1$s to %2$s</string>
+    <string name="message_deleted">Deleted %1$s</string>
+    <string name="message_folder_created">Created %1$s</string>
+    <string name="message_operation_failed">That did not work: %1$s</string>
 </resources>

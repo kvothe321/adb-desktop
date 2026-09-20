@@ -8,18 +8,19 @@ internal object StorageParser {
         .takeIf(List<Long>::isNotEmpty)
         ?.sum()
 
-    /** Reads `Data size:` and `Cache size:` (bytes) from `cmd package get-app-sizes`. */
+    /** Reads rows such as `data: 958464 bytes (936.00 Kb)` from `cmd package get-package-storage-stats`. */
     fun parseAppSizes(output: String): AppSizes {
         val lines = output.lines().map(String::trim)
         return AppSizes(
-            dataBytes = lines.sizeAfter("Data size:"),
-            cacheBytes = lines.sizeAfter("Cache size:"),
+            dataBytes = lines.sizeAfter("data:"),
+            cacheBytes = lines.sizeAfter("cache:"),
         )
     }
 
     private fun List<String>.sizeAfter(key: String): Long? = firstOrNull { it.startsWith(key) }
         ?.removePrefix(key)
         ?.trim()
+        ?.substringBefore(' ')
         ?.toLongOrNull()
 
     data class AppSizes(val dataBytes: Long?, val cacheBytes: Long?)

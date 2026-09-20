@@ -12,4 +12,10 @@ class JvmAdbEnvironment : AdbEnvironment {
     override fun variable(name: String): String? = System.getenv(name)?.takeIf(String::isNotBlank)
 
     override fun isExecutableFile(path: String): Boolean = File(path).let { it.isFile && it.canExecute() }
+
+    override fun fileSize(path: String): Long? = File(path).takeIf(File::isFile)?.length()
+
+    override fun deleteFile(path: String) {
+        File(path).delete()
+    }
 }

@@ -1,6 +1,7 @@
 package com.tlpcraft.adbdesktop.core.data.source.adb
 
 import com.tlpcraft.adbdesktop.core.data.source.adb.dto.DeviceDto
+import com.tlpcraft.adbdesktop.core.data.source.adb.dto.MdnsServiceDto
 import kotlinx.coroutines.flow.Flow
 
 interface AdbDeviceDataSource {
@@ -12,4 +13,6 @@ interface AdbDeviceDataSource {
     suspend fun disconnect(serial: String)
 
     suspend fun pair(address: String, pairingCode: String)
+
+    suspend fun discoverServices(): List<MdnsServiceDto>
 }

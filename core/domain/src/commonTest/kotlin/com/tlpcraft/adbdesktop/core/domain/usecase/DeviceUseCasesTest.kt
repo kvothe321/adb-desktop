@@ -51,6 +51,69 @@ class DeviceUseCasesTest : FunSpec({
             }
         }
 
+        test("selects the only online device") {
+            val devices = FakeDeviceRepository(listOf(offlineDevice("tablet"), onlineDevice("pixel")))
+            val selection = FakeDeviceSelectionRepository()
+
+            ObserveSelectedDeviceUseCase(ObserveDevicesUseCase(devices), selection)(Unit).test {
+                awaitItem()?.serial shouldBe "pixel"
+                selection.selectedSerial.value shouldBe "pixel"
+            }
+        }
+
+        test("selects nothing while several devices are online") {
+            val devices = FakeDeviceRepository(listOf(onlineDevice("pixel"), onlineDevice("tablet")))
+
+            ObserveSelectedDeviceUseCase(ObserveDevicesUseCase(devices), FakeDeviceSelectionRepository())(Unit).test {
+                awaitItem().shouldBeNull()
+            }
+        }
+
+        test("selects the remaining device when the others leave") {
+            val devices = FakeDeviceRepository(listOf(onlineDevice("pixel"), onlineDevice("tablet")))
+
+            ObserveSelectedDeviceUseCase(ObserveDevicesUseCase(devices), FakeDeviceSelectionRepository())(Unit).test {
+                awaitItem().shouldBeNull()
+                devices.devices.value = Outcome.Success(listOf(onlineDevice("tablet")))
+                awaitItem()?.serial shouldBe "tablet"
+            }
+        }
+
+        test("keeps an automatic selection when another device connects") {
+            val devices = FakeDeviceRepository(listOf(onlineDevice("pixel")))
+
+            ObserveSelectedDeviceUseCase(ObserveDevicesUseCase(devices), FakeDeviceSelectionRepository())(Unit).test {
+                awaitItem()?.serial shouldBe "pixel"
+                devices.devices.value = Outcome.Success(listOf(onlineDevice("pixel"), onlineDevice("tablet")))
+                expectNoEvents()
+            }
+        }
+
+        test("moves to the only online device and stays there when the old one returns") {
+            val devices = FakeDeviceRepository(listOf(onlineDevice("pixel"), onlineDevice("tablet")))
+            val selection = FakeDeviceSelectionRepository("pixel")
+
+            ObserveSelectedDeviceUseCase(ObserveDevicesUseCase(devices), selection)(Unit).test {
+                awaitItem()?.serial shouldBe "pixel"
+                devices.devices.value = Outcome.Success(listOf(offlineDevice("pixel"), onlineDevice("tablet")))
+                awaitItem()?.serial shouldBe "tablet"
+                devices.devices.value = Outcome.Success(listOf(onlineDevice("pixel"), onlineDevice("tablet")))
+                expectNoEvents()
+            }
+        }
+
+        test("a cleared selection falls back to the only online device") {
+            val devices = FakeDeviceRepository(listOf(onlineDevice("pixel")))
+            val selection = FakeDeviceSelectionRepository("pixel")
+
+            ObserveSelectedDeviceUseCase(ObserveDevicesUseCase(devices), selection)(Unit).test {
+                awaitItem()?.serial shouldBe "pixel"
+                selection.select(null)
+                expectNoEvents()
+                selection.selectedSerial.value shouldBe "pixel"
+            }
+        }
+
         test("is null when device tracking fails") {
             val devices = FakeDeviceRepository().apply { devices.value = Outcome.Failure(DeviceError.AdbNotFound(emptyList())) }
 

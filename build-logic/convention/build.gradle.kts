@@ -2,6 +2,10 @@ plugins {
     `kotlin-dsl`
 }
 
+kotlin {
+    compilerOptions { allWarningsAsErrors = true }
+}
+
 dependencies {
     compileOnly(internalLibs.kotlin.gradlePlugin)
     compileOnly(internalLibs.compose.gradlePlugin)

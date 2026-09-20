@@ -1,3 +1,4 @@
+import com.tlpcraft.adbdesktop.plugin.shared.composeDesktopRuntime
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
@@ -8,8 +9,13 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val toolchainLauncher = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInt())
+}
+
 kotlin {
     jvmToolchain(libs.versions.java.get().toInt())
+    compilerOptions { allWarningsAsErrors = true }
 }
 
 dependencies {
@@ -23,8 +29,12 @@ dependencies {
     implementation(projects.feature.devices)
     implementation(projects.feature.apps)
     implementation(projects.feature.files)
+    implementation(projects.feature.logcat)
+    implementation(projects.feature.shell)
+    implementation(projects.feature.screen)
+    implementation(projects.feature.settings)
 
-    implementation(compose.desktop.currentOs)
+    implementation(composeDesktopRuntime)
     implementation(libs.kotlinx.coroutines.swing)
     implementation(libs.compose.runtime)
     implementation(libs.compose.foundation)
@@ -50,6 +60,13 @@ tasks.test {
     useJUnitPlatform()
 }
 
+// IDE gutter runs add this task late, with the Project SDK as its executable, which bypasses the toolchain.
+gradle.projectsEvaluated {
+    tasks.withType<JavaExec>().matching { it.name.endsWith(".main()") }.configureEach {
+        setExecutable(toolchainLauncher.get().executablePath.asFile.path)
+    }
+}
+
 compose.resources {
     packageOfResClass = "com.tlpcraft.adbdesktop.resources"
 }
@@ -58,18 +75,14 @@ compose.desktop {
     application {
         mainClass = "com.tlpcraft.adbdesktop.MainKt"
         // Run and package with the toolchain JDK instead of whatever JAVA_HOME points to.
-        javaHome = javaToolchains
-            .launcherFor { languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInt()) }
-            .get()
-            .metadata
-            .installationPath
-            .asFile
-            .absolutePath
+        javaHome = toolchainLauncher.get().metadata.installationPath.asFile.absolutePath
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            // jlink only bundles what is listed here; the settings store needs sun.misc.Unsafe at runtime.
+            modules("jdk.unsupported")
             packageName = "ADB Desktop"
-            packageVersion = "1.0.0"
+            packageVersion = providers.gradleProperty("appVersion").getOrElse("1.0.0")
 
             linux {
                 // Debian package names must be lowercase without spaces.

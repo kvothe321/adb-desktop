@@ -22,6 +22,7 @@ internal data class AppColors(
     val warning: Color,
     val error: Color,
     val isDark: Boolean,
+    val terminalPalette: List<Color>,
 )
 
 internal val LightColors = AppColors(
@@ -41,6 +42,24 @@ internal val LightColors = AppColors(
     warning = Color(0xFFC77700),
     error = Color(0xFFC62E3A),
     isDark = false,
+    terminalPalette = listOf(
+        Color(0xFF1C1C22),
+        Color(0xFFC62E3A),
+        Color(0xFF2E8B57),
+        Color(0xFF9A6700),
+        Color(0xFF2F6FDB),
+        Color(0xFF8E3FBF),
+        Color(0xFF12808C),
+        Color(0xFF8A8A98),
+        Color(0xFF5C5C6B),
+        Color(0xFFE0434F),
+        Color(0xFF3AA76B),
+        Color(0xFFC77700),
+        Color(0xFF4F87E8),
+        Color(0xFFA855D6),
+        Color(0xFF1A9AA8),
+        Color(0xFF3C3C48),
+    ),
 )
 
 internal val DarkColors = AppColors(
@@ -60,6 +79,24 @@ internal val DarkColors = AppColors(
     warning = Color(0xFFF0A93B),
     error = Color(0xFFFF6B75),
     isDark = true,
+    terminalPalette = listOf(
+        Color(0xFF2A2F40),
+        Color(0xFFFF6B75),
+        Color(0xFF4CC38A),
+        Color(0xFFF0A93B),
+        Color(0xFF5B9BFF),
+        Color(0xFFC792EA),
+        Color(0xFF4FD1DD),
+        Color(0xFFC9CAD6),
+        Color(0xFF6C7086),
+        Color(0xFFFF8A92),
+        Color(0xFF6FDDA6),
+        Color(0xFFFFC163),
+        Color(0xFF82B4FF),
+        Color(0xFFDDB3F5),
+        Color(0xFF7EE3EC),
+        Color(0xFFF4F4F8),
+    ),
 )
 
 internal val LocalAppColors = staticCompositionLocalOf { LightColors }

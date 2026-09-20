@@ -9,5 +9,6 @@ internal fun Throwable.toDeviceError(): DeviceError = when (this) {
     is AdbException.DeviceNotFound -> DeviceError.DeviceNotFound(serial.orEmpty())
     is AdbException.ConnectFailed -> DeviceError.ConnectionFailed(address, reason)
     is AdbException.PairFailed -> DeviceError.PairingFailed(reason)
+    is AdbException.CommandFailed -> DeviceError.CommandFailed(output.ifBlank { message.orEmpty() }, cause = this)
     else -> DeviceError.CommandFailed(message ?: this::class.simpleName.orEmpty(), cause = this)
 }

@@ -46,6 +46,7 @@ import com.tlpcraft.adbdesktop.uikit.component.ProgressIndicator
 import com.tlpcraft.adbdesktop.uikit.component.Text
 import com.tlpcraft.adbdesktop.uikit.component.TextEmphasis
 import com.tlpcraft.adbdesktop.uikit.component.TopBar
+import com.tlpcraft.adbdesktop.uikit.component.VisibilityEffect
 import com.tlpcraft.adbdesktop.uikit.icon.IconName
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
@@ -60,6 +61,7 @@ fun DevicesScreen(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentOnShowMessage by rememberUpdatedState(onShowMessage)
 
+    VisibilityEffect { viewModel.reduceIntent(DevicesIntent.VisibilityChanged(it)) }
     LaunchedEffect(viewModel) {
         viewModel.sideEffects.collect { effect -> currentOnShowMessage(effect.message()) }
     }
@@ -87,7 +89,6 @@ fun DevicesContent(uiState: DevicesUiState, onIntent: (DevicesIntent) -> Unit, m
                     adbPathInput = uiState.adbPathInput,
                     onAdbPathChange = { onIntent(DevicesIntent.AdbPathChanged(it)) },
                     onAdbPathSubmit = { onIntent(DevicesIntent.AdbPathSubmitted) },
-                    onRetry = { onIntent(DevicesIntent.RetryClicked) },
                 )
 
                 is DeviceListState.Loaded -> if (list.devices.isEmpty()) {
