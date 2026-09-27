@@ -3,11 +3,9 @@ package com.tlpcraft.adbdesktop.feature.screen
 import app.cash.turbine.test
 import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
-import com.tlpcraft.adbdesktop.core.domain.model.MirrorFrame
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.CaptureScreenshotUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.screen.ObserveMirrorUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.RecordScreenUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.SaveRecordingUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.StopRecordingUseCase
@@ -17,19 +15,15 @@ import com.tlpcraft.adbdesktop.core.testing.FakeHostClipboard
 import com.tlpcraft.adbdesktop.core.testing.FakeHostFiles
 import com.tlpcraft.adbdesktop.core.testing.FakeScreenRepository
 import com.tlpcraft.adbdesktop.core.testing.onlineDevice
-import com.tlpcraft.adbdesktop.feature.screen.contract.MirrorState
 import com.tlpcraft.adbdesktop.feature.screen.contract.RecordingState
 import com.tlpcraft.adbdesktop.feature.screen.contract.ScreenIntent
 import com.tlpcraft.adbdesktop.feature.screen.contract.ScreenSideEffect
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeFalse
-import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
-import io.kotest.matchers.types.shouldBeSameInstanceAs
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
@@ -55,13 +49,12 @@ class ScreenViewModelTest : FunSpec({
                 FakeDeviceSelectionRepository(selectedSerial),
             ),
             captureScreenshot = CaptureScreenshotUseCase(screen),
-            observeMirror = ObserveMirrorUseCase(screen),
             recordScreen = RecordScreenUseCase(screen),
             stopRecording = StopRecordingUseCase(screen),
             saveRecording = SaveRecordingUseCase(screen),
             hostFiles = hostFiles,
             hostClipboard = hostClipboard,
-        ).apply { reduceIntent(ScreenIntent.VisibilityChanged(true)) }
+        )
 
         val state get() = viewModel.uiState.value
     }
@@ -116,71 +109,6 @@ class ScreenViewModelTest : FunSpec({
             awaitItem() shouldBe ScreenSideEffect.ScreenshotCopied
         }
         fixture.hostClipboard.copied.shouldNotBeNull().size shouldBe 2
-    }
-
-    context("mirroring") {
-        val frame = MirrorFrame(width = 1, height = 1, pixels = byteArrayOf(1, 2, 3, -1))
-
-        test("stays off until asked for") {
-            val fixture = Fixture()
-
-            fixture.state.mirror shouldBe MirrorState.Off
-            fixture.screen.activeMirrors shouldBe 0
-        }
-
-        test("shows a spinner until the first frame, then every new frame") {
-            val fixture = Fixture()
-
-            fixture.viewModel.reduceIntent(ScreenIntent.MirrorClicked)
-            fixture.state.mirror shouldBe MirrorState.Starting
-
-            fixture.screen.mirror.emit(Outcome.Success(frame))
-            fixture.state.mirror.shouldBeInstanceOf<MirrorState.Live>().frame shouldBeSameInstanceAs frame
-        }
-
-        test("stopping ends the stream") {
-            val fixture = Fixture()
-            fixture.viewModel.reduceIntent(ScreenIntent.MirrorClicked)
-
-            fixture.viewModel.reduceIntent(ScreenIntent.MirrorClicked)
-
-            fixture.state.mirror shouldBe MirrorState.Off
-            fixture.screen.activeMirrors shouldBe 0
-        }
-
-        test("streams only while the screen is on show and resumes on return") {
-            val fixture = Fixture()
-            fixture.viewModel.reduceIntent(ScreenIntent.MirrorClicked)
-
-            fixture.viewModel.reduceIntent(ScreenIntent.VisibilityChanged(false))
-            fixture.screen.activeMirrors shouldBe 0
-
-            fixture.viewModel.reduceIntent(ScreenIntent.VisibilityChanged(true))
-            fixture.screen.activeMirrors shouldBe 1
-            fixture.state.isMirrorOn shouldBe true
-        }
-
-        test("a failure turns mirroring off and reports it") {
-            val fixture = Fixture()
-            fixture.viewModel.reduceIntent(ScreenIntent.MirrorClicked)
-
-            fixture.viewModel.sideEffects.test {
-                fixture.screen.mirror.emit(Outcome.Failure(DeviceError.CommandFailed("no encoder")))
-
-                awaitItem() shouldBe ScreenSideEffect.Failed("no encoder")
-            }
-            fixture.state.isMirrorOn shouldBe false
-            fixture.state.mirror shouldBe MirrorState.Off
-            fixture.screen.activeMirrors shouldBe 0
-        }
-
-        test("nothing streams without a device") {
-            val fixture = Fixture(selectedSerial = null)
-
-            fixture.viewModel.reduceIntent(ScreenIntent.MirrorClicked)
-
-            fixture.screen.mirroredSerials.shouldBeEmpty()
-        }
     }
 
     context("recording") {

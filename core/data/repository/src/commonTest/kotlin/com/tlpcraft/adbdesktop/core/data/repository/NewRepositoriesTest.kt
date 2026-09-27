@@ -85,5 +85,17 @@ class NewRepositoriesTest : FunSpec({
 
             preferences.themeMode.value shouldBe "DARK"
         }
+
+        test("the mirror is not pinned until the user pins it") {
+            val preferences = FakePreferencesDataSource()
+            val repository = AppearanceRepositoryImpl(preferences)
+
+            repository.observeMirrorPinned().test {
+                awaitItem() shouldBe false
+                repository.setMirrorPinned(true)
+                awaitItem() shouldBe true
+            }
+            preferences.mirrorPinned.value shouldBe true
+        }
     }
 })
