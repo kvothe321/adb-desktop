@@ -85,6 +85,7 @@ fun ShellContent(uiState: ShellUiState, onIntent: (ShellIntent) -> Unit, modifie
                 rows = uiState.rows,
                 onGridSizeChange = { rows, columns -> onIntent(ShellIntent.TerminalResized(rows, columns)) },
                 onKeyPress = { event -> handleKey(event, uiState.hasApplicationCursorKeys, onIntent) },
+                onTextInput = { text -> onIntent(ShellIntent.InputTyped(text)) },
                 modifier = Modifier.weight(1f),
             )
             if (uiState.session != SessionState.Running) {

@@ -8,10 +8,10 @@ import io.kotest.matchers.shouldBe
 class KeyEncoderTest : FunSpec({
     fun encode(press: KeyPress, hasApplicationCursorKeys: Boolean = false) = encodeKey(press, hasApplicationCursorKeys)
 
-    test("letters arrive as the keyboard layout produced them") {
-        encode(KeyPress(Key.A, 'a'.code)) shouldBe "a"
-        encode(KeyPress(Key.A, 'A'.code, isShift = true)) shouldBe "A"
-        encode(KeyPress(Key.A, 'ă'.code)) shouldBe "ă"
+    test("plain typing is left to text input, where input methods can compose it") {
+        encode(KeyPress(Key.A, 'a'.code)).shouldBeNull()
+        encode(KeyPress(Key.A, 'A'.code, isShift = true)).shouldBeNull()
+        encode(KeyPress(Key.A, 'ă'.code)).shouldBeNull()
     }
 
     test("the keys that edit a line") {
