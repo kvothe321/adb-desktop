@@ -35,7 +35,6 @@ import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_clear
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_clear_failed
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_export
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_exported
-import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_failed_title
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_level_debug
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_level_error
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_level_fatal
@@ -47,6 +46,7 @@ import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_no_device_title
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_package_not_running
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_package_placeholder
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_pause
+import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_reconnecting
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_resume
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_retry
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_search_placeholder
@@ -179,22 +179,32 @@ private fun FilterBar(
 
 @Composable
 private fun LogBody(uiState: LogcatUiState, onRetry: () -> Unit, modifier: Modifier = Modifier) {
-    val failure = uiState.failure
     val rows = uiState.visibleRows
-    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        when {
-            failure != null -> EmptyState(
-                title = stringResource(Res.string.logcat_failed_title),
-                description = failure,
-                tone = Tone.Error,
-                icon = IconName.Warning,
-                action = { Button(text = stringResource(Res.string.logcat_retry), onClick = onRetry, icon = IconName.Refresh) },
-            )
-
-            rows.isEmpty() -> Text(stringResource(Res.string.logcat_waiting), emphasis = TextEmphasis.Medium)
-
-            else -> LogList(rows = rows, followTail = !uiState.isPaused)
+    Column(modifier.fillMaxSize()) {
+        uiState.failure?.let { failure ->
+            ReconnectingBar(failure = failure, onRetry = onRetry)
+            Divider()
         }
+        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
+            if (rows.isEmpty()) {
+                Text(stringResource(Res.string.logcat_waiting), emphasis = TextEmphasis.Medium)
+            } else {
+                LogList(rows = rows, followTail = !uiState.isPaused)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReconnectingBar(failure: String, onRetry: () -> Unit) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = AppTheme.spacing.md, vertical = AppTheme.spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
+    ) {
+        Badge(stringResource(Res.string.logcat_reconnecting), tone = Tone.Warning)
+        Text(failure, modifier = Modifier.weight(1f), tone = Tone.Error, maxLines = 1)
+        Button(text = stringResource(Res.string.logcat_retry), onClick = onRetry, variant = ButtonVariant.Ghost, icon = IconName.Refresh)
     }
 }
 

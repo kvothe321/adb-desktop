@@ -11,8 +11,11 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
 interface AdbLogcatDataSource {
-    /** Emits batches of entries as they arrive, starting with the most recent history. */
-    fun streamLogs(serial: String): Flow<List<LogEntryDto>>
+    /**
+     * Emits batches of entries as they arrive, starting with the most recent history, or with the entries from the
+     * timestamp [since] on, in the `MM-DD hh:mm:ss.mmm` form entries carry.
+     */
+    fun streamLogs(serial: String, since: String? = null): Flow<List<LogEntryDto>>
 
     suspend fun clearLogs(serial: String)
 
@@ -22,9 +25,10 @@ interface AdbLogcatDataSource {
 
 class AdbLogcatDataSourceImpl(private val client: AdbClient) : AdbLogcatDataSource {
 
-    override fun streamLogs(serial: String): Flow<List<LogEntryDto>> = flow {
+    /** adb quotes logcat's arguments itself, so the timestamp goes in as it is. */
+    override fun streamLogs(serial: String, since: String?): Flow<List<LogEntryDto>> = flow {
         val lines = LineBuffer()
-        client.stream("-s", serial, "logcat", "-v", "threadtime", "-T", HISTORY_LINES)
+        client.stream("-s", serial, "logcat", "-v", "threadtime", "-T", since ?: HISTORY_LINES)
             .map { chunk -> lines.feed(chunk).mapNotNull(LogcatParser::parse) }
             .filter { it.isNotEmpty() }
             .collect { emit(it) }
