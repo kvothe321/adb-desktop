@@ -38,7 +38,7 @@ val repositoryModule = module {
     singleOf(::DeviceSelectionRepositoryImpl) bind DeviceSelectionRepository::class
     single<DeviceInfoRepository> { DeviceInfoRepositoryImpl(get()) }
     single<CpuRepository> { CpuRepositoryImpl(get()) }
-    single<AppsRepository> { AppsRepositoryImpl(get()) }
+    single<AppsRepository> { AppsRepositoryImpl(get(), get()) }
     single<AdbSettingsRepository> { AdbSettingsRepositoryImpl(get(), get()) }
     singleOf(::AppearanceRepositoryImpl) bind AppearanceRepository::class
     single<LogcatRepository> { LogcatRepositoryImpl(get()) }

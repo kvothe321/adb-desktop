@@ -40,6 +40,7 @@ import com.tlpcraft.adbdesktop.uikit.component.EmptyState
 import com.tlpcraft.adbdesktop.uikit.component.Icon
 import com.tlpcraft.adbdesktop.uikit.component.IconSize
 import com.tlpcraft.adbdesktop.uikit.component.MonospaceText
+import com.tlpcraft.adbdesktop.uikit.component.PictureIcon
 import com.tlpcraft.adbdesktop.uikit.component.ProgressIndicator
 import com.tlpcraft.adbdesktop.uikit.component.Text
 import com.tlpcraft.adbdesktop.uikit.component.TextEmphasis
@@ -55,6 +56,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun AppDetailsPane(
     details: AppDetailsState,
+    icon: ByteArray?,
     runningAction: AppAction?,
     onActionClick: (AppAction) -> Unit,
     modifier: Modifier = Modifier,
@@ -71,19 +73,24 @@ internal fun AppDetailsPane(
 
             is AppDetailsState.Failed -> EmptyState(title = stringResource(Res.string.apps_details_failed), description = details.details, tone = Tone.Error)
 
-            is AppDetailsState.Loaded -> AppDetailsBody(details.details, runningAction, onActionClick)
+            is AppDetailsState.Loaded -> AppDetailsBody(details.details, icon, runningAction, onActionClick)
         }
     }
 }
 
 @Composable
-private fun AppDetailsBody(details: AppDetails, runningAction: AppAction?, onActionClick: (AppAction) -> Unit) {
+private fun AppDetailsBody(
+    details: AppDetails,
+    icon: ByteArray?,
+    runningAction: AppAction?,
+    onActionClick: (AppAction) -> Unit,
+) {
     Column(
         modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(AppTheme.spacing.lg),
         verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.lg),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md)) {
-            Icon(IconName.Package, contentDescription = null, size = IconSize.Hero, tone = Tone.Accent)
+            PictureIcon(image = icon, fallback = IconName.Package, contentDescription = null, size = IconSize.Hero, fallbackTone = Tone.Accent)
             Column {
                 Text(details.packageName.packageDisplayName(), variant = TextVariant.Title)
                 MonospaceText(details.packageName, emphasis = TextEmphasis.Medium, selectable = true)
@@ -153,6 +160,7 @@ private fun AppDetailsPaneLoadedPreview() = PreviewContext {
                 cacheSizeBytes = null,
             ),
         ),
+        icon = null,
         runningAction = AppAction.FORCE_STOP,
         onActionClick = {},
     )
@@ -161,5 +169,5 @@ private fun AppDetailsPaneLoadedPreview() = PreviewContext {
 @UiKitPreview
 @Composable
 private fun AppDetailsPaneHiddenPreview() = PreviewContext {
-    AppDetailsPane(details = AppDetailsState.Hidden, runningAction = null, onActionClick = {})
+    AppDetailsPane(details = AppDetailsState.Hidden, icon = null, runningAction = null, onActionClick = {})
 }

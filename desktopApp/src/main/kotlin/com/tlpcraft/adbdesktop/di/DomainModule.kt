@@ -3,6 +3,7 @@ package com.tlpcraft.adbdesktop.di
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ExecuteAppActionUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.InstallApkUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppDetailsUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppIconsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ConnectWirelessDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.DisconnectDeviceUseCase
@@ -49,6 +50,7 @@ val domainModule = module {
     factoryOf(::ObserveAdbPathOverrideUseCase)
     factoryOf(::SetAdbPathOverrideUseCase)
     factoryOf(::ObserveAppsUseCase)
+    factoryOf(::ObserveAppIconsUseCase)
     factoryOf(::ObserveAppDetailsUseCase)
     factoryOf(::ExecuteAppActionUseCase)
     factoryOf(::InstallApkUseCase)

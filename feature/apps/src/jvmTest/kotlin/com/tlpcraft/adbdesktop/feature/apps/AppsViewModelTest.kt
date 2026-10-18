@@ -5,10 +5,12 @@ import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.AppAction
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
+import com.tlpcraft.adbdesktop.core.domain.model.AppIcon
 import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ExecuteAppActionUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.InstallApkUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppDetailsUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppIconsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
@@ -59,6 +61,7 @@ class AppsViewModelTest : FunSpec({
             ),
             observeApps = ObserveAppsUseCase(apps),
             observeAppDetails = ObserveAppDetailsUseCase(apps),
+            observeAppIcons = ObserveAppIconsUseCase(apps),
             executeAppAction = ExecuteAppActionUseCase(apps),
             installApk = InstallApkUseCase(apps),
             hostFiles = hostFiles,
@@ -67,6 +70,18 @@ class AppsViewModelTest : FunSpec({
 
     test("without a selected device there is nothing to list") {
         Fixture(selectedSerial = null).viewModel.uiState.value.list shouldBe AppListState.NoDevice
+    }
+
+    test("icons of the listed apps arrive and stay while the list reloads") {
+        val fixture = Fixture()
+        val icon = AppIcon(byteArrayOf(1))
+
+        fixture.apps.icons.value = mapOf("com.example.notes" to icon)
+        fixture.viewModel.uiState.value.icons.keys shouldBe setOf("com.example.notes")
+        fixture.apps.iconRequests.last() shouldBe listOf("com.android.settings", "com.example.notes")
+
+        fixture.viewModel.reduceIntent(AppsIntent.FilterSelected(AppFilter.SYSTEM))
+        fixture.viewModel.uiState.value.icons.keys shouldBe setOf("com.example.notes")
     }
 
     test("loads user apps of the selected device, sorted") {

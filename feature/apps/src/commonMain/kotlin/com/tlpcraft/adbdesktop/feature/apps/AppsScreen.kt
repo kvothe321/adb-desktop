@@ -88,6 +88,7 @@ fun AppsContent(uiState: AppsUiState, onIntent: (AppsIntent) -> Unit, modifier: 
                                 filter = uiState.filter,
                                 query = uiState.query,
                                 selectedPackage = uiState.selectedPackage,
+                                icons = uiState.icons.mapValues { it.value.png },
                                 onFilterSelect = { onIntent(AppsIntent.FilterSelected(it)) },
                                 onQueryChange = { onIntent(AppsIntent.QueryChanged(it)) },
                                 onAppClick = { onIntent(AppsIntent.AppClicked(it)) },
@@ -96,6 +97,7 @@ fun AppsContent(uiState: AppsUiState, onIntent: (AppsIntent) -> Unit, modifier: 
                         end = {
                             AppDetailsPane(
                                 details = uiState.details,
+                                icon = uiState.selectedPackage?.let { uiState.icons[it]?.png },
                                 runningAction = uiState.runningAction,
                                 onActionClick = { onIntent(AppsIntent.ActionClicked(it)) },
                             )

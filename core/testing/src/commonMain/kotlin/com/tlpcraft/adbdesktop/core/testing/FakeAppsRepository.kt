@@ -5,6 +5,7 @@ import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.AppAction
 import com.tlpcraft.adbdesktop.core.domain.model.AppDetails
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
+import com.tlpcraft.adbdesktop.core.domain.model.AppIcon
 import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
 import com.tlpcraft.adbdesktop.core.domain.repository.AppsRepository
 import kotlinx.coroutines.flow.Flow
@@ -21,6 +22,8 @@ class FakeAppsRepository : AppsRepository {
     val executedActions = mutableListOf<Pair<String, AppAction>>()
     val installedApks = mutableListOf<List<String>>()
     var installResult: Outcome<Unit, DeviceError> = Outcome.Success(Unit)
+    val icons = MutableStateFlow<Map<String, AppIcon>>(emptyMap())
+    val iconRequests = mutableListOf<List<String>>()
 
     override fun observeApps(serial: String, filter: AppFilter): Flow<Outcome<List<AppInfo>, DeviceError>> = apps.onStart { requestedFilters += filter }
 
@@ -31,6 +34,8 @@ class FakeAppsRepository : AppsRepository {
         executedActions += packageName to action
         return actionResult
     }
+
+    override fun observeAppIcons(serial: String, packageNames: List<String>): Flow<Map<String, AppIcon>> = icons.onStart { iconRequests += packageNames }
 
     override suspend fun install(serial: String, apkPaths: List<String>): Outcome<Unit, DeviceError> {
         installedApks += apkPaths
