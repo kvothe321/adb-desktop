@@ -28,7 +28,7 @@ configurations.matching { it.name.endsWith("RuntimeClasspath") }.configureEach {
     exclude(group = "org.jetbrains.kotlin", module = "kotlin-stdlib")
 }
 
-val helperApk by configurations.creating {
+val helperApk = configurations.create("helperApk") {
     isCanBeConsumed = true
     isCanBeResolved = false
 }
