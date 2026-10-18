@@ -4,8 +4,8 @@ A desktop GUI for `adb`, built with Compose Multiplatform for Windows, macOS and
 
 - **Devices**: live list over USB, emulator and Wi-Fi with battery and CPU usage, connect, pair and disconnect over
   Wi-Fi, including devices discovered on the network.
-- **Apps**: browse and filter packages with their own icons, see details, open, force stop, clear cache or data,
-  uninstall, install APKs by picking or dropping them.
+- **Apps**: browse and filter packages with their own icons, updated the moment an app is installed or removed
+  anywhere, see details, open, force stop, clear cache or data, uninstall, install APKs by picking or dropping them.
 - **Files**: browse the device, upload and download with progress, drop files on the window, delete and create folders.
 - **Logcat**: live stream with level, text and package filters, pause, clear and export.
 - **Shell**: a real terminal on the device, with colors, full-screen programs such as `top` and `vi`, CJK text and emoji in
@@ -129,7 +129,7 @@ graph LR
 | `core:data:repository` | Implements the domain repositories and maps DTOs to domain models |
 | `core:data:source:adb` | Finds and runs adb, streams and parses its output into DTOs |
 | `core:data:source:preferences` | Per-user settings storage |
-| `device-helper` | Java run on the device with `app_process` for what adb cannot ask, such as app icons. Never installed |
+| `device-helper` | Java run on the device with `app_process` for what adb cannot ask: app icons and app changes. Never installed |
 | `core:common` | `Outcome`, `DomainError`, dispatchers |
 | `core:logger` | Logging behind `AppLogger` |
 | `core:testing` | Fakes of the domain repositories for tests |
