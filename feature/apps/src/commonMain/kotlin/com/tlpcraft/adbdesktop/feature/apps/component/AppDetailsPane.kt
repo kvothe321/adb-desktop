@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.tlpcraft.adbdesktop.core.domain.model.AppAction
+import com.tlpcraft.adbdesktop.core.domain.model.AppAppearance
 import com.tlpcraft.adbdesktop.core.domain.model.AppDetails
 import com.tlpcraft.adbdesktop.feature.apps.contract.AppDetailsState
 import com.tlpcraft.adbdesktop.feature.apps.contract.isDestructive
@@ -56,7 +57,7 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun AppDetailsPane(
     details: AppDetailsState,
-    icon: ByteArray?,
+    appearance: AppAppearance?,
     runningAction: AppAction?,
     onActionClick: (AppAction) -> Unit,
     modifier: Modifier = Modifier,
@@ -73,7 +74,7 @@ internal fun AppDetailsPane(
 
             is AppDetailsState.Failed -> EmptyState(title = stringResource(Res.string.apps_details_failed), description = details.details, tone = Tone.Error)
 
-            is AppDetailsState.Loaded -> AppDetailsBody(details.details, icon, runningAction, onActionClick)
+            is AppDetailsState.Loaded -> AppDetailsBody(details.details, appearance, runningAction, onActionClick)
         }
     }
 }
@@ -81,7 +82,7 @@ internal fun AppDetailsPane(
 @Composable
 private fun AppDetailsBody(
     details: AppDetails,
-    icon: ByteArray?,
+    appearance: AppAppearance?,
     runningAction: AppAction?,
     onActionClick: (AppAction) -> Unit,
 ) {
@@ -90,9 +91,9 @@ private fun AppDetailsBody(
         verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.lg),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md)) {
-            PictureIcon(image = icon, fallback = IconName.Package, contentDescription = null, size = IconSize.Hero, fallbackTone = Tone.Accent)
+            PictureIcon(image = appearance?.icon, fallback = IconName.Package, contentDescription = null, size = IconSize.Hero, fallbackTone = Tone.Accent)
             Column {
-                Text(details.packageName.packageDisplayName(), variant = TextVariant.Title)
+                Text(details.packageName.appTitle(appearance), variant = TextVariant.Title)
                 MonospaceText(details.packageName, emphasis = TextEmphasis.Medium, selectable = true)
             }
         }
@@ -160,7 +161,7 @@ private fun AppDetailsPaneLoadedPreview() = PreviewContext {
                 cacheSizeBytes = null,
             ),
         ),
-        icon = null,
+        appearance = null,
         runningAction = AppAction.FORCE_STOP,
         onActionClick = {},
     )
@@ -169,5 +170,5 @@ private fun AppDetailsPaneLoadedPreview() = PreviewContext {
 @UiKitPreview
 @Composable
 private fun AppDetailsPaneHiddenPreview() = PreviewContext {
-    AppDetailsPane(details = AppDetailsState.Hidden, icon = null, runningAction = null, onActionClick = {})
+    AppDetailsPane(details = AppDetailsState.Hidden, appearance = null, runningAction = null, onActionClick = {})
 }
