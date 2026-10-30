@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
@@ -62,14 +63,15 @@ class ShellViewModel(
     private fun runSessionForSelectedDevice() = viewModelScope.launch {
         combine(
             observeSelectedDevice(Unit).map { it?.serial }.distinctUntilChanged(),
-            size.filterNotNull().map { }.distinctUntilChanged(),
             sessionRequests,
-        ) { serial, _, _ -> serial }.collectLatest { serial ->
+        ) { serial, _ -> serial }.collectLatest { serial ->
             terminal = newTerminal()
             publish()
             if (serial == null) {
                 _uiState.update { it.copy(session = SessionState.NoDevice) }
             } else {
+                _uiState.update { it.copy(session = SessionState.Starting) }
+                size.filterNotNull().first()
                 runSession(serial)
             }
         }

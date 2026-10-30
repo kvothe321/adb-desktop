@@ -11,6 +11,9 @@ data class ShellUiState(
 sealed interface SessionState {
     data object NoDevice : SessionState
 
+    /** The terminal is on screen to measure itself; the session starts once its size is known. */
+    data object Starting : SessionState
+
     data object Running : SessionState
 
     data object Ended : SessionState
