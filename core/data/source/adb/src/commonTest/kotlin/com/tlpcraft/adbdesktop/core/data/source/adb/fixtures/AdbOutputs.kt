@@ -106,10 +106,19 @@ object AdbOutputs {
     """.trimIndent()
 
     val APP_SIZES = """
-        Code size: 42991616
-        Data size: 12582912
-        Cache size: 2097152
+        code: 8192 bytes (8.00 Kb)
+        data: 12582912 bytes (12.00 Mb)
+        cache: 2097152 bytes (2.00 Mb)
+        apk: 0 bytes
+        lib: 0 bytes
+        dm: 0 bytes
+        dexopt artifacts: 0 bytes
+        current profile : 0 bytes
+        reference profile: 0 bytes
+        external cache: 0 bytes
     """.trimIndent()
+
+    const val APP_SIZES_UNSUPPORTED = "Unknown command: get-package-storage-stats\n"
 
     val LOGCAT = """
         --------- beginning of main

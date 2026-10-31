@@ -19,7 +19,7 @@ class AdbPackageDataSourceImpl(private val client: AdbClient) : AdbPackageDataSo
 
     override suspend fun readPackageDetails(serial: String, packageName: String): PackageDetailsDto {
         val dump = PackageDumpParser.parse(client.shell(serial, "dumpsys", "package", packageName))
-        val appSizes = StorageParser.parseAppSizes(client.shell(serial, "cmd", "package", "get-app-sizes", packageName))
+        val appSizes = readAppSizes(serial, packageName)
         return PackageDetailsDto(
             packageName = packageName,
             versionName = dump.versionName,
@@ -51,6 +51,10 @@ class AdbPackageDataSourceImpl(private val client: AdbClient) : AdbPackageDataSo
             throw AdbException.CommandFailed(args, result.exitCode, InstallOutputParser.failureReason(output))
         }
     }
+
+    /** Older Android versions lack this command; their details simply show no sizes. */
+    private suspend fun readAppSizes(serial: String, packageName: String): StorageParser.AppSizes =
+        StorageParser.parseAppSizes(client.shellResult(serial, listOf("cmd", "package", "get-package-storage-stats", packageName)).stdout)
 
     /** Split APKs install several files; the code size is their sum. */
     private suspend fun readCodeSize(serial: String, packageName: String): Long? {

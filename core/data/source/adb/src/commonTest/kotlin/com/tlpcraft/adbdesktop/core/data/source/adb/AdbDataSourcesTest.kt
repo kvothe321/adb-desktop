@@ -80,7 +80,7 @@ class AdbDataSourcesTest : FunSpec({
             val apks = AdbOutputs.PM_PATH_SPLIT.lines().map { it.removePrefix("package:") }
             val executor = FakeCommandExecutor().apply {
                 respond("-s", "pixel", "shell", "dumpsys", "package", pkg, stdout = AdbOutputs.DUMPSYS_PACKAGE)
-                respond("-s", "pixel", "shell", "cmd", "package", "get-app-sizes", pkg, stdout = AdbOutputs.APP_SIZES)
+                respond("-s", "pixel", "shell", "cmd", "package", "get-package-storage-stats", pkg, stdout = AdbOutputs.APP_SIZES)
                 respond("-s", "pixel", "shell", "pm", "path", pkg, stdout = AdbOutputs.PM_PATH_SPLIT)
                 respond("-s", "pixel", "shell", "stat", "-c", "%s", *apks.toTypedArray(), stdout = AdbOutputs.STAT_SIZES)
             }
@@ -90,6 +90,29 @@ class AdbDataSourcesTest : FunSpec({
             details.versionName shouldBe "2.4.1"
             details.codeSizeBytes shouldBe 41_943_040L + 1_048_576L
             details.dataSizeBytes shouldBe 12_582_912L
+        }
+
+        test("details still load on Android versions without storage stats") {
+            val pkg = "com.example.notes"
+            val executor = FakeCommandExecutor().apply {
+                respond("-s", "pixel", "shell", "dumpsys", "package", pkg, stdout = AdbOutputs.DUMPSYS_PACKAGE)
+                respond(
+                    "-s",
+                    "pixel",
+                    "shell",
+                    "cmd",
+                    "package",
+                    "get-package-storage-stats",
+                    pkg,
+                    stdout = AdbOutputs.APP_SIZES_UNSUPPORTED,
+                    exitCode = 255,
+                )
+            }
+
+            val details = AdbPackageDataSourceImpl(testAdbClient(executor)).readPackageDetails("pixel", pkg)
+
+            details.versionName shouldBe "2.4.1"
+            details.dataSizeBytes shouldBe null
         }
 
         test("a pm failure printed on stdout fails the action") {
