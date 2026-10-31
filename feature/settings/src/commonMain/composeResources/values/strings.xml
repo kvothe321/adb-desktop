@@ -1,0 +1,16 @@
+<resources>
+    <string name="settings_title">Settings</string>
+    <string name="settings_adb_section">adb</string>
+    <string name="settings_adb_checking">Looking for adb</string>
+    <string name="settings_adb_found">Using %1$s</string>
+    <string name="settings_adb_version">Version %1$s</string>
+    <string name="settings_adb_path_label">Custom adb executable</string>
+    <string name="settings_adb_path_placeholder">Leave empty to detect it automatically</string>
+    <string name="settings_adb_save">Save</string>
+    <string name="settings_adb_reset">Detect automatically</string>
+    <string name="settings_adb_check">Check again</string>
+    <string name="settings_appearance_section">Appearance</string>
+    <string name="settings_theme_system">System</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+</resources>

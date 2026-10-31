@@ -53,6 +53,10 @@ val features
         "feature:devices",
         "feature:apps",
         "feature:files",
+        "feature:logcat",
+        "feature:shell",
+        "feature:screen",
+        "feature:settings",
     ).toTypedArray()
 
 val core

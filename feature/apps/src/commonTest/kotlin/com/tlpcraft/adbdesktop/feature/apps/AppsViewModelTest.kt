@@ -9,11 +9,13 @@ import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ExecuteAppActionUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.GetAppDetailsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.GetAppsUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.InstallApkUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.core.testing.FakeAppsRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceSelectionRepository
+import com.tlpcraft.adbdesktop.core.testing.FakeHostFiles
 import com.tlpcraft.adbdesktop.core.testing.onlineDevice
 import com.tlpcraft.adbdesktop.feature.apps.contract.AppDetailsState
 import com.tlpcraft.adbdesktop.feature.apps.contract.AppListState
@@ -41,11 +43,14 @@ class AppsViewModelTest : FunSpec({
             appsResult = Outcome.Success(listOf(AppInfo("com.example.notes"), AppInfo("com.android.settings")))
         }
         val selection = FakeDeviceSelectionRepository(selectedSerial)
+        val hostFiles = FakeHostFiles()
         val viewModel = AppsViewModel(
             observeSelectedDevice = ObserveSelectedDeviceUseCase(ObserveDevicesUseCase(FakeDeviceRepository(listOf(onlineDevice("pixel")))), selection),
             getApps = GetAppsUseCase(apps),
             getAppDetails = GetAppDetailsUseCase(apps),
             executeAppAction = ExecuteAppActionUseCase(apps),
+            installApk = InstallApkUseCase(apps),
+            hostFiles = hostFiles,
         )
     }
 
@@ -85,6 +90,41 @@ class AppsViewModelTest : FunSpec({
         val details = fixture.viewModel.uiState.value.details
         details.shouldBeInstanceOf<AppDetailsState.Loaded>()
         details.details.packageName shouldBe "com.example.notes"
+    }
+
+    context("install") {
+        test("installs the picked APKs and refreshes the list") {
+            val fixture = Fixture().apply { hostFiles.pickedFiles = listOf("/home/me/base.apk", "/home/me/split.apk") }
+
+            fixture.viewModel.sideEffects.test {
+                fixture.viewModel.reduceIntent(AppsIntent.InstallClicked)
+
+                awaitItem() shouldBe AppsSideEffect.Installed(fileCount = 2)
+            }
+            fixture.apps.installedApks shouldContainExactly listOf(listOf("/home/me/base.apk", "/home/me/split.apk"))
+            fixture.apps.requestedFilters.size shouldBe 2
+        }
+
+        test("cancelling the file dialog installs nothing") {
+            val fixture = Fixture()
+
+            fixture.viewModel.reduceIntent(AppsIntent.InstallClicked)
+
+            fixture.apps.installedApks.shouldBeEmpty()
+        }
+
+        test("a refused install reports the reason") {
+            val fixture = Fixture().apply {
+                hostFiles.pickedFiles = listOf("/home/me/old.apk")
+                apps.installResult = Outcome.Failure(DeviceError.CommandFailed("INSTALL_FAILED_OLDER_SDK"))
+            }
+
+            fixture.viewModel.sideEffects.test {
+                fixture.viewModel.reduceIntent(AppsIntent.InstallClicked)
+
+                awaitItem() shouldBe AppsSideEffect.InstallFailed("INSTALL_FAILED_OLDER_SDK")
+            }
+        }
     }
 
     context("actions") {

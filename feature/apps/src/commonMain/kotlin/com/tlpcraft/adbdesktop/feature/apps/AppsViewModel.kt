@@ -3,11 +3,14 @@ package com.tlpcraft.adbdesktop.feature.apps
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tlpcraft.adbdesktop.core.common.Outcome
+import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.AppAction
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
+import com.tlpcraft.adbdesktop.core.domain.service.HostFiles
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ExecuteAppActionUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.GetAppDetailsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.GetAppsUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.InstallApkUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.feature.apps.contract.AppDetailsState
 import com.tlpcraft.adbdesktop.feature.apps.contract.AppListState
@@ -34,6 +37,8 @@ class AppsViewModel(
     private val getApps: GetAppsUseCase,
     private val getAppDetails: GetAppDetailsUseCase,
     private val executeAppAction: ExecuteAppActionUseCase,
+    private val installApk: InstallApkUseCase,
+    private val hostFiles: HostFiles,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppsUiState())
@@ -59,6 +64,7 @@ class AppsViewModel(
             AppsIntent.ActionConfirmed -> _uiState.value.pendingConfirmation?.let(::runAction)
             AppsIntent.ActionCancelled -> _uiState.update { it.copy(pendingConfirmation = null) }
             AppsIntent.RetryClicked -> reloadRequests.update { it + 1 }
+            AppsIntent.InstallClicked -> install()
         }
     }
 
@@ -88,6 +94,33 @@ class AppsViewModel(
         }
         _uiState.update { it.copy(list = list) }
     }
+
+    private fun install() {
+        val state = _uiState.value
+        val serial = state.serial ?: return
+        if (state.isInstalling) return
+
+        viewModelScope.launch {
+            val apkPaths = hostFiles.pickFiles(APK_EXTENSION)
+            if (apkPaths.isEmpty()) return@launch
+
+            _uiState.update { it.copy(isInstalling = true) }
+            val result = installApk(InstallApkUseCase.Params(serial, apkPaths))
+            _uiState.update { it.copy(isInstalling = false) }
+            when (result) {
+                is Outcome.Success -> {
+                    reloadRequests.update { it + 1 }
+                    _sideEffects.send(AppsSideEffect.Installed(apkPaths.size))
+                }
+
+                is Outcome.Failure -> {
+                    _sideEffects.send(AppsSideEffect.InstallFailed(result.error.detailsForUser()))
+                }
+            }
+        }
+    }
+
+    private fun DeviceError.detailsForUser(): String = (this as? DeviceError.CommandFailed)?.details ?: message
 
     private fun selectApp(packageName: String) {
         _uiState.update { it.copy(selectedPackage = packageName) }
@@ -142,6 +175,8 @@ class AppsViewModel(
         _sideEffects.send(AppsSideEffect.ActionSucceeded(action, packageName))
     }
 }
+
+private const val APK_EXTENSION = "apk"
 
 /** Device serial and package an action applies to, or `null` while no app is selected or an action is running. */
 private fun AppsUiState.actionTarget(): Pair<String, String>? {

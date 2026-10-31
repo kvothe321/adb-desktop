@@ -37,6 +37,10 @@
     <string name="app_confirm_uninstall_message">%1$s and its data will be removed from the device.</string>
     <string name="app_confirm_cancel">Cancel</string>
 
+    <string name="apps_install">Install APK</string>
+    <string name="message_installed">Installed %1$d APK file(s)</string>
+    <string name="message_install_failed">Install failed: %1$s</string>
+
     <string name="message_action_succeeded">%1$s: %2$s</string>
     <string name="message_action_failed">%1$s failed for %2$s</string>
 </resources>
