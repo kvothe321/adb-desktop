@@ -9,7 +9,6 @@ import org.gradle.kotlin.dsl.register
 
 class CommitLintPlugin : Plugin<Project> {
     override fun apply(target: Project) {
-        println("[BUILD-LOGIC] - Applying Commit Lint Convention Plugin")
         with(target) {
             val commitLintExtension = extensions.create<CommitLintExtension>(COMMIT_LINT_EXTENSION_NAME)
 

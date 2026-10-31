@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">ADB Desktop</string>
+    <string name="section_devices">Devices</string>
+    <string name="section_apps">Apps</string>
+    <string name="section_files">Files</string>
+    <string name="shortcut_ctrl">Ctrl+%1$d</string>
+    <string name="shortcut_cmd">Cmd+%1$d</string>
+    <string name="device_picker_placeholder">Select a device</string>
+    <string name="theme_switch_to_dark">Switch to dark theme</string>
+    <string name="theme_switch_to_light">Switch to light theme</string>
+</resources>

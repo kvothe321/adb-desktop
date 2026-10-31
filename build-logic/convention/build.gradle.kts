@@ -3,9 +3,9 @@ plugins {
 }
 
 dependencies {
-    compileOnly(internalLibs.kotlin.multiplatform.gradlePlugin)
-    compileOnly(internalLibs.android.gradlePlugin)
+    compileOnly(internalLibs.kotlin.gradlePlugin)
     compileOnly(internalLibs.compose.gradlePlugin)
+    compileOnly(internalLibs.android.gradlePlugin)
     implementation(internalLibs.ktlint.gradlePlugin)
     implementation(internalLibs.detekt.gradlePlugin)
 }
@@ -22,6 +22,10 @@ gradlePlugin {
             id = "${project.group}.compose.multiplatform.library"
             implementationClass = "${project.group}.ComposeMultiplatformLibrary"
         }
+        register("featureLibrary") {
+            id = "${project.group}.feature.library"
+            implementationClass = "${project.group}.FeatureLibrary"
+        }
         register("globalKtlint") {
             id = "${project.group}.linting.ktlint"
             implementationClass = "${project.group}.linting.ktlint.GlobalKtlint"
@@ -29,6 +33,10 @@ gradlePlugin {
         register("globalDetekt") {
             id = "${project.group}.detekt"
             implementationClass = "${project.group}.detekt.GlobalDetekt"
+        }
+        register("moduleGraphCheck") {
+            id = "${project.group}.graph"
+            implementationClass = "${project.group}.graph.ModuleGraphCheck"
         }
         register("commitLint") {
             id = "${project.group}.linting.commitlint"
