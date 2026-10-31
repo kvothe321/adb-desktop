@@ -3,6 +3,7 @@ package com.tlpcraft.adbdesktop.core.data.source.adb.fake
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.BinaryCommandResult
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.CommandExecutor
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.CommandResult
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
 
@@ -12,6 +13,9 @@ class FakeCommandExecutor : CommandExecutor {
     private val streams = mutableMapOf<List<String>, List<String>>()
     private val binaryResults = mutableMapOf<List<String>, ByteArray>()
     val executed = mutableListOf<List<String>>()
+
+    /** When set, [execute] never returns, like a device command that hangs. */
+    var hangs = false
 
     fun respond(
         vararg args: String,
@@ -33,6 +37,7 @@ class FakeCommandExecutor : CommandExecutor {
     override suspend fun execute(command: List<String>): CommandResult {
         val args = command.drop(1)
         executed += args
+        if (hangs) awaitCancellation()
         return results[args] ?: CommandResult(exitCode = 0, stdout = "", stderr = "")
     }
 

@@ -1,6 +1,7 @@
 package com.tlpcraft.adbdesktop.core.data.source.adb
 
 import app.cash.turbine.test
+import com.tlpcraft.adbdesktop.core.data.source.adb.dto.PackageActionDto
 import com.tlpcraft.adbdesktop.core.data.source.adb.fake.FakeCommandExecutor
 import com.tlpcraft.adbdesktop.core.data.source.adb.fake.testAdbClient
 import com.tlpcraft.adbdesktop.core.data.source.adb.fixtures.AdbOutputs
@@ -10,6 +11,7 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runTest
 
 class AdbHostOperationsTest : FunSpec({
     test("logcat batches entries and reassembles lines cut by chunks") {
@@ -88,6 +90,28 @@ class AdbHostOperationsTest : FunSpec({
                 listOf("-s", "pixel", "pull", "/sdcard/r.mp4", "/home/me/r.mp4"),
                 listOf("-s", "pixel", "shell", "rm", "-f", "'/sdcard/r.mp4'"),
             )
+        }
+    }
+
+    context("package actions") {
+        test("clearing the cache runs inside the app") {
+            val executor = FakeCommandExecutor()
+
+            AdbPackageDataSourceImpl(testAdbClient(executor)).runAction("pixel", "com.example.notes", PackageActionDto.CLEAR_CACHE)
+
+            executor.executed shouldContainExactly listOf(
+                listOf("-s", "pixel", "shell", "run-as", "com.example.notes", "sh", "-c", "'rm -rf cache/* code_cache/*'"),
+            )
+        }
+
+        test("a command that never returns times out") {
+            val executor = FakeCommandExecutor().apply { hangs = true }
+
+            runTest {
+                shouldThrow<AdbException.CommandFailed> {
+                    AdbPackageDataSourceImpl(testAdbClient(executor)).runAction("pixel", "com.example.notes", PackageActionDto.FORCE_STOP)
+                }.output shouldBe "Timed out"
+            }
         }
     }
 

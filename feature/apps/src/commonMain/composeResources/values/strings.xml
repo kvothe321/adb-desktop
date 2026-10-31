@@ -42,5 +42,5 @@
     <string name="message_install_failed">Install failed: %1$s</string>
 
     <string name="message_action_succeeded">%1$s: %2$s</string>
-    <string name="message_action_failed">%1$s failed for %2$s</string>
+    <string name="message_action_failed">%1$s failed for %2$s: %3$s</string>
 </resources>
