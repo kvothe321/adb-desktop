@@ -15,7 +15,7 @@ androidGradlePlugin = "9.3.3"
 composeMultiplatform = "1.12.2"
 composeHotReload = "1.2.0"
 # compose-rules 0.4.x is the newest line for detekt 1.23.x; 0.5+ targets the detekt 2.0 alphas.
-composeRulesDetekt = "0.6.8"
+composeRulesDetekt = "0.4.28"
 composeRulesKtlint = "0.6.8"
 ktlint = "1.8.0"
 androidx-lifecycle = "2.11.0"
