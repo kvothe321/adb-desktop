@@ -9,6 +9,7 @@ import com.tlpcraft.adbdesktop.core.data.source.adb.dto.PackageFilterDto
 class FakeAdbPackageDataSource : AdbPackageDataSource {
     val requestedFilters = mutableListOf<PackageFilterDto>()
     val actions = mutableListOf<PackageActionDto>()
+    val installed = mutableListOf<List<String>>()
 
     override suspend fun listPackages(serial: String, filter: PackageFilterDto): List<String> {
         requestedFilters += filter
@@ -19,5 +20,9 @@ class FakeAdbPackageDataSource : AdbPackageDataSource {
 
     override suspend fun runAction(serial: String, packageName: String, action: PackageActionDto) {
         actions += action
+    }
+
+    override suspend fun install(serial: String, apkPaths: List<String>) {
+        installed += apkPaths
     }
 }

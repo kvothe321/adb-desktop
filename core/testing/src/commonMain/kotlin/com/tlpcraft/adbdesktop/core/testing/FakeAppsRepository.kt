@@ -15,6 +15,8 @@ class FakeAppsRepository : AppsRepository {
 
     val requestedFilters = mutableListOf<AppFilter>()
     val executedActions = mutableListOf<Pair<String, AppAction>>()
+    val installedApks = mutableListOf<List<String>>()
+    var installResult: Outcome<Unit, DeviceError> = Outcome.Success(Unit)
 
     override suspend fun getApps(serial: String, filter: AppFilter): Outcome<List<AppInfo>, DeviceError> {
         requestedFilters += filter
@@ -27,6 +29,11 @@ class FakeAppsRepository : AppsRepository {
     override suspend fun executeAction(serial: String, packageName: String, action: AppAction): Outcome<Unit, DeviceError> {
         executedActions += packageName to action
         return actionResult
+    }
+
+    override suspend fun install(serial: String, apkPaths: List<String>): Outcome<Unit, DeviceError> {
+        installedApks += apkPaths
+        return installResult
     }
 
     private fun emptyDetails(packageName: String) = AppDetails(

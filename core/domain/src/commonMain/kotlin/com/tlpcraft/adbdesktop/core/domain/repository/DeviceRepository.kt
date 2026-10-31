@@ -4,6 +4,7 @@ import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.Device
 import com.tlpcraft.adbdesktop.core.domain.model.WirelessEndpoint
+import com.tlpcraft.adbdesktop.core.domain.model.WirelessService
 import kotlinx.coroutines.flow.Flow
 
 interface DeviceRepository {
@@ -15,4 +16,6 @@ interface DeviceRepository {
     suspend fun disconnect(serial: String): Outcome<Unit, DeviceError>
 
     suspend fun pair(endpoint: WirelessEndpoint, pairingCode: String): Outcome<Unit, DeviceError>
+
+    suspend fun discoverWirelessServices(): Outcome<List<WirelessService>, DeviceError>
 }

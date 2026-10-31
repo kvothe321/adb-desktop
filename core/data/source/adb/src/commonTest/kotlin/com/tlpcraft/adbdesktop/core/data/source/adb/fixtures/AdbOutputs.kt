@@ -111,5 +111,39 @@ object AdbOutputs {
         Cache size: 2097152
     """.trimIndent()
 
+    val LOGCAT = """
+        --------- beginning of main
+        10-31 23:05:50.598  1537  4112 I SpamListSync: Call spam module disabled. Skipping cleaning cache
+        10-31 23:05:50.599  1254  5024 W NetworkScheduler.Stats: (REDACTED) Task %s/%s finished executing. cause:%s
+        10-31 23:05:50.605  1254  3510 E AndroidRuntime:
+        10-31 23:05:50.606   712   712 D Spaced Tag  : message: with colons
+    """.trimIndent()
+
+    val LS_ROOT = """
+        total 84
+        drwxr-xr-x  28 root   root       683 2009-01-01 02:00 .
+        drwxr-xr-x  28 root   root       683 2009-01-01 02:00 ..
+        lrw-r--r--   1 root   root        30 2009-01-01 02:00 adb_keys -> /product/etc/security/adb_keys
+        drwxr-xr-x 101 root   root      2040 2026-10-31 23:03 apex
+        d?????????   ? ?      ?            ?                ? data_mirror
+        -rw-r--r--   1 root   root      1234 2009-01-01 02:00 init.rc
+    """.trimIndent()
+
+    const val LS_DEVICE_NODE = "crw-rw-rw- 1 root root 1,   3 2026-10-31 23:03 null\n"
+    const val LS_SPACES = "total 4\n-rw-rw---- 1 u0_a215 media_rw 0 2026-10-31 23:05 it's a file.txt\n"
+    const val LS_MISSING = "ls: /nonexistent: No such file or directory\n"
+
+    val ADB_VERSION = """
+        Android Debug Bridge version 1.0.41
+        Version 37.0.0p1-android-tools
+        Installed as /usr/bin/adb
+        Running on Linux 7.2.11-zen1-1-zen (x86_64)
+    """.trimIndent()
+
+    const val MDNS_SERVICES = "List of discovered mdns services\n" +
+        "adb-EMULATOR36X2X12X0\t_adb._tcp\t10.0.2.16:5555\n" +
+        "adb-EMULATOR36X2X12X0\t_adb._tcp\t10.0.2.16:5555\n" +
+        "adb-R5CT10ABCDE-xYz12\t_adb-tls-pairing._tcp\t192.168.1.42:41567\n"
+
     const val PM_FAILURE = "Failure [DELETE_FAILED_INTERNAL_ERROR]\n"
 }

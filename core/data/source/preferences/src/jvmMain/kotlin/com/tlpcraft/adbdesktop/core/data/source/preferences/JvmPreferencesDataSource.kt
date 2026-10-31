@@ -13,6 +13,7 @@ class JvmPreferencesDataSource(
     private val dispatchers: DispatcherProvider,
 ) : PreferencesDataSource {
     private val adbPath = MutableStateFlow(preferences.get(KEY_ADB_PATH, null))
+    private val themeMode = MutableStateFlow(preferences.get(KEY_THEME_MODE, null))
 
     override fun observeAdbPath(): Flow<String?> = adbPath.asStateFlow()
 
@@ -26,7 +27,18 @@ class JvmPreferencesDataSource(
         adbPath.value = path
     }
 
+    override fun observeThemeMode(): Flow<String?> = themeMode.asStateFlow()
+
+    override suspend fun writeThemeMode(mode: String) {
+        withContext(dispatchers.io) {
+            preferences.put(KEY_THEME_MODE, mode)
+            preferences.flush()
+        }
+        themeMode.value = mode
+    }
+
     private companion object {
         const val KEY_ADB_PATH = "adb_path"
+        const val KEY_THEME_MODE = "theme_mode"
     }
 }

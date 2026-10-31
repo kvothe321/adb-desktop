@@ -10,6 +10,7 @@ import com.tlpcraft.adbdesktop.core.data.source.preferences.PreferencesDataSourc
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.Device
 import com.tlpcraft.adbdesktop.core.domain.model.WirelessEndpoint
+import com.tlpcraft.adbdesktop.core.domain.model.WirelessService
 import com.tlpcraft.adbdesktop.core.domain.repository.DeviceRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -39,4 +40,7 @@ class DeviceRepositoryImpl(
 
     override suspend fun pair(endpoint: WirelessEndpoint, pairingCode: String): Outcome<Unit, DeviceError> =
         safeCall(Throwable::toDeviceError) { deviceDataSource.pair(endpoint.toString(), pairingCode) }
+
+    override suspend fun discoverWirelessServices(): Outcome<List<WirelessService>, DeviceError> =
+        safeCall(Throwable::toDeviceError) { deviceDataSource.discoverServices().map { it.toDomain() } }
 }

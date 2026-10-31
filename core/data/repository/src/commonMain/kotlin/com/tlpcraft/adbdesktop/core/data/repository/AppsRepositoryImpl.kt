@@ -25,4 +25,7 @@ class AppsRepositoryImpl(
 
     override suspend fun executeAction(serial: String, packageName: String, action: AppAction): Outcome<Unit, DeviceError> =
         safeCall(Throwable::toDeviceError) { packageDataSource.runAction(serial, packageName, action.toDto()) }
+
+    override suspend fun install(serial: String, apkPaths: List<String>): Outcome<Unit, DeviceError> =
+        safeCall(Throwable::toDeviceError) { packageDataSource.install(serial, apkPaths) }
 }

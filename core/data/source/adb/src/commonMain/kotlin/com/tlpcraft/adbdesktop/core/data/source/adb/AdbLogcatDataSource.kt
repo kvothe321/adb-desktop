@@ -1,0 +1,36 @@
+package com.tlpcraft.adbdesktop.core.data.source.adb
+
+import com.tlpcraft.adbdesktop.core.data.source.adb.client.AdbClient
+import com.tlpcraft.adbdesktop.core.data.source.adb.dto.LogEntryDto
+import com.tlpcraft.adbdesktop.core.data.source.adb.parser.LineBuffer
+import com.tlpcraft.adbdesktop.core.data.source.adb.parser.LogcatParser
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.map
+
+interface AdbLogcatDataSource {
+    /** Emits batches of entries as they arrive, starting with the most recent history. */
+    fun streamLogs(serial: String): Flow<List<LogEntryDto>>
+
+    suspend fun clearLogs(serial: String)
+}
+
+class AdbLogcatDataSourceImpl(private val client: AdbClient) : AdbLogcatDataSource {
+
+    override fun streamLogs(serial: String): Flow<List<LogEntryDto>> = flow {
+        val lines = LineBuffer()
+        client.stream("-s", serial, "logcat", "-v", "threadtime", "-T", HISTORY_LINES)
+            .map { chunk -> lines.feed(chunk).mapNotNull(LogcatParser::parse) }
+            .filter { it.isNotEmpty() }
+            .collect { emit(it) }
+    }
+
+    override suspend fun clearLogs(serial: String) {
+        client.run(listOf("-s", serial, "logcat", "-c"))
+    }
+
+    private companion object {
+        const val HISTORY_LINES = "1000"
+    }
+}

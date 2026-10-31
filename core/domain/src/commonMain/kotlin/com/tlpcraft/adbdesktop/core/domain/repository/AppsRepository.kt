@@ -13,4 +13,7 @@ interface AppsRepository {
     suspend fun getAppDetails(serial: String, packageName: String): Outcome<AppDetails, DeviceError>
 
     suspend fun executeAction(serial: String, packageName: String, action: AppAction): Outcome<Unit, DeviceError>
+
+    /** Several paths are the splits of one app. */
+    suspend fun install(serial: String, apkPaths: List<String>): Outcome<Unit, DeviceError>
 }

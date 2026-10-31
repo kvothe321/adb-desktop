@@ -2,11 +2,13 @@ package com.tlpcraft.adbdesktop.core.data.repository.fake
 
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbDeviceDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.dto.DeviceDto
+import com.tlpcraft.adbdesktop.core.data.source.adb.dto.MdnsServiceDto
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class FakeAdbDeviceDataSource : AdbDeviceDataSource {
     var devices: List<DeviceDto> = emptyList()
+    var services: List<MdnsServiceDto> = emptyList()
     var trackingError: Throwable? = null
     var connectError: Throwable? = null
     var trackingStarts = 0
@@ -25,4 +27,6 @@ class FakeAdbDeviceDataSource : AdbDeviceDataSource {
     override suspend fun disconnect(serial: String) = Unit
 
     override suspend fun pair(address: String, pairingCode: String) = Unit
+
+    override suspend fun discoverServices(): List<MdnsServiceDto> = services
 }
