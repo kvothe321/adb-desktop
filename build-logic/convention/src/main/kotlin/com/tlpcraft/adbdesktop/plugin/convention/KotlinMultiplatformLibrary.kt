@@ -20,6 +20,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
  * presentation, design system) can't reach for JVM-only APIs by accident.
  *
  * Tests are written with Kotest, kotlinx-coroutines-test and Turbine, and run on the JUnit Platform.
+ * `-Pkotest.tags=<expression>` limits a run to tagged specs, for example `platform` for host-specific code.
  */
 class KotlinMultiplatformLibrary : Plugin<Project> {
     override fun apply(target: Project) {
@@ -47,9 +48,15 @@ class KotlinMultiplatformLibrary : Plugin<Project> {
                 }
             }
 
+            val kotestTags = providers.gradleProperty(KOTEST_TAGS).orNull
             tasks.withType<Test>().configureEach {
                 useJUnitPlatform()
+                kotestTags?.let { systemProperty(KOTEST_TAGS, it) }
             }
         }
+    }
+
+    private companion object {
+        const val KOTEST_TAGS = "kotest.tags"
     }
 }
