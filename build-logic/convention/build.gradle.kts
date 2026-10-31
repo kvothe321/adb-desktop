@@ -34,6 +34,10 @@ gradlePlugin {
             id = "${project.group}.detekt"
             implementationClass = "${project.group}.detekt.GlobalDetekt"
         }
+        register("moduleGraphCheck") {
+            id = "${project.group}.graph"
+            implementationClass = "${project.group}.graph.ModuleGraphCheck"
+        }
         register("commitLint") {
             id = "${project.group}.linting.commitlint"
             implementationClass = "${project.group}.linting.commitlint.CommitLintPlugin"

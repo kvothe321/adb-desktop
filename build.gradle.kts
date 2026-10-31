@@ -16,5 +16,6 @@ plugins {
     alias(libs.plugins.adbdesktop.global.ktlint)
     alias(libs.plugins.adbdesktop.global.detekt)
     alias(libs.plugins.adbdesktop.commitlint)
+    alias(libs.plugins.adbdesktop.module.graph)
     // endregion
 }
