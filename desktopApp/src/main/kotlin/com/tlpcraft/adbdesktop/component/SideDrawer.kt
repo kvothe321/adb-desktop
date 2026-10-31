@@ -1,7 +1,5 @@
 package com.tlpcraft.adbdesktop.component
 
-import adb_desktop.composeapp.generated.resources.Res
-import adb_desktop.composeapp.generated.resources.app_logo
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +24,8 @@ import androidx.navigation3.runtime.NavKey
 import com.tlpcraft.adbdesktop.navigation.AppsRoute
 import com.tlpcraft.adbdesktop.navigation.DevicesRoute
 import com.tlpcraft.adbdesktop.navigation.FilesRoute
+import com.tlpcraft.adbdesktop.resources.Res
+import com.tlpcraft.adbdesktop.resources.app_logo
 import com.tlpcraft.adbdesktop.uikit.components.icon.Box
 import com.tlpcraft.adbdesktop.uikit.components.icon.Files
 import com.tlpcraft.adbdesktop.uikit.components.icon.MonitorMobile
