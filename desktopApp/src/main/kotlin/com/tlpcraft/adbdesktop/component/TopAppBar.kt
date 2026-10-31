@@ -11,7 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.tlpcraft.adbdesktop.domain.model.AdbDevice
+import com.tlpcraft.adbdesktop.core.domain.model.ConnectionType
+import com.tlpcraft.adbdesktop.core.domain.model.Device
+import com.tlpcraft.adbdesktop.core.domain.model.DeviceState
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.colorScheme
@@ -20,9 +22,9 @@ import com.tlpcraft.adbdesktop.uikit.theme.dimensions
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopAppBar(
-    devices: List<AdbDevice>,
-    selectedDevice: AdbDevice?,
-    onDeviceSelected: (AdbDevice) -> Unit,
+    devices: List<Device>,
+    selectedDevice: Device?,
+    onDeviceSelected: (Device) -> Unit,
     onDeviceDeselected: () -> Unit,
 ) {
     Surface(
@@ -54,8 +56,8 @@ fun TopAppBar(
 fun TopAppBarPreview() = PreviewContext {
     TopAppBar(
         devices = listOf(
-            AdbDevice("Pixel 5", "emulator-5554"),
-            AdbDevice("Pixel 4a", "emulator-5556"),
+            Device("emulator-5554", DeviceState.ONLINE, ConnectionType.EMULATOR),
+            Device("emulator-5556", DeviceState.ONLINE, ConnectionType.EMULATOR),
         ),
         selectedDevice = null,
         onDeviceSelected = {},

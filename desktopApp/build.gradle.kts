@@ -13,8 +13,12 @@ kotlin {
 }
 
 dependencies {
-    implementation(projects.core.data)
+    implementation(projects.core.common)
+    implementation(projects.core.logger)
     implementation(projects.core.domain)
+    implementation(projects.core.data.repository)
+    implementation(projects.core.data.source.adb)
+    implementation(projects.core.data.source.preferences)
     implementation(projects.adbdesktopUiKit)
     implementation(projects.feature.devices)
     implementation(projects.feature.apps)

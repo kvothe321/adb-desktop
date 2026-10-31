@@ -1,7 +1,7 @@
 package com.tlpcraft.adbdesktop.presentation
 
-import com.tlpcraft.adbdesktop.domain.model.AppFilter
-import com.tlpcraft.adbdesktop.domain.model.AppInfo
+import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
+import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
 
 sealed interface AppsUiState {
 

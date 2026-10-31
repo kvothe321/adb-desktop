@@ -2,11 +2,12 @@ package com.tlpcraft.adbdesktop.presentation
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tlpcraft.adbdesktop.domain.model.AdbDevice
-import com.tlpcraft.adbdesktop.domain.model.CpuInfo
-import com.tlpcraft.adbdesktop.domain.model.DeviceInfo
-import com.tlpcraft.adbdesktop.domain.usecase.device.ObserveCpuInfoUseCase
-import com.tlpcraft.adbdesktop.domain.usecase.device.ObserveDeviceInfoUseCase
+import com.tlpcraft.adbdesktop.core.common.fold
+import com.tlpcraft.adbdesktop.core.domain.model.CpuInfo
+import com.tlpcraft.adbdesktop.core.domain.model.Device
+import com.tlpcraft.adbdesktop.core.domain.model.DeviceInfo
+import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveCpuInfoUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDeviceInfoUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,7 +24,7 @@ class DevicesViewModel(
     private val observeDeviceInfo: ObserveDeviceInfoUseCase,
 ) : ViewModel() {
 
-    private val onlineDevices = MutableStateFlow<List<AdbDevice>>(emptyList())
+    private val onlineDevices = MutableStateFlow<List<Device>>(emptyList())
 
     val cpuBySerial: StateFlow<Map<String, CpuInfo?>> = onlineDevices
         .flatMapLatest { devices ->
@@ -65,7 +66,7 @@ class DevicesViewModel(
             initialValue = emptyMap(),
         )
 
-    fun updateOnlineDevices(devices: List<AdbDevice>) {
-        onlineDevices.value = devices.filter { it.status == "device" }
+    fun updateOnlineDevices(devices: List<Device>) {
+        onlineDevices.value = devices.filter { it.isOnline }
     }
 }
