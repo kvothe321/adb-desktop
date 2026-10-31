@@ -14,6 +14,10 @@ kotlin = "2.4.21"
 androidGradlePlugin = "9.3.3"
 composeMultiplatform = "1.12.2"
 composeHotReload = "1.2.0"
+# compose-rules 0.4.x is the newest line for detekt 1.23.x; 0.5+ targets the detekt 2.0 alphas.
+composeRulesDetekt = "0.6.8"
+composeRulesKtlint = "0.6.8"
+ktlint = "1.8.0"
 androidx-lifecycle = "2.11.0"
 kermit = "2.2.0"
 koin = "4.2.2"
@@ -71,3 +75,4 @@ adbdesktop-global-detekt = { id = "com.tlpcraft.adbdesktop.plugin.convention.det
 adbdesktop-commitlint = { id = "com.tlpcraft.adbdesktop.plugin.convention.linting.commitlint", version = "unspecified" }
 adbdesktop-kotlin-multiplatform-library = { id = "com.tlpcraft.adbdesktop.plugin.convention.kotlin.multiplatform.library", version = "unspecified" }
 adbdesktop-compose-multiplatform-library = { id = "com.tlpcraft.adbdesktop.plugin.convention.compose.multiplatform.library", version = "unspecified" }
+adbdesktop-feature-library = { id = "com.tlpcraft.adbdesktop.plugin.convention.feature.library", version = "unspecified" }

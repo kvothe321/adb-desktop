@@ -15,13 +15,13 @@ data class WirelessEndpoint(val host: String, val port: Int) {
             val text = input.trim()
             if (text.isEmpty() || text.any(Char::isWhitespace)) return null
 
-            val address = splitAddress(text) ?: return null
-            val port = resolvePort(address.portText, defaultPort) ?: return null
-
-            return if (address.host.isNotEmpty() && port in VALID_PORTS) WirelessEndpoint(address.host, port) else null
+            return splitAddress(text)?.toEndpoint(defaultPort)
         }
 
-        private fun resolvePort(portText: String?, defaultPort: Int?): Int? = if (portText == null) defaultPort else portText.toIntOrNull()
+        private fun Address.toEndpoint(defaultPort: Int?): WirelessEndpoint? {
+            val port = if (portText == null) defaultPort else portText.toIntOrNull()
+            return if (host.isNotEmpty() && port != null && port in VALID_PORTS) WirelessEndpoint(host, port) else null
+        }
 
         private fun splitAddress(text: String): Address? = when {
             text.startsWith('[') -> splitBracketedAddress(text)

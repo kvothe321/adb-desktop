@@ -22,6 +22,10 @@ gradlePlugin {
             id = "${project.group}.compose.multiplatform.library"
             implementationClass = "${project.group}.ComposeMultiplatformLibrary"
         }
+        register("featureLibrary") {
+            id = "${project.group}.feature.library"
+            implementationClass = "${project.group}.FeatureLibrary"
+        }
         register("globalKtlint") {
             id = "${project.group}.linting.ktlint"
             implementationClass = "${project.group}.linting.ktlint.GlobalKtlint"

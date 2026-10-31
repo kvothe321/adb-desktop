@@ -20,7 +20,7 @@ internal class TrackDevicesDecoder {
     private fun takeFrame(): String? {
         if (buffer.length < LENGTH_DIGITS) return null
         val payloadLength = buffer.substring(0, LENGTH_DIGITS).toIntOrNull(radix = 16)
-            ?: throw IllegalStateException("Malformed track-devices frame header: ${buffer.take(LENGTH_DIGITS)}")
+            ?: error("Malformed track-devices frame header: ${buffer.take(LENGTH_DIGITS)}")
         val frameLength = LENGTH_DIGITS + payloadLength
         if (buffer.length < frameLength) return null
 

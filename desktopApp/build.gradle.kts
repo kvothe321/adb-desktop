@@ -28,11 +28,8 @@ dependencies {
     implementation(libs.kotlinx.coroutines.swing)
     implementation(libs.compose.runtime)
     implementation(libs.compose.foundation)
-    implementation(libs.compose.material3)
     implementation(libs.compose.ui)
     implementation(libs.compose.components.resources)
-    implementation(libs.compose.preview)
-    implementation(libs.material.icons.core)
     implementation(libs.koin.core)
     implementation(libs.koin.compose)
     implementation(libs.koin.compose.viewModel)
@@ -41,6 +38,16 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.navigation3.ui)
     implementation(libs.kotlinx.serialization.json)
+
+    testImplementation(projects.core.testing)
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 compose.resources {
@@ -50,6 +57,14 @@ compose.resources {
 compose.desktop {
     application {
         mainClass = "com.tlpcraft.adbdesktop.MainKt"
+        // Run and package with the toolchain JDK instead of whatever JAVA_HOME points to.
+        javaHome = javaToolchains
+            .launcherFor { languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInt()) }
+            .get()
+            .metadata
+            .installationPath
+            .asFile
+            .absolutePath
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)

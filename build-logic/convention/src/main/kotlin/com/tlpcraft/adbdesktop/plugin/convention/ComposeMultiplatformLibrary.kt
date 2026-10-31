@@ -58,19 +58,13 @@ class ComposeMultiplatformLibrary : Plugin<Project> {
     private fun Project.declareDefaultDependencies() {
         extensions.getByType<KotlinMultiplatformExtension>().apply {
             sourceSets {
+                // Material is deliberately absent: only the design system module adds it.
                 commonMain.dependencies {
                     implementation(libs.library.compose.runtime)
                     implementation(libs.library.compose.foundation)
-                    implementation(libs.library.compose.material3)
                     implementation(libs.library.compose.ui)
                     implementation(libs.library.compose.components.resources)
                     implementation(libs.library.compose.preview)
-                    implementation(libs.library.material.icons.core)
-                    implementation(libs.library.koin.core)
-                    implementation(libs.library.koin.compose.core)
-                    implementation(libs.library.koin.compose.viewModel)
-                    implementation(libs.library.androidx.lifecycle.runtime.compose)
-                    implementation(libs.library.androidx.lifecycle.viewmodel.compose)
                 }
             }
         }

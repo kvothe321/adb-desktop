@@ -11,4 +11,7 @@ object PluginDefinitions {
 
     const val COMPOSE_MULTIPLATFORM = "compose-multiplatform"
     const val COMPOSE_COMPILER = "compose-compiler"
+
+    const val ADBDESKTOP_KOTLIN_LIBRARY = "adbdesktop-kotlin-multiplatform-library"
+    const val ADBDESKTOP_COMPOSE_LIBRARY = "adbdesktop-compose-multiplatform-library"
 }
