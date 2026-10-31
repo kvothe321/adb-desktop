@@ -1,58 +1,62 @@
 [versions]
-androidGradlePlugin = "8.13.2"
-androidx-lifecycle = "2.9.0"
-composeMultiplatform = "1.10.3"
-junit = "4.13.2"
-koin = "4.0.2"
-kotlin = "2.3.20"
-kotlinxCoroutines = "1.10.2"
+#################################################################################
+# Compatibility notes
+#
+#   Kotlin 2.4.21  <--> Gradle 7.6.3 .. 9.7.0 (fully supported range)
+#   Gradle Wrapper 9.7.1 is the newest release inside that range.
+#   JDK toolchain 21: newest LTS validated for Compose Desktop packaging (jpackage needs >= 17).
+#   AGP 9.3.x: only used to give Compose modules an Android target so IDE @Preview rendering works.
+#              The app itself ships on desktop only.
+#
+#################################################################################
+java = "21"
+kotlin = "2.4.21"
+androidGradlePlugin = "9.3.3"
+composeMultiplatform = "1.12.2"
+composeHotReload = "1.2.0"
+androidx-lifecycle = "2.11.0"
+koin = "4.2.2"
+kotlinxCoroutines = "1.11.0"
+kotlinxSerialization = "1.12.0"
 material3 = "1.9.0"
 materialIconsCore = "1.7.3"
-multiplatform-nav3-ui = "1.1.0"
-kotlinx-serialization = "1.11.0"
-compose-multiplatform-lifecycle = "2.10.0"
-uiTestJunit4Android = "1.11.0"
+navigation3 = "1.2.0"
 
 [libraries]
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
-kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
-junit = { module = "junit:junit", version.ref = "junit" }
-androidx-lifecycle-viewmodel = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtime-compose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
-jetbrains-lifecycle-viewmodelNavigation3 = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "compose-multiplatform-lifecycle" }
+androidx-lifecycle-viewmodel-navigation3 = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "androidx-lifecycle" }
+navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
+
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinxCoroutines" }
 kotlinx-coroutines-swing = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-swing", version.ref = "kotlinxCoroutines" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+
 compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
 compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
-compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
 compose-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 compose-uiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
-compose-uiTest = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "composeMultiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
-jetbrains-navigation3-ui = { module = "org.jetbrains.androidx.navigation3:navigation3-ui", version.ref = "multiplatform-nav3-ui" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "materialIconsCore" }
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-serialization" }
-androidx-ui-test-junit4-android = { module = "androidx.compose.ui:ui-test-junit4-android", version.ref = "uiTestJunit4Android" }
-androidx-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "uiTestJunit4Android" }
 
-# Koin
 koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
 koin-compose = { module = "io.insert-koin:koin-compose", version.ref = "koin" }
 koin-compose-viewModel = { module = "io.insert-koin:koin-compose-viewmodel", version.ref = "koin" }
 
 [plugins]
-android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
-android-library = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+compose-hotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
-# Plugins defined by this project
+# Plugins defined by the included build-logic
 adbdesktop-global-ktlint = { id = "com.tlpcraft.adbdesktop.plugin.convention.linting.ktlint", version = "unspecified" }
 adbdesktop-global-detekt = { id = "com.tlpcraft.adbdesktop.plugin.convention.detekt", version = "unspecified" }
 adbdesktop-commitlint = { id = "com.tlpcraft.adbdesktop.plugin.convention.linting.commitlint", version = "unspecified" }
 adbdesktop-kotlin-multiplatform-library = { id = "com.tlpcraft.adbdesktop.plugin.convention.kotlin.multiplatform.library", version = "unspecified" }
 adbdesktop-compose-multiplatform-library = { id = "com.tlpcraft.adbdesktop.plugin.convention.compose.multiplatform.library", version = "unspecified" }
-

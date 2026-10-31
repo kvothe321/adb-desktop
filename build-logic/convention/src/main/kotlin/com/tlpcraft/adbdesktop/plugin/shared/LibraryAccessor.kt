@@ -47,9 +47,6 @@ class ComposeLibraries(private val catalog: VersionCatalog) {
 
     val preview: Provider<MinimalExternalModuleDependency>
         get() = catalog.library("compose-preview")
-
-    val uiTest: Provider<MinimalExternalModuleDependency>
-        get() = catalog.library("compose-uiTest")
 }
 
 class ComposeComponentsLibraries(private val catalog: VersionCatalog) {
@@ -59,10 +56,6 @@ class ComposeComponentsLibraries(private val catalog: VersionCatalog) {
 
 class AndroidxLibraries(private val catalog: VersionCatalog) {
     val lifecycle: LifecycleLibraries = LifecycleLibraries(catalog)
-    val uiTestJunit4Android: Provider<MinimalExternalModuleDependency>
-        get() = catalog.library("androidx-ui-test-junit4-android")
-    val uiTestManifest: Provider<MinimalExternalModuleDependency>
-        get() = catalog.library("androidx-ui-test-manifest")
 }
 
 class LifecycleLibraries(private val catalog: VersionCatalog) {

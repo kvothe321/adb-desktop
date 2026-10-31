@@ -11,9 +11,8 @@ private val sharedModule = module {
     viewModelOf(::SharedDeviceViewModel)
 }
 
-val featuresModule
-    get() = listOf(
-        sharedModule,
-        devicesModule,
-        appsModule,
-    ).toTypedArray()
+val featureModules = listOf(
+    sharedModule,
+    devicesModule,
+    appsModule,
+)
