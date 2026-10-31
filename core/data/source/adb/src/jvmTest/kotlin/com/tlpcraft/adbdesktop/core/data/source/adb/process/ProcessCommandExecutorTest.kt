@@ -9,9 +9,23 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotBeBlank
 import java.io.File
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.withTimeout
+
+private val CANCEL_TIMEOUT = 20.seconds
+
+private fun javaSource(className: String, body: String): String = File.createTempFile(className, ".java").let { temp ->
+    val source = File(temp.parentFile, "$className.java")
+    temp.delete()
+    source.writeText("public class $className { public static void main(String[] a) throws Exception { $body } }")
+    source.deleteOnExit()
+    source.path
+}
 
 /** Runs the current JVM's own `java` launcher, which exists on every host the tests run on. */
 @Tags("platform")
@@ -45,5 +59,27 @@ class ProcessCommandExecutorTest : FunSpec({
 
     test("a failing stream reports the exit code") {
         shouldThrow<AdbException.CommandFailed> { executor.stream(listOf(java, "--no-such-option")).toList() }
+    }
+
+    test("cancelling a stream kills a process that never exits") {
+        val endless = javaSource("EndlessOutput", """System.out.println("ready"); System.out.flush(); Thread.sleep(600000);""")
+
+        withTimeout(CANCEL_TIMEOUT) {
+            executor.stream(listOf(java, endless)).first() shouldContain "ready"
+        }
+    }
+
+    test("interactive input reaches stdin and the output comes back") {
+        val echo = javaSource("EchoLine", """System.out.println("got " + new java.io.BufferedReader(new java.io.InputStreamReader(System.in)).readLine());""")
+
+        withTimeout(CANCEL_TIMEOUT) {
+            executor.interact(listOf(java, echo), flowOf("hello\n")).toList().joinToString("") shouldContain "got hello"
+        }
+    }
+
+    test("binary output is returned untouched") {
+        val binary = javaSource("BinaryOutput", """System.out.write(new byte[] { (byte) 0x89, 0x50 }); System.out.flush();""")
+
+        executor.executeBinary(listOf(java, binary)).stdout.toList() shouldBe listOf(0x89.toByte(), 0x50.toByte())
     }
 })
