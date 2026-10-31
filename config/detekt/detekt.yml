@@ -11,8 +11,8 @@ config:
     validation: true
     warningsAsErrors: false
     checkExhaustiveness: false
-    # when writing own rules with new properties, exclude the property path e.g.: 'my_rule_set,.*>.*>[my_property]'
-    excludes: ''
+    # compose-rules 0.4.x reads these options but does not declare them in its bundled default config.
+    excludes: 'Compose>CompositionLocalAllowlist>allowedCompositionLocals,Compose>PreviewNaming>previewNamingStrategy,Compose>ViewModelInjection>viewModelFactories'
 
 processors:
     active: true
@@ -503,7 +503,7 @@ potential-bugs:
         active: true
 
 style:
-    active: false
+    active: true
     AlsoCouldBeApply:
         active: false
     BracesOnIfStatements:
@@ -609,7 +609,8 @@ style:
         maxJumpCount: 1
     MagicNumber:
         active: true
-        excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.kts' ]
+        # Vector path coordinates and the color palette are data, naming each value would add noise.
+        excludes: [ '**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/*.kts', '**/uikit/icon/*Vectors.kt', '**/uikit/theme/AppColors.kt' ]
         ignoreNumbers:
             - '-1'
             - '0'
@@ -632,7 +633,7 @@ style:
         maxChainedCalls: 5
     MaxLineLength:
         active: true
-        maxLineLength: 120
+        maxLineLength: 160
         excludePackageStatements: true
         excludeImportStatements: true
         excludeCommentStatements: false
@@ -680,7 +681,7 @@ style:
             - 'equals'
         excludeLabeled: false
         excludeReturnFromLambda: true
-        excludeGuardClauses: false
+        excludeGuardClauses: true
     SafeCast:
         active: true
     SerialVersionUIDInSerializableClass:
@@ -739,6 +740,8 @@ style:
     UnusedPrivateMember:
         active: true
         allowedNames: ''
+        # Preview functions are invoked by the IDE tooling.
+        ignoreAnnotated: [ 'Preview', 'UiKitPreview' ]
     UnusedPrivateProperty:
         active: true
         allowedNames: '_|ignored|expected|serialVersionUID'
@@ -783,3 +786,74 @@ style:
         active: true
         excludeImports:
             - 'java.util.*'
+
+Compose:
+    ComposableAnnotationNaming:
+        active: true
+    ComposableNaming:
+        active: true
+    ComposableParamOrder:
+        active: true
+    CompositionLocalAllowlist:
+        active: true
+        allowedCompositionLocals: LocalAppColors,LocalAppTypography,LocalAppSpacing,LocalAppShapes,LocalContentTone
+    CompositionLocalNaming:
+        active: true
+    ContentEmitterReturningValues:
+        active: true
+    ContentTrailingLambda:
+        active: true
+    ContentSlotReused:
+        active: true
+    DefaultsVisibility:
+        active: true
+    LambdaParameterEventTrailing:
+        active: true
+    LambdaParameterInRestartableEffect:
+        active: true
+    Material2:
+        # Enforced by ktlint (compose_disallow_material2), which can allowlist the icon set.
+        active: false
+    ModifierClickableOrder:
+        active: true
+    ModifierComposed:
+        active: true
+    ModifierMissing:
+        active: true
+    ModifierNaming:
+        active: true
+    ModifierNotUsedAtRoot:
+        active: true
+    ModifierReused:
+        active: true
+    ModifierWithoutDefault:
+        active: true
+    MultipleEmitters:
+        active: true
+    MutableParams:
+        active: true
+    MutableStateAutoboxing:
+        active: true
+    MutableStateParam:
+        active: true
+    ParameterNaming:
+        active: true
+    PreviewAnnotationNaming:
+        # The project's multipreview annotation is deliberately named UiKitPreview.
+        active: false
+    PreviewNaming:
+        active: true
+        previewNamingStrategy: suffix
+    PreviewPublic:
+        active: true
+    RememberMissing:
+        active: true
+    RememberContentMissing:
+        active: true
+    UnstableCollections:
+        active: false
+    ViewModelForwarding:
+        active: true
+    ViewModelInjection:
+        active: true
+        viewModelFactories: koinViewModel

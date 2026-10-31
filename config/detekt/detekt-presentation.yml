@@ -1,0 +1,22 @@
+# Applied on top of detekt.yml to feature modules and desktopApp.
+# The design system is the only module allowed to use Material directly; everything else composes ui-kit components.
+style:
+    ForbiddenImport:
+        active: true
+        imports:
+            - value: 'androidx.compose.material3.*'
+              reason: 'Use the adbdesktop-ui-kit components instead of Material 3.'
+            - value: 'androidx.compose.material.*'
+              reason: 'Use the adbdesktop-ui-kit components and icons instead of Material.'
+            - value: 'androidx.compose.ui.graphics.Color'
+              reason: 'Colors are design tokens owned by adbdesktop-ui-kit.'
+            - value: 'androidx.compose.ui.text.TextStyle'
+              reason: 'Typography is owned by adbdesktop-ui-kit, use its Text components.'
+            - value: 'androidx.compose.ui.text.font.*'
+              reason: 'Typography is owned by adbdesktop-ui-kit, use its Text components.'
+            - value: 'androidx.compose.foundation.shape.*'
+              reason: 'Shapes are design tokens owned by adbdesktop-ui-kit.'
+            - value: 'androidx.compose.foundation.background'
+              reason: 'Surfaces are owned by adbdesktop-ui-kit, use its Card, Surface or Scaffold.'
+            - value: 'androidx.compose.foundation.border'
+              reason: 'Borders are owned by adbdesktop-ui-kit components.'
