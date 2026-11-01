@@ -37,8 +37,6 @@ import com.tlpcraft.adbdesktop.feature.files.resources.files_new_folder
 import com.tlpcraft.adbdesktop.feature.files.resources.files_no_device_description
 import com.tlpcraft.adbdesktop.feature.files.resources.files_no_device_title
 import com.tlpcraft.adbdesktop.feature.files.resources.files_path_label
-import com.tlpcraft.adbdesktop.feature.files.resources.files_refresh
-import com.tlpcraft.adbdesktop.feature.files.resources.files_retry
 import com.tlpcraft.adbdesktop.feature.files.resources.files_title
 import com.tlpcraft.adbdesktop.feature.files.resources.files_up
 import com.tlpcraft.adbdesktop.feature.files.resources.files_upload
@@ -58,6 +56,7 @@ import com.tlpcraft.adbdesktop.uikit.component.ProgressIndicator
 import com.tlpcraft.adbdesktop.uikit.component.TextField
 import com.tlpcraft.adbdesktop.uikit.component.Tone
 import com.tlpcraft.adbdesktop.uikit.component.TopBar
+import com.tlpcraft.adbdesktop.uikit.component.VisibilityEffect
 import com.tlpcraft.adbdesktop.uikit.icon.IconName
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
@@ -72,6 +71,7 @@ fun FilesScreen(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier, 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentOnShowMessage by rememberUpdatedState(onShowMessage)
 
+    VisibilityEffect { viewModel.reduceIntent(FilesIntent.VisibilityChanged(it)) }
     LaunchedEffect(viewModel) {
         viewModel.sideEffects.collect { effect -> currentOnShowMessage(effect.message()) }
     }
@@ -141,7 +141,6 @@ private fun PathBar(pathInput: String, canGoUp: Boolean, onIntent: (FilesIntent)
         IconButton(IconName.ChevronUp, contentDescription = stringResource(Res.string.files_up), onClick = {
             onIntent(FilesIntent.UpClicked)
         }, enabled = canGoUp)
-        IconButton(IconName.Refresh, contentDescription = stringResource(Res.string.files_refresh), onClick = { onIntent(FilesIntent.RefreshClicked) })
         TextField(
             value = pathInput,
             onValueChange = { onIntent(FilesIntent.PathChanged(it)) },
@@ -171,9 +170,6 @@ private fun FileListingView(
                 description = listing.details,
                 tone = Tone.Error,
                 icon = IconName.Warning,
-                action = {
-                    Button(text = stringResource(Res.string.files_retry), onClick = { onIntent(FilesIntent.RefreshClicked) }, icon = IconName.Refresh)
-                },
             )
 
             is FileListing.Loaded -> if (listing.files.isEmpty()) {

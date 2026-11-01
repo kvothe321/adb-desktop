@@ -46,6 +46,7 @@ import org.koin.dsl.koinApplication
 
 private val testSerial: String? = System.getenv("ADB_TEST_SERIAL")
 private val TIMEOUT = 60.seconds
+private val OBSERVER_START = 1.seconds
 private val RECORDING_LENGTH = 3.seconds
 private const val LARGE_FILE_MEGABYTES = 200
 
@@ -74,7 +75,7 @@ class DeviceIntegrationTest : FunSpec({
     }
 
     test("adb reports its path and version") {
-        val info = koin.get<AdbSettingsRepository>().readAdbInfo().orFail()
+        val info = koin.get<AdbSettingsRepository>().observeAdbInfo().first().orFail()
 
         File(info.path).exists().shouldBeTrue()
         info.version.shouldNotBeNull()
@@ -96,7 +97,7 @@ class DeviceIntegrationTest : FunSpec({
     }
 
     test("wireless discovery answers") {
-        koin.get<DeviceRepository>().discoverWirelessServices().orFail()
+        koin.get<DeviceRepository>().observeWirelessServices().first().orFail()
     }
 
     context("files") {
@@ -104,20 +105,36 @@ class DeviceIntegrationTest : FunSpec({
         val directory = "/sdcard/Download/adb desktop's test"
 
         test("the root lists, including entries the shell cannot read") {
-            files.list(serial, "/").orFail().map { it.name } shouldContain "system"
+            files.observeFiles(serial, "/").first().orFail().map { it.name } shouldContain "system"
         }
 
         test("links to directories can be opened") {
-            val sdcard = files.list(serial, "/").orFail().first { it.name == "sdcard" }
+            val sdcard = files.observeFiles(serial, "/").first().orFail().first { it.name == "sdcard" }
 
             sdcard.type shouldBe RemoteFileType.LINK
-            files.list(serial, sdcard.path).orFail().shouldNotBeEmpty()
+            files.observeFiles(serial, sdcard.path).first().orFail().shouldNotBeEmpty()
         }
 
         test("a missing directory fails with the device's message") {
-            val result = files.list(serial, "/does/not/exist")
+            val result = files.observeFiles(serial, "/does/not/exist").first()
 
             result.shouldBeInstanceOf<Outcome.Failure<DeviceError>>().error.message shouldContain "No such file"
+        }
+
+        test("a file created outside the app shows up on its own") {
+            val name = "adb-desktop-observed-${System.nanoTime()}"
+            val remotePath = "/sdcard/Download/$name"
+
+            coroutineScope {
+                val observed = async {
+                    withTimeout(TIMEOUT) { files.observeFiles(serial, "/sdcard/Download").first { it.orFail().any { file -> file.name == name } } }
+                }
+                delay(OBSERVER_START)
+                ProcessBuilder("adb", "-s", serial, "shell", "touch", remotePath).start().waitFor()
+
+                observed.await()
+            }
+            files.delete(serial, remotePath).orFail()
         }
 
         test("create, upload, list, download and delete survive spaces and quotes in paths") {
@@ -128,7 +145,7 @@ class DeviceIntegrationTest : FunSpec({
             files.createDirectory(serial, directory).orFail()
             withTimeout(TIMEOUT) { files.upload(serial, upload.path, directory).toList() }.last().orFail().fraction shouldBe 1f
 
-            val listed = files.list(serial, directory).orFail().single()
+            val listed = files.observeFiles(serial, directory).first().orFail().single()
             listed.name shouldBe upload.name
             listed.sizeBytes shouldBe upload.length()
 
@@ -136,7 +153,7 @@ class DeviceIntegrationTest : FunSpec({
             File(target, upload.name).readText() shouldBe "hello device"
 
             files.delete(serial, directory).orFail()
-            files.list(serial, "/sdcard/Download").orFail().map { it.name }.contains("adb desktop's test") shouldBe false
+            files.observeFiles(serial, "/sdcard/Download").first().orFail().map { it.name }.contains("adb desktop's test") shouldBe false
         }
     }
 
@@ -149,7 +166,7 @@ class DeviceIntegrationTest : FunSpec({
 
         withTimeout(TIMEOUT) { files.upload(serial, large.path, "/sdcard/Download").first() }.orFail()
 
-        val remaining = files.list(serial, "/sdcard/Download").orFail().map { it.name }
+        val remaining = files.observeFiles(serial, "/sdcard/Download").first().orFail().map { it.name }
         remaining.contains(large.name) shouldBe false
     }
 
@@ -200,7 +217,7 @@ class DeviceIntegrationTest : FunSpec({
 
         target.length().toInt() shouldBeGreaterThan 1_000
         target.readBytes().copyOfRange(4, 8).decodeToString() shouldBe "ftyp"
-        koin.get<FilesRepository>().list(serial, "/sdcard").orFail().map { it.name }.contains("adb-desktop-recording.mp4") shouldBe false
+        koin.get<FilesRepository>().observeFiles(serial, "/sdcard").first().orFail().map { it.name }.contains("adb-desktop-recording.mp4") shouldBe false
     }
 
     context("apps") {
@@ -208,9 +225,9 @@ class DeviceIntegrationTest : FunSpec({
         val packageName = "com.android.settings"
 
         test("system packages are listed and described") {
-            apps.getApps(serial, AppFilter.SYSTEM).orFail().map { it.packageName } shouldContain packageName
+            apps.observeApps(serial, AppFilter.SYSTEM).first().orFail().map { it.packageName } shouldContain packageName
 
-            val details = apps.getAppDetails(serial, packageName).orFail()
+            val details = apps.observeAppDetails(serial, packageName).first().orFail()
             details.versionName.shouldNotBeNull()
             details.targetSdk.shouldNotBeNull()
             details.codeSizeBytes.shouldNotBeNull()

@@ -4,11 +4,12 @@ import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.AdbInfo
 import com.tlpcraft.adbdesktop.core.domain.repository.AdbSettingsRepository
-import com.tlpcraft.adbdesktop.core.domain.usecase.UseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.ReactiveUseCase
+import kotlinx.coroutines.flow.Flow
 
-class ReadAdbInfoUseCase(
+class ObserveAdbInfoUseCase(
     private val repository: AdbSettingsRepository,
-) : UseCase<Unit, Outcome<AdbInfo, DeviceError>> {
+) : ReactiveUseCase<Unit, Flow<Outcome<AdbInfo, DeviceError>>> {
 
-    override suspend fun invoke(param: Unit): Outcome<AdbInfo, DeviceError> = repository.readAdbInfo()
+    override fun invoke(param: Unit): Flow<Outcome<AdbInfo, DeviceError>> = repository.observeAdbInfo()
 }

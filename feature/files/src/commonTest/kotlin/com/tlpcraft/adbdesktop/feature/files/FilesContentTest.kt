@@ -62,19 +62,15 @@ class FilesContentTest : FunSpec({
         }
     }
 
-    test("a failed folder shows the reason and can be retried") {
+    test("a failed folder shows the reason") {
         runComposeUiTest {
-            val intents = mutableListOf<FilesIntent>()
             setContent {
                 AppTheme {
-                    FilesContent(uiState = FilesUiState(serial = "pixel", listing = FileListing.Failed("Permission denied")), onIntent = { intents += it })
+                    FilesContent(uiState = FilesUiState(serial = "pixel", listing = FileListing.Failed("Permission denied")), onIntent = {})
                 }
             }
 
             onNodeWithText("Permission denied").assertExists()
-            onNodeWithText("Retry").performClick()
-
-            intents shouldContain FilesIntent.RefreshClicked
         }
     }
 })

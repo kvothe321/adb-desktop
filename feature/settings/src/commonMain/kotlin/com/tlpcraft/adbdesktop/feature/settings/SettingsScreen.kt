@@ -21,7 +21,6 @@ import com.tlpcraft.adbdesktop.feature.settings.contract.AdbStatus
 import com.tlpcraft.adbdesktop.feature.settings.contract.SettingsIntent
 import com.tlpcraft.adbdesktop.feature.settings.contract.SettingsUiState
 import com.tlpcraft.adbdesktop.feature.settings.resources.Res
-import com.tlpcraft.adbdesktop.feature.settings.resources.settings_adb_check
 import com.tlpcraft.adbdesktop.feature.settings.resources.settings_adb_checking
 import com.tlpcraft.adbdesktop.feature.settings.resources.settings_adb_found
 import com.tlpcraft.adbdesktop.feature.settings.resources.settings_adb_path_label
@@ -45,6 +44,7 @@ import com.tlpcraft.adbdesktop.uikit.component.TextField
 import com.tlpcraft.adbdesktop.uikit.component.TextVariant
 import com.tlpcraft.adbdesktop.uikit.component.Tone
 import com.tlpcraft.adbdesktop.uikit.component.TopBar
+import com.tlpcraft.adbdesktop.uikit.component.VisibilityEffect
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
@@ -57,6 +57,7 @@ import org.koin.compose.viewmodel.koinViewModel
 fun SettingsScreen(modifier: Modifier = Modifier, viewModel: SettingsViewModel = koinViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    VisibilityEffect { viewModel.reduceIntent(SettingsIntent.VisibilityChanged(it)) }
     SettingsContent(uiState = uiState, onIntent = viewModel::reduceIntent, modifier = modifier)
 }
 
@@ -120,7 +121,6 @@ private fun AdbPathForm(adbPathInput: String, onIntent: (SettingsIntent) -> Unit
         Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm)) {
             Button(text = stringResource(Res.string.settings_adb_save), onClick = { onIntent(SettingsIntent.AdbPathSaved) }, variant = ButtonVariant.Primary)
             Button(text = stringResource(Res.string.settings_adb_reset), onClick = { onIntent(SettingsIntent.AdbPathReset) })
-            Button(text = stringResource(Res.string.settings_adb_check), onClick = { onIntent(SettingsIntent.AdbCheckClicked) }, variant = ButtonVariant.Ghost)
         }
     }
 }

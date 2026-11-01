@@ -7,10 +7,14 @@ import com.tlpcraft.adbdesktop.core.domain.model.AppDetails
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
 import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
 import com.tlpcraft.adbdesktop.core.domain.repository.AppsRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 
 class FakeAppsRepository : AppsRepository {
-    var appsResult: Outcome<List<AppInfo>, DeviceError> = Outcome.Success(emptyList())
-    var detailsResult: Outcome<AppDetails, DeviceError>? = null
+    val apps = MutableStateFlow<Outcome<List<AppInfo>, DeviceError>>(Outcome.Success(emptyList()))
+    val details = MutableStateFlow<Outcome<AppDetails, DeviceError>?>(null)
     var actionResult: Outcome<Unit, DeviceError> = Outcome.Success(Unit)
 
     val requestedFilters = mutableListOf<AppFilter>()
@@ -18,13 +22,10 @@ class FakeAppsRepository : AppsRepository {
     val installedApks = mutableListOf<List<String>>()
     var installResult: Outcome<Unit, DeviceError> = Outcome.Success(Unit)
 
-    override suspend fun getApps(serial: String, filter: AppFilter): Outcome<List<AppInfo>, DeviceError> {
-        requestedFilters += filter
-        return appsResult
-    }
+    override fun observeApps(serial: String, filter: AppFilter): Flow<Outcome<List<AppInfo>, DeviceError>> = apps.onStart { requestedFilters += filter }
 
-    override suspend fun getAppDetails(serial: String, packageName: String): Outcome<AppDetails, DeviceError> =
-        detailsResult ?: Outcome.Success(emptyDetails(packageName))
+    override fun observeAppDetails(serial: String, packageName: String): Flow<Outcome<AppDetails, DeviceError>> =
+        details.map { it ?: Outcome.Success(emptyDetails(packageName)) }
 
     override suspend fun executeAction(serial: String, packageName: String, action: AppAction): Outcome<Unit, DeviceError> {
         executedActions += packageName to action

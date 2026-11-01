@@ -5,13 +5,14 @@ import com.tlpcraft.adbdesktop.core.data.source.adb.dto.RemoteFileDto
 import kotlinx.coroutines.CompletableDeferred
 
 class FakeAdbFileDataSource : AdbFileDataSource {
+    var listing: List<RemoteFileDto> = emptyList()
     val remoteSizes = mutableMapOf<String, Long>()
     val localSizes = mutableMapOf<String, Long>()
     val deletedRemote = mutableListOf<String>()
     val deletedLocal = mutableListOf<String>()
     var copyGate = CompletableDeferred(Unit)
 
-    override suspend fun list(serial: String, directory: String): List<RemoteFileDto> = emptyList()
+    override suspend fun list(serial: String, directory: String): List<RemoteFileDto> = listing
 
     override suspend fun push(serial: String, localPath: String, remoteDirectory: String) {
         copyGate.await()

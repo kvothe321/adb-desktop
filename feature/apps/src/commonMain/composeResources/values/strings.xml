@@ -9,7 +9,6 @@
     <string name="apps_filter_disabled">Disabled</string>
     <string name="apps_empty">No packages match</string>
     <string name="apps_load_failed">Could not list packages</string>
-    <string name="apps_retry">Retry</string>
     <string name="apps_details_empty_title">Select an app</string>
     <string name="apps_details_empty_description">Pick a package from the list to see its details and actions.</string>
     <string name="apps_details_failed">Could not load details</string>

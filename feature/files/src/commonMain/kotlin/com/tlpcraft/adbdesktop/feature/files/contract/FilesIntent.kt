@@ -11,7 +11,7 @@ sealed interface FilesIntent {
 
     data object PathSubmitted : FilesIntent
 
-    data object RefreshClicked : FilesIntent
+    data class VisibilityChanged(val isVisible: Boolean) : FilesIntent
 
     data object UploadClicked : FilesIntent
 

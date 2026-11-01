@@ -7,9 +7,9 @@ import com.tlpcraft.adbdesktop.core.domain.model.AppAction
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
 import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ExecuteAppActionUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.apps.GetAppDetailsUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.apps.GetAppsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.InstallApkUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppDetailsUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.core.testing.FakeAppsRepository
@@ -38,20 +38,20 @@ class AppsViewModelTest : FunSpec({
     beforeTest { Dispatchers.setMain(UnconfinedTestDispatcher()) }
     afterTest { Dispatchers.resetMain() }
 
-    class Fixture(selectedSerial: String? = "pixel") {
+    class Fixture(selectedSerial: String? = "pixel", isVisible: Boolean = true) {
         val apps = FakeAppsRepository().apply {
-            appsResult = Outcome.Success(listOf(AppInfo("com.example.notes"), AppInfo("com.android.settings")))
+            apps.value = Outcome.Success(listOf(AppInfo("com.example.notes"), AppInfo("com.android.settings")))
         }
         val selection = FakeDeviceSelectionRepository(selectedSerial)
         val hostFiles = FakeHostFiles()
         val viewModel = AppsViewModel(
             observeSelectedDevice = ObserveSelectedDeviceUseCase(ObserveDevicesUseCase(FakeDeviceRepository(listOf(onlineDevice("pixel")))), selection),
-            getApps = GetAppsUseCase(apps),
-            getAppDetails = GetAppDetailsUseCase(apps),
+            observeApps = ObserveAppsUseCase(apps),
+            observeAppDetails = ObserveAppDetailsUseCase(apps),
             executeAppAction = ExecuteAppActionUseCase(apps),
             installApk = InstallApkUseCase(apps),
             hostFiles = hostFiles,
-        )
+        ).apply { reduceIntent(AppsIntent.VisibilityChanged(isVisible)) }
     }
 
     test("without a selected device there is nothing to list") {
@@ -63,6 +63,44 @@ class AppsViewModelTest : FunSpec({
 
         fixture.viewModel.uiState.value.list shouldBe AppListState.Loaded(listOf("com.android.settings", "com.example.notes"))
         fixture.apps.requestedFilters shouldContainExactly listOf(AppFilter.USER)
+    }
+
+    test("an app installed elsewhere shows up on its own") {
+        val fixture = Fixture()
+
+        fixture.apps.apps.value = Outcome.Success(listOf(AppInfo("com.example.new")))
+
+        fixture.viewModel.uiState.value.list shouldBe AppListState.Loaded(listOf("com.example.new"))
+    }
+
+    test("a failing list recovers on its own") {
+        val fixture = Fixture()
+
+        fixture.apps.apps.value = Outcome.Failure(DeviceError.CommandFailed("offline"))
+        fixture.viewModel.uiState.value.list.shouldBeInstanceOf<AppListState.Failed>()
+
+        fixture.apps.apps.value = Outcome.Success(listOf(AppInfo("com.example.notes")))
+        fixture.viewModel.uiState.value.list shouldBe AppListState.Loaded(listOf("com.example.notes"))
+    }
+
+    test("nothing is read from the device while the screen is hidden") {
+        val fixture = Fixture(isVisible = false)
+
+        fixture.apps.requestedFilters.shouldBeEmpty()
+        fixture.viewModel.uiState.value.list shouldBe AppListState.Loading
+
+        fixture.viewModel.reduceIntent(AppsIntent.VisibilityChanged(true))
+
+        fixture.apps.requestedFilters shouldContainExactly listOf(AppFilter.USER)
+    }
+
+    test("the list stays on screen while hidden and shown again") {
+        val fixture = Fixture()
+        val shown = fixture.viewModel.uiState.value.list
+
+        fixture.viewModel.reduceIntent(AppsIntent.VisibilityChanged(false))
+
+        fixture.viewModel.uiState.value.list shouldBe shown
     }
 
     test("changing the filter reloads the list") {
@@ -93,7 +131,7 @@ class AppsViewModelTest : FunSpec({
     }
 
     context("install") {
-        test("installs the picked APKs and refreshes the list") {
+        test("installs the picked APKs") {
             val fixture = Fixture().apply { hostFiles.pickedFiles = listOf("/home/me/base.apk", "/home/me/split.apk") }
 
             fixture.viewModel.sideEffects.test {
@@ -102,7 +140,6 @@ class AppsViewModelTest : FunSpec({
                 awaitItem() shouldBe AppsSideEffect.Installed(fileCount = 2)
             }
             fixture.apps.installedApks shouldContainExactly listOf(listOf("/home/me/base.apk", "/home/me/split.apk"))
-            fixture.apps.requestedFilters.size shouldBe 2
         }
 
         test("dropped APKs install together, and other files are left out") {
@@ -160,7 +197,7 @@ class AppsViewModelTest : FunSpec({
             fixture.viewModel.uiState.value.pendingConfirmation.shouldBeNull()
         }
 
-        test("a confirmed uninstall clears the selection, reloads the list and reports success") {
+        test("a confirmed uninstall clears the selection and reports success") {
             val fixture = Fixture()
             fixture.viewModel.reduceIntent(AppsIntent.AppClicked("com.example.notes"))
 
@@ -172,7 +209,7 @@ class AppsViewModelTest : FunSpec({
             }
             fixture.apps.executedActions shouldContainExactly listOf("com.example.notes" to AppAction.UNINSTALL)
             fixture.viewModel.uiState.value.selectedPackage.shouldBeNull()
-            fixture.apps.requestedFilters.size shouldBe 2
+            fixture.viewModel.uiState.value.details shouldBe AppDetailsState.Hidden
         }
 
         test("a failed action is reported") {

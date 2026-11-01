@@ -9,7 +9,7 @@ sealed interface SettingsIntent {
 
     data object AdbPathReset : SettingsIntent
 
-    data object AdbCheckClicked : SettingsIntent
+    data class VisibilityChanged(val isVisible: Boolean) : SettingsIntent
 
     data class ThemeSelected(val mode: ThemeMode) : SettingsIntent
 }

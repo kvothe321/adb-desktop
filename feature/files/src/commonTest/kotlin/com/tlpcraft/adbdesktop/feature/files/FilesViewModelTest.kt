@@ -7,7 +7,7 @@ import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceU
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.CreateFolderUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.DeleteFileUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.DownloadFileUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.files.ListFilesUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.files.ObserveFilesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.UploadFileUseCase
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceSelectionRepository
@@ -37,7 +37,7 @@ class FilesViewModelTest : FunSpec({
     beforeTest { Dispatchers.setMain(UnconfinedTestDispatcher()) }
     afterTest { Dispatchers.resetMain() }
 
-    class Fixture(selectedSerial: String? = "pixel") {
+    class Fixture(selectedSerial: String? = "pixel", isVisible: Boolean = true) {
         val files = FakeFilesRepository(mapOf("/sdcard" to listOf("Download/", "notes.txt"), "/sdcard/Download" to listOf("a.png"), "/" to listOf("sdcard/")))
         val hostFiles = FakeHostFiles()
         val viewModel = FilesViewModel(
@@ -45,13 +45,13 @@ class FilesViewModelTest : FunSpec({
                 ObserveDevicesUseCase(FakeDeviceRepository(listOf(onlineDevice("pixel")))),
                 FakeDeviceSelectionRepository(selectedSerial),
             ),
-            listFiles = ListFilesUseCase(files),
+            observeFiles = ObserveFilesUseCase(files),
             uploadFile = UploadFileUseCase(files),
             downloadFile = DownloadFileUseCase(files),
             deleteFile = DeleteFileUseCase(files),
             createFolder = CreateFolderUseCase(files),
             hostFiles = hostFiles,
-        )
+        ).apply { reduceIntent(FilesIntent.VisibilityChanged(isVisible)) }
 
         val state get() = viewModel.uiState.value
 
@@ -100,15 +100,41 @@ class FilesViewModelTest : FunSpec({
 
     test("a listing failure shows the device's message") {
         val fixture = Fixture()
-        fixture.files.failure = DeviceError.CommandFailed("ls: /secret: Permission denied")
 
-        fixture.viewModel.reduceIntent(FilesIntent.RefreshClicked)
+        fixture.files.failure = DeviceError.CommandFailed("ls: /secret: Permission denied")
 
         fixture.state.listing shouldBe FileListing.Failed("ls: /secret: Permission denied")
     }
 
+    test("a file added elsewhere shows up on its own") {
+        val fixture = Fixture()
+
+        fixture.files.listing.value = mapOf("/sdcard" to listOf("new.txt"))
+
+        fixture.names() shouldContainExactly listOf("new.txt")
+    }
+
+    test("a failing listing recovers on its own") {
+        val fixture = Fixture()
+
+        fixture.files.failure = DeviceError.CommandFailed("offline")
+        fixture.files.failure = null
+
+        fixture.names() shouldContainExactly listOf("Download", "notes.txt")
+    }
+
+    test("nothing is read from the device while the screen is hidden") {
+        val fixture = Fixture(isVisible = false)
+
+        fixture.state.listing shouldBe FileListing.Loading
+
+        fixture.viewModel.reduceIntent(FilesIntent.VisibilityChanged(true))
+
+        fixture.names() shouldContainExactly listOf("Download", "notes.txt")
+    }
+
     context("transfers") {
-        test("uploads the picked files into the current folder and refreshes") {
+        test("uploads the picked files into the current folder") {
             val fixture = Fixture().apply { hostFiles.pickedFiles = listOf("/home/me/a.txt") }
 
             fixture.viewModel.sideEffects.test {

@@ -3,6 +3,7 @@ package com.tlpcraft.adbdesktop.feature.files
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tlpcraft.adbdesktop.core.common.Outcome
+import com.tlpcraft.adbdesktop.core.common.flow.whileActive
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.RemoteFile
 import com.tlpcraft.adbdesktop.core.domain.model.RemotePath
@@ -12,15 +13,15 @@ import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceU
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.CreateFolderUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.DeleteFileUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.DownloadFileUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.files.ListFilesUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.files.ObserveFilesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.UploadFileUseCase
-import com.tlpcraft.adbdesktop.feature.files.contract.DEFAULT_DIRECTORY
 import com.tlpcraft.adbdesktop.feature.files.contract.FileListing
 import com.tlpcraft.adbdesktop.feature.files.contract.FilesIntent
 import com.tlpcraft.adbdesktop.feature.files.contract.FilesSideEffect
 import com.tlpcraft.adbdesktop.feature.files.contract.FilesUiState
 import com.tlpcraft.adbdesktop.feature.files.contract.NewFolderForm
 import com.tlpcraft.adbdesktop.feature.files.contract.TransferState
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -28,14 +29,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class FilesViewModel(
     private val observeSelectedDevice: ObserveSelectedDeviceUseCase,
-    private val listFiles: ListFilesUseCase,
+    private val observeFiles: ObserveFilesUseCase,
     private val uploadFile: UploadFileUseCase,
     private val downloadFile: DownloadFileUseCase,
     private val deleteFile: DeleteFileUseCase,
@@ -49,13 +54,14 @@ class FilesViewModel(
     private val _sideEffects = Channel<FilesSideEffect>(Channel.BUFFERED)
     val sideEffects: Flow<FilesSideEffect> = _sideEffects.receiveAsFlow()
 
-    private var listingJob: Job? = null
+    private val isVisible = MutableStateFlow(false)
     private var operationJob: Job? = null
 
     init {
         viewModelScope.launch {
-            observeSelectedDevice(Unit).map { it?.serial }.distinctUntilChanged().collect(::onDeviceChanged)
+            observeSelectedDevice(Unit).map { it?.serial }.distinctUntilChanged().collect { serial -> _uiState.update { FilesUiState(serial = serial) } }
         }
+        trackListing()
     }
 
     fun reduceIntent(intent: FilesIntent) {
@@ -64,7 +70,7 @@ class FilesViewModel(
             FilesIntent.UpClicked -> open(RemotePath.parent(_uiState.value.directory))
             is FilesIntent.PathChanged -> _uiState.update { it.copy(pathInput = intent.value) }
             FilesIntent.PathSubmitted -> _uiState.value.pathInput.trim().takeIf { it.startsWith(RemotePath.ROOT) }?.let(::open)
-            FilesIntent.RefreshClicked -> open(_uiState.value.directory)
+            is FilesIntent.VisibilityChanged -> isVisible.value = intent.isVisible
             FilesIntent.UploadClicked -> runExclusive { uploadAll(hostFiles.pickFiles()) }
             is FilesIntent.FilesDropped -> runExclusive { uploadAll(intent.paths) }
             FilesIntent.CancelTransferClicked -> cancelTransfer()
@@ -79,23 +85,27 @@ class FilesViewModel(
         }
     }
 
-    private fun onDeviceChanged(serial: String?) {
-        listingJob?.cancel()
-        _uiState.update { FilesUiState(serial = serial) }
-        if (serial != null) open(DEFAULT_DIRECTORY)
+    private fun trackListing() = viewModelScope.launch {
+        _uiState.map { it.serial to it.directory }.distinctUntilChanged().flatMapLatest { (serial, directory) ->
+            if (serial == null) {
+                flowOf(FileListing.NoDevice)
+            } else {
+                observeFiles(ObserveFilesUseCase.Params(serial, directory))
+                    .map { outcome -> outcome.toListing() }
+                    .whileActive(isVisible)
+                    .onStart { emit(FileListing.Loading) }
+            }
+        }.collect { listing -> _uiState.update { it.copy(listing = listing) } }
+    }
+
+    private fun Outcome<List<RemoteFile>, DeviceError>.toListing(): FileListing = when (this) {
+        is Outcome.Success -> FileListing.Loaded(data)
+        is Outcome.Failure -> FileListing.Failed(error.detailsForUser())
     }
 
     private fun open(directory: String) {
-        val serial = _uiState.value.serial ?: return
-        listingJob?.cancel()
-        _uiState.update { it.copy(directory = directory, pathInput = directory, listing = FileListing.Loading) }
-        listingJob = viewModelScope.launch {
-            val listing = when (val result = listFiles(ListFilesUseCase.Params(serial, directory))) {
-                is Outcome.Success -> FileListing.Loaded(result.data)
-                is Outcome.Failure -> FileListing.Failed(result.error.detailsForUser())
-            }
-            _uiState.update { it.copy(listing = listing) }
-        }
+        if (_uiState.value.serial == null) return
+        _uiState.update { it.copy(directory = directory, pathInput = directory) }
     }
 
     private suspend fun uploadAll(paths: List<String>) {
@@ -107,7 +117,6 @@ class FilesViewModel(
             track(position = index + 1, count = paths.size, uploadFile(UploadFileUseCase.Params(serial, path, state.directory)))
         }
         _sideEffects.send(failure?.let { FilesSideEffect.OperationFailed(it.detailsForUser()) } ?: FilesSideEffect.Uploaded(state.directory))
-        open(state.directory)
     }
 
     private fun download(file: RemoteFile) {
@@ -136,7 +145,6 @@ class FilesViewModel(
         if (_uiState.value.transfer == null) return
         operationJob?.cancel()
         _sideEffects.trySend(FilesSideEffect.TransferCancelled)
-        open(_uiState.value.directory)
     }
 
     private fun confirmDelete() {
@@ -146,7 +154,6 @@ class FilesViewModel(
         _uiState.update { it.copy(pendingDelete = null) }
         runExclusive {
             report(deleteFile(DeleteFileUseCase.Params(serial, file.path))) { FilesSideEffect.Deleted(file.name) }
-            open(state.directory)
         }
     }
 
@@ -159,7 +166,6 @@ class FilesViewModel(
                 is Outcome.Success -> {
                     _uiState.update { it.copy(newFolder = null) }
                     _sideEffects.send(FilesSideEffect.FolderCreated(form.name.trim()))
-                    open(state.directory)
                 }
 
                 is Outcome.Failure -> {
