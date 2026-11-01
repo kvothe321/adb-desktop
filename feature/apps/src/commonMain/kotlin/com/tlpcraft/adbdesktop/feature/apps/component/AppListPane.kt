@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.tlpcraft.adbdesktop.core.domain.model.AppAppearance
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
 import com.tlpcraft.adbdesktop.feature.apps.contract.AppListState
 import com.tlpcraft.adbdesktop.feature.apps.resources.Res
@@ -42,7 +43,7 @@ internal fun AppListPane(
     filter: AppFilter,
     query: String,
     selectedPackage: String?,
-    icons: Map<String, ByteArray>,
+    appearances: Map<String, AppAppearance>,
     onFilterSelect: (AppFilter) -> Unit,
     onQueryChange: (String) -> Unit,
     onAppClick: (String) -> Unit,
@@ -73,7 +74,7 @@ internal fun AppListPane(
                 is AppListState.Loaded -> if (visiblePackages.isEmpty()) {
                     EmptyState(title = stringResource(Res.string.apps_empty), icon = IconName.Search)
                 } else {
-                    PackageList(packages = visiblePackages, selectedPackage = selectedPackage, icons = icons, onAppClick = onAppClick)
+                    PackageList(packages = visiblePackages, selectedPackage = selectedPackage, appearances = appearances, onAppClick = onAppClick)
                 }
             }
         }
@@ -84,18 +85,20 @@ internal fun AppListPane(
 private fun PackageList(
     packages: List<String>,
     selectedPackage: String?,
-    icons: Map<String, ByteArray>,
+    appearances: Map<String, AppAppearance>,
     onAppClick: (String) -> Unit,
 ) {
     LazyColumn(Modifier.fillMaxSize()) {
         items(packages, key = { it }) { packageName ->
             ListRow(
-                headline = packageName.packageDisplayName(),
+                headline = packageName.appTitle(appearances[packageName]),
                 supporting = packageName,
                 monospaceSupporting = true,
                 selected = packageName == selectedPackage,
                 onClick = { onAppClick(packageName) },
-                leading = { PictureIcon(image = icons[packageName], fallback = IconName.Package, contentDescription = null, size = IconSize.Large) },
+                leading = {
+                    PictureIcon(image = appearances[packageName]?.icon, fallback = IconName.Package, contentDescription = null, size = IconSize.Large)
+                },
             )
         }
     }
@@ -111,7 +114,7 @@ private fun AppListPaneLoadedPreview() = PreviewContext {
         filter = AppFilter.USER,
         query = "",
         selectedPackage = "com.example.notes",
-        icons = emptyMap(),
+        appearances = emptyMap(),
         onFilterSelect = {},
         onQueryChange = {},
         onAppClick = {},
@@ -127,7 +130,7 @@ private fun AppListPaneFailedPreview() = PreviewContext {
         filter = AppFilter.ALL,
         query = "",
         selectedPackage = null,
-        icons = emptyMap(),
+        appearances = emptyMap(),
         onFilterSelect = {},
         onQueryChange = {},
         onAppClick = {},

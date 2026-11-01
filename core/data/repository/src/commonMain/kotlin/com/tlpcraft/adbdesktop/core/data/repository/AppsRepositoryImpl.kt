@@ -6,14 +6,14 @@ import com.tlpcraft.adbdesktop.core.data.repository.mapper.toDomain
 import com.tlpcraft.adbdesktop.core.data.repository.mapper.toDto
 import com.tlpcraft.adbdesktop.core.data.repository.util.Invalidations
 import com.tlpcraft.adbdesktop.core.data.repository.util.safeCall
-import com.tlpcraft.adbdesktop.core.data.source.adb.AdbAppIconDataSource
+import com.tlpcraft.adbdesktop.core.data.source.adb.AdbAppAppearanceDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbPackageDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbPackageEventDataSource
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.AppAction
+import com.tlpcraft.adbdesktop.core.domain.model.AppAppearance
 import com.tlpcraft.adbdesktop.core.domain.model.AppDetails
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
-import com.tlpcraft.adbdesktop.core.domain.model.AppIcon
 import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
 import com.tlpcraft.adbdesktop.core.domain.repository.AppsRepository
 import kotlin.time.Duration
@@ -33,7 +33,7 @@ import kotlinx.coroutines.sync.withLock
 
 class AppsRepositoryImpl(
     private val packageDataSource: AdbPackageDataSource,
-    private val iconDataSource: AdbAppIconDataSource,
+    private val appearanceDataSource: AdbAppAppearanceDataSource,
     private val packageEventDataSource: AdbPackageEventDataSource,
     private val scope: CoroutineScope,
     private val pollInterval: Duration = 5.seconds,
@@ -44,9 +44,9 @@ class AppsRepositoryImpl(
     private val packageChanges = mutableMapOf<String, SharedFlow<Unit>>()
     private val packageChangesLock = Mutex()
 
-    /** Icons rarely change, so each is read once per device and app while the app runs. `null` marks one without an icon. */
-    private val iconCache = mutableMapOf<String, MutableMap<String, AppIcon?>>()
-    private val iconCacheLock = Mutex()
+    /** Names and icons rarely change, so each app's are read once per device while the app runs. `null` marks an app with neither. */
+    private val appearanceCache = mutableMapOf<String, MutableMap<String, AppAppearance?>>()
+    private val appearanceCacheLock = Mutex()
 
     override fun observeApps(serial: String, filter: AppFilter): Flow<Outcome<List<AppInfo>, DeviceError>> = invalidations.observe(packageChangesOf(serial)) {
         safeCall(Throwable::toDeviceError) { packageDataSource.listPackages(serial, filter.toDto()).map(::AppInfo) }
@@ -76,20 +76,21 @@ class AppsRepositoryImpl(
     override suspend fun executeAction(serial: String, packageName: String, action: AppAction): Outcome<Unit, DeviceError> =
         safeCall(Throwable::toDeviceError) { packageDataSource.runAction(serial, packageName, action.toDto()) }.also { invalidations.invalidate() }
 
-    override fun observeAppIcons(serial: String, packageNames: List<String>): Flow<Map<String, AppIcon>> = flow {
-        suspend fun known() = iconCacheLock.withLock {
-            iconCache[serial].orEmpty().let { cache -> packageNames.mapNotNull { name -> cache[name]?.let { name to it } }.toMap() }
+    override fun observeAppAppearances(serial: String, packageNames: List<String>): Flow<Map<String, AppAppearance>> = flow {
+        suspend fun known() = appearanceCacheLock.withLock {
+            appearanceCache[serial].orEmpty().let { cache -> packageNames.mapNotNull { name -> cache[name]?.let { name to it } }.toMap() }
         }
 
         emit(known())
-        val missing = iconCacheLock.withLock { packageNames.filterNot { iconCache[serial]?.containsKey(it) == true } }
+        val missing = appearanceCacheLock.withLock { packageNames.filterNot { appearanceCache[serial]?.containsKey(it) == true } }
         if (missing.isEmpty()) return@flow
         var readSinceEmit = 0
-        iconDataSource.streamIcons(serial, missing)
-            .catch { emit(known()) } // Icons only decorate: what could not be read keeps the plain app glyph.
-            .collect { (packageName, png) ->
-                iconCacheLock.withLock { iconCache.getOrPut(serial) { mutableMapOf() }[packageName] = png?.let(::AppIcon) }
-                if (++readSinceEmit == ICONS_PER_EMISSION) {
+        appearanceDataSource.streamAppearances(serial, missing)
+            .catch { emit(known()) } // Names and icons only decorate: what could not be read keeps the package name and plain glyph.
+            .collect { read ->
+                val appearance = read.takeIf { it.label != null || it.icon != null }?.let { AppAppearance(it.label, it.icon) }
+                appearanceCacheLock.withLock { appearanceCache.getOrPut(serial) { mutableMapOf() }[read.packageName] = appearance }
+                if (++readSinceEmit == APPEARANCES_PER_EMISSION) {
                     readSinceEmit = 0
                     emit(known())
                 }
@@ -101,6 +102,6 @@ class AppsRepositoryImpl(
         safeCall(Throwable::toDeviceError) { packageDataSource.install(serial, apkPaths) }.also { invalidations.invalidate() }
 
     private companion object {
-        const val ICONS_PER_EMISSION = 20
+        const val APPEARANCES_PER_EMISSION = 20
     }
 }

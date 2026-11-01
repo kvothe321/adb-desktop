@@ -10,6 +10,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldNotContain
 import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -34,15 +35,16 @@ class AppsIntegrationTest : FunSpec({
     val serial = System.getenv("ADB_TEST_SERIAL").orEmpty()
     val apps = koinApplication { modules(appModules) }.koin.get<AppsRepository>()
 
-    test("system apps come with their own icons, drawn as PNGs") {
+    test("system apps come with their own names and icons, drawn as PNGs") {
         val packages = apps.observeApps(serial, AppFilter.SYSTEM).first().shouldBeInstanceOf<Outcome.Success<List<AppInfo>>>().data.map { it.packageName }
 
-        val icons = apps.observeAppIcons(serial, packages).toList().last()
+        val icons = apps.observeAppAppearances(serial, packages).toList().last()
 
-        println("icons: ${icons.size} of ${packages.size} apps")
+        println("icons: ${icons.values.count { it.icon != null }} and names: ${icons.values.count { it.label != null }} of ${packages.size} apps")
         icons.keys shouldContain "com.android.settings"
         icons.size shouldBeGreaterThan packages.size / 4
-        val settings = icons.getValue("com.android.settings").png
+        icons.getValue("com.android.settings").label.shouldNotBeNull()
+        val settings = checkNotNull(icons.getValue("com.android.settings").icon)
         settings.take(PNG_SIGNATURE.size) shouldBe PNG_SIGNATURE
         ImageIO.read(ByteArrayInputStream(settings)).width shouldBe 96
 

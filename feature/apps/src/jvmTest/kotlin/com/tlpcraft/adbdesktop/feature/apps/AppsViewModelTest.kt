@@ -4,13 +4,13 @@ import app.cash.turbine.test
 import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.AppAction
+import com.tlpcraft.adbdesktop.core.domain.model.AppAppearance
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
-import com.tlpcraft.adbdesktop.core.domain.model.AppIcon
 import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ExecuteAppActionUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.InstallApkUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppAppearancesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppDetailsUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppIconsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
@@ -61,7 +61,7 @@ class AppsViewModelTest : FunSpec({
             ),
             observeApps = ObserveAppsUseCase(apps),
             observeAppDetails = ObserveAppDetailsUseCase(apps),
-            observeAppIcons = ObserveAppIconsUseCase(apps),
+            observeAppAppearances = ObserveAppAppearancesUseCase(apps),
             executeAppAction = ExecuteAppActionUseCase(apps),
             installApk = InstallApkUseCase(apps),
             hostFiles = hostFiles,
@@ -72,16 +72,25 @@ class AppsViewModelTest : FunSpec({
         Fixture(selectedSerial = null).viewModel.uiState.value.list shouldBe AppListState.NoDevice
     }
 
-    test("icons of the listed apps arrive and stay while the list reloads") {
+    test("names and icons of the listed apps arrive and stay while the list reloads") {
         val fixture = Fixture()
-        val icon = AppIcon(byteArrayOf(1))
+        val appearance = AppAppearance(label = "Notes", icon = byteArrayOf(1))
 
-        fixture.apps.icons.value = mapOf("com.example.notes" to icon)
-        fixture.viewModel.uiState.value.icons.keys shouldBe setOf("com.example.notes")
-        fixture.apps.iconRequests.last() shouldBe listOf("com.android.settings", "com.example.notes")
+        fixture.apps.appearances.value = mapOf("com.example.notes" to appearance)
+        fixture.viewModel.uiState.value.appearances.keys shouldBe setOf("com.example.notes")
+        fixture.apps.appearanceRequests.last() shouldBe listOf("com.android.settings", "com.example.notes")
 
         fixture.viewModel.reduceIntent(AppsIntent.FilterSelected(AppFilter.SYSTEM))
-        fixture.viewModel.uiState.value.icons.keys shouldBe setOf("com.example.notes")
+        fixture.viewModel.uiState.value.appearances.keys shouldBe setOf("com.example.notes")
+    }
+
+    test("the search also matches the app's own name") {
+        val fixture = Fixture()
+        fixture.apps.appearances.value = mapOf("com.example.notes" to AppAppearance(label = "Notizen", icon = null))
+
+        fixture.viewModel.reduceIntent(AppsIntent.QueryChanged("notiz"))
+
+        fixture.viewModel.uiState.value.visiblePackages shouldBe listOf("com.example.notes")
     }
 
     test("loads user apps of the selected device, sorted") {

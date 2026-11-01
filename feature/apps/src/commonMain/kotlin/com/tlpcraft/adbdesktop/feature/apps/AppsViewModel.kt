@@ -11,8 +11,8 @@ import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
 import com.tlpcraft.adbdesktop.core.domain.service.HostFiles
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ExecuteAppActionUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.InstallApkUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppAppearancesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppDetailsUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppIconsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.feature.apps.contract.AppDetailsState
@@ -42,7 +42,7 @@ class AppsViewModel(
     private val observeSelectedDevice: ObserveSelectedDeviceUseCase,
     private val observeApps: ObserveAppsUseCase,
     private val observeAppDetails: ObserveAppDetailsUseCase,
-    private val observeAppIcons: ObserveAppIconsUseCase,
+    private val observeAppAppearances: ObserveAppAppearancesUseCase,
     private val executeAppAction: ExecuteAppActionUseCase,
     private val installApk: InstallApkUseCase,
     private val hostFiles: HostFiles,
@@ -60,7 +60,7 @@ class AppsViewModel(
         trackSelectedDevice()
         trackApps()
         trackAppDetails()
-        trackIcons()
+        trackAppearances()
     }
 
     fun reduceIntent(intent: AppsIntent) {
@@ -79,7 +79,7 @@ class AppsViewModel(
 
     private fun trackSelectedDevice() = viewModelScope.launch {
         observeSelectedDevice(Unit).map { it?.serial }.distinctUntilChanged().collect { serial ->
-            _uiState.update { it.copy(serial = serial, selectedPackage = null, pendingConfirmation = null, icons = emptyMap()) }
+            _uiState.update { it.copy(serial = serial, selectedPackage = null, pendingConfirmation = null, appearances = emptyMap()) }
         }
     }
 
@@ -109,12 +109,12 @@ class AppsViewModel(
         }.collect { details -> _uiState.update { it.copy(details = details) } }
     }
 
-    /** Keeps the icons while the list reloads, so they do not blink when the filter changes. */
-    private fun trackIcons() = viewModelScope.launch {
+    /** Keeps names and icons while the list reloads, so they do not blink when the filter changes. */
+    private fun trackAppearances() = viewModelScope.launch {
         _uiState.mapNotNull { state -> state.serial?.let { serial -> (state.list as? AppListState.Loaded)?.let { serial to it.packages } } }
             .distinctUntilChanged()
-            .flatMapLatest { (serial, packages) -> observeAppIcons(ObserveAppIconsUseCase.Params(serial, packages)).whileActive(isVisible) }
-            .collect { icons -> _uiState.update { it.copy(icons = it.icons + icons) } }
+            .flatMapLatest { (serial, packages) -> observeAppAppearances(ObserveAppAppearancesUseCase.Params(serial, packages)).whileActive(isVisible) }
+            .collect { appearances -> _uiState.update { it.copy(appearances = it.appearances + appearances) } }
     }
 
     private suspend fun installDropped(paths: List<String>) {

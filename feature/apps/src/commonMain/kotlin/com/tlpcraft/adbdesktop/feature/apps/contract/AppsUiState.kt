@@ -1,9 +1,9 @@
 package com.tlpcraft.adbdesktop.feature.apps.contract
 
 import com.tlpcraft.adbdesktop.core.domain.model.AppAction
+import com.tlpcraft.adbdesktop.core.domain.model.AppAppearance
 import com.tlpcraft.adbdesktop.core.domain.model.AppDetails
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
-import com.tlpcraft.adbdesktop.core.domain.model.AppIcon
 
 data class AppsUiState(
     val serial: String? = null,
@@ -15,11 +15,17 @@ data class AppsUiState(
     val runningAction: AppAction? = null,
     val pendingConfirmation: AppAction? = null,
     val isInstalling: Boolean = false,
-    /** App icons by package. Apps missing here show the plain app glyph. */
-    val icons: Map<String, AppIcon> = emptyMap(),
+    /** App names and icons by package. Apps missing here show a name made from the package and the plain app glyph. */
+    val appearances: Map<String, AppAppearance> = emptyMap(),
 ) {
+    /** The query matches the package or the app's own name. */
     val visiblePackages: List<String>
-        get() = (list as? AppListState.Loaded)?.packages.orEmpty().filter { it.contains(query.trim(), ignoreCase = true) }
+        get() {
+            val text = query.trim()
+            return (list as? AppListState.Loaded)?.packages.orEmpty().filter { packageName ->
+                packageName.contains(text, ignoreCase = true) || appearances[packageName]?.label?.contains(text, ignoreCase = true) == true
+            }
+        }
 }
 
 sealed interface AppListState {

@@ -2,7 +2,7 @@ package com.tlpcraft.adbdesktop.core.data.repository
 
 import app.cash.turbine.test
 import com.tlpcraft.adbdesktop.core.common.Outcome
-import com.tlpcraft.adbdesktop.core.data.repository.fake.FakeAdbAppIconDataSource
+import com.tlpcraft.adbdesktop.core.data.repository.fake.FakeAdbAppAppearanceDataSource
 import com.tlpcraft.adbdesktop.core.data.repository.fake.FakeAdbDeviceDataSource
 import com.tlpcraft.adbdesktop.core.data.repository.fake.FakeAdbPackageDataSource
 import com.tlpcraft.adbdesktop.core.data.repository.fake.FakeAdbPackageEventDataSource
@@ -67,7 +67,7 @@ class NewRepositoriesTest : FunSpec({
     test("install passes every APK through") {
         val source = FakeAdbPackageDataSource()
 
-        AppsRepositoryImpl(source, FakeAdbAppIconDataSource(), FakeAdbPackageEventDataSource(), scope).install("pixel", listOf("a.apk", "b.apk")) shouldBe
+        AppsRepositoryImpl(source, FakeAdbAppAppearanceDataSource(), FakeAdbPackageEventDataSource(), scope).install("pixel", listOf("a.apk", "b.apk")) shouldBe
             Outcome.Success(Unit)
         source.installed shouldContainExactly listOf(listOf("a.apk", "b.apk"))
     }
