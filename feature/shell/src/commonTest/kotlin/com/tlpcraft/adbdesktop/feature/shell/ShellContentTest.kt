@@ -7,7 +7,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
-import androidx.compose.ui.test.runComposeUiTest
+import androidx.compose.ui.test.v2.runComposeUiTest
 import com.tlpcraft.adbdesktop.feature.shell.contract.SessionState
 import com.tlpcraft.adbdesktop.feature.shell.contract.ShellIntent
 import com.tlpcraft.adbdesktop.feature.shell.contract.ShellUiState

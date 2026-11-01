@@ -64,7 +64,8 @@ class AppsViewModel(
             AppsIntent.ActionConfirmed -> _uiState.value.pendingConfirmation?.let(::runAction)
             AppsIntent.ActionCancelled -> _uiState.update { it.copy(pendingConfirmation = null) }
             AppsIntent.RetryClicked -> reloadRequests.update { it + 1 }
-            AppsIntent.InstallClicked -> install()
+            AppsIntent.InstallClicked -> viewModelScope.launch { install(hostFiles.pickFiles(APK_EXTENSION)) }
+            is AppsIntent.FilesDropped -> viewModelScope.launch { installDropped(intent.paths) }
         }
     }
 
@@ -95,27 +96,27 @@ class AppsViewModel(
         _uiState.update { it.copy(list = list) }
     }
 
-    private fun install() {
+    private suspend fun installDropped(paths: List<String>) {
+        val apkPaths = paths.filter { it.endsWith(".$APK_EXTENSION", ignoreCase = true) }
+        if (apkPaths.isEmpty()) _sideEffects.send(AppsSideEffect.NoApkDropped) else install(apkPaths)
+    }
+
+    private suspend fun install(apkPaths: List<String>) {
         val state = _uiState.value
         val serial = state.serial ?: return
-        if (state.isInstalling) return
+        if (state.isInstalling || apkPaths.isEmpty()) return
 
-        viewModelScope.launch {
-            val apkPaths = hostFiles.pickFiles(APK_EXTENSION)
-            if (apkPaths.isEmpty()) return@launch
+        _uiState.update { it.copy(isInstalling = true) }
+        val result = installApk(InstallApkUseCase.Params(serial, apkPaths))
+        _uiState.update { it.copy(isInstalling = false) }
+        when (result) {
+            is Outcome.Success -> {
+                reloadRequests.update { it + 1 }
+                _sideEffects.send(AppsSideEffect.Installed(apkPaths.size))
+            }
 
-            _uiState.update { it.copy(isInstalling = true) }
-            val result = installApk(InstallApkUseCase.Params(serial, apkPaths))
-            _uiState.update { it.copy(isInstalling = false) }
-            when (result) {
-                is Outcome.Success -> {
-                    reloadRequests.update { it + 1 }
-                    _sideEffects.send(AppsSideEffect.Installed(apkPaths.size))
-                }
-
-                is Outcome.Failure -> {
-                    _sideEffects.send(AppsSideEffect.InstallFailed(result.error.detailsForUser()))
-                }
+            is Outcome.Failure -> {
+                _sideEffects.send(AppsSideEffect.InstallFailed(result.error.detailsForUser()))
             }
         }
     }

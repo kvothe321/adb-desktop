@@ -19,4 +19,6 @@ sealed interface AppsIntent {
     data object RetryClicked : AppsIntent
 
     data object InstallClicked : AppsIntent
+
+    data class FilesDropped(val paths: List<String>) : AppsIntent
 }

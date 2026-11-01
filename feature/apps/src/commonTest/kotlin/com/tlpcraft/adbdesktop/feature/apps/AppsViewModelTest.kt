@@ -105,6 +105,25 @@ class AppsViewModelTest : FunSpec({
             fixture.apps.requestedFilters.size shouldBe 2
         }
 
+        test("dropped APKs install together, and other files are left out") {
+            val fixture = Fixture()
+
+            fixture.viewModel.reduceIntent(AppsIntent.FilesDropped(listOf("/home/me/base.APK", "/home/me/notes.txt", "/home/me/split.apk")))
+
+            fixture.apps.installedApks shouldContainExactly listOf(listOf("/home/me/base.APK", "/home/me/split.apk"))
+        }
+
+        test("a drop without APKs says so") {
+            val fixture = Fixture()
+
+            fixture.viewModel.sideEffects.test {
+                fixture.viewModel.reduceIntent(AppsIntent.FilesDropped(listOf("/home/me/notes.txt")))
+
+                awaitItem() shouldBe AppsSideEffect.NoApkDropped
+            }
+            fixture.apps.installedApks.shouldBeEmpty()
+        }
+
         test("cancelling the file dialog installs nothing") {
             val fixture = Fixture()
 

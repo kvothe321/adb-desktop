@@ -38,6 +38,8 @@
     <string name="app_confirm_cancel">Cancel</string>
 
     <string name="apps_install">Install APK</string>
+    <string name="apps_drop_hint">Drop APK files to install</string>
+    <string name="message_no_apk_dropped">Only APK files can be installed</string>
     <string name="message_installed">Installed %1$d APK file(s)</string>
     <string name="message_install_failed">Install failed: %1$s</string>
 
