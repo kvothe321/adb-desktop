@@ -154,9 +154,20 @@ private fun TerminalRow.toAnnotatedString(): AnnotatedString {
     return remember(this, foreground, background, palette) {
         buildAnnotatedString {
             if (spans.isEmpty()) append(" ")
-            spans.forEach { span -> withStyle(span.toSpanStyle(foreground, background, palette)) { append(span.text) } }
+            spans.forEachIndexed { index, span ->
+                withStyle(span.toSpanStyle(foreground, background, palette)) {
+                    append(if (index == spans.lastIndex) span.paintedText() else span.text)
+                }
+            }
         }
     }
+}
+
+/** Text layout leaves spaces at the end of a line unpainted, which would hide a cursor sitting there. */
+internal fun TerminalSpan.paintedText(): String {
+    if (!isInverted && background == TerminalColor.Default) return text
+    val content = text.trimEnd(' ')
+    return content + NON_BREAKING_SPACE.repeat(text.length - content.length)
 }
 
 private fun TerminalSpan.toSpanStyle(defaultForeground: Color, defaultBackground: Color, palette: List<Color>): SpanStyle {
@@ -174,6 +185,7 @@ private fun TerminalSpan.toSpanStyle(defaultForeground: Color, defaultBackground
 private fun TerminalColor.resolve(palette: List<Color>): Color? = palette.getOrNull(ordinal - 1)
 
 private const val DIM_ALPHA = 0.6f
+private const val NON_BREAKING_SPACE = "\u00A0"
 
 @UiKitPreview
 @Composable
