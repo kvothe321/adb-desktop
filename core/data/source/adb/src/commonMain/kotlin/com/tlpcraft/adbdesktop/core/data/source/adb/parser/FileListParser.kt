@@ -39,6 +39,6 @@ internal object FileListParser {
 
     private fun toUnreadableEntry(match: MatchResult): RemoteFileDto {
         val (permissions, name) = match.destructured
-        return RemoteFileDto(name = name, permissions = permissions, sizeBytes = null, modified = null)
+        return RemoteFileDto(name = name.substringBefore(LINK_ARROW), permissions = permissions, sizeBytes = null, modified = null)
     }
 }

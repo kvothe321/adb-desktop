@@ -66,7 +66,7 @@ class FilesViewModel(
 
     fun reduceIntent(intent: FilesIntent) {
         when (intent) {
-            is FilesIntent.EntryClicked -> if (intent.file.type.canOpen) open(intent.file.path)
+            is FilesIntent.EntryClicked -> if (intent.file.canOpen) open(intent.file.path)
             FilesIntent.UpClicked -> open(RemotePath.parent(_uiState.value.directory))
             is FilesIntent.PathChanged -> _uiState.update { it.copy(pathInput = intent.value) }
             FilesIntent.PathSubmitted -> _uiState.value.pathInput.trim().takeIf { it.startsWith(RemotePath.ROOT) }?.let(::open)
@@ -74,8 +74,8 @@ class FilesViewModel(
             FilesIntent.UploadClicked -> runExclusive { uploadAll(hostFiles.pickFiles()) }
             is FilesIntent.FilesDropped -> runExclusive { uploadAll(intent.paths) }
             FilesIntent.CancelTransferClicked -> cancelTransfer()
-            is FilesIntent.DownloadClicked -> download(intent.file)
-            is FilesIntent.DeleteClicked -> _uiState.update { it.copy(pendingDelete = intent.file) }
+            is FilesIntent.DownloadClicked -> if (intent.file.isAccessible) download(intent.file)
+            is FilesIntent.DeleteClicked -> if (intent.file.isAccessible) _uiState.update { it.copy(pendingDelete = intent.file) }
             FilesIntent.DeleteConfirmed -> confirmDelete()
             FilesIntent.DeleteCancelled -> _uiState.update { it.copy(pendingDelete = null) }
             FilesIntent.NewFolderClicked -> _uiState.update { it.copy(newFolder = NewFolderForm()) }

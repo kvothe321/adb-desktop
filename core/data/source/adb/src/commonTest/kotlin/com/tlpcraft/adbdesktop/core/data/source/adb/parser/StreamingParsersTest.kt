@@ -61,6 +61,11 @@ class StreamingParsersTest : FunSpec({
                 RemoteFileDto(name = "data_mirror", permissions = "d?????????", sizeBytes = null, modified = null)
         }
 
+        test("an unreadable link is named without its unknown target") {
+            FileListParser.parse("l?????????   ? ?      ?            ?                ? init -> ?\n").single() shouldBe
+                RemoteFileDto(name = "init", permissions = "l?????????", sizeBytes = null, modified = null)
+        }
+
         test("device nodes have no size") {
             FileListParser.parse(AdbOutputs.LS_DEVICE_NODE).single().sizeBytes.shouldBeNull()
         }

@@ -8,6 +8,7 @@ import com.tlpcraft.adbdesktop.core.domain.model.RemoteFileType
 import com.tlpcraft.adbdesktop.feature.files.resources.Res
 import com.tlpcraft.adbdesktop.feature.files.resources.files_delete
 import com.tlpcraft.adbdesktop.feature.files.resources.files_download
+import com.tlpcraft.adbdesktop.feature.files.resources.files_no_access
 import com.tlpcraft.adbdesktop.uikit.component.ControlSize
 import com.tlpcraft.adbdesktop.uikit.component.Icon
 import com.tlpcraft.adbdesktop.uikit.component.IconButton
@@ -32,10 +33,10 @@ internal fun FileRow(
 ) {
     ListRow(
         headline = file.name,
-        supporting = file.description(),
+        supporting = if (file.isAccessible) file.description() else stringResource(Res.string.files_no_access),
         monospaceSupporting = true,
         modifier = modifier,
-        onClick = onClick.takeIf { file.type.canOpen },
+        onClick = onClick.takeIf { file.canOpen },
         leading = { Icon(file.type.icon, contentDescription = null) },
         trailing = {
             Row {
@@ -44,14 +45,14 @@ internal fun FileRow(
                     contentDescription = stringResource(Res.string.files_download),
                     onClick = onDownload,
                     size = ControlSize.Small,
-                    enabled = enabled,
+                    enabled = enabled && file.isAccessible,
                 )
                 IconButton(
                     icon = IconName.Delete,
                     contentDescription = stringResource(Res.string.files_delete),
                     onClick = onDelete,
                     size = ControlSize.Small,
-                    enabled = enabled,
+                    enabled = enabled && file.isAccessible,
                 )
             }
         },
@@ -77,6 +78,25 @@ internal fun Long.toReadableSize(): String {
     }
     val rounded = (value * ONE_DECIMAL).toLong().toDouble() / ONE_DECIMAL
     return "$rounded ${SIZE_UNITS[unitIndex]}"
+}
+
+@UiKitPreview
+@Composable
+private fun FileRowNoAccessPreview() = PreviewContext {
+    FileRow(
+        file = RemoteFile(
+            name = "data_mirror",
+            path = "/data_mirror",
+            type = RemoteFileType.DIRECTORY,
+            sizeBytes = null,
+            modified = null,
+            permissions = "d?????????",
+        ),
+        enabled = true,
+        onClick = {},
+        onDownload = {},
+        onDelete = {},
+    )
 }
 
 @UiKitPreview
