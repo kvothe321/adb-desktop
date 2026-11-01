@@ -32,10 +32,15 @@ class ScreenContentTest : FunSpec({
         runComposeUiTest {
             val intents = mutableListOf<ScreenIntent>()
             setContent {
-                AppTheme { ScreenContent(uiState = ScreenUiState(serial = "pixel", recording = RecordingState.Recording), onIntent = { intents += it }) }
+                AppTheme {
+                    ScreenContent(uiState = ScreenUiState(serial = "pixel", recording = RecordingState.Recording, recordingSeconds = 75), onIntent = {
+                        intents +=
+                            it
+                    })
+                }
             }
 
-            onNodeWithText("Recording on the device").assertExists()
+            onNodeWithText("Recording 01:15").assertExists()
             onNodeWithText("Stop").performClick()
 
             intents shouldContain ScreenIntent.StopClicked

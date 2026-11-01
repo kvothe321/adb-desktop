@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
+import com.tlpcraft.adbdesktop.core.domain.service.HostClipboard
 import com.tlpcraft.adbdesktop.core.domain.service.HostFiles
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.CaptureScreenshotUseCase
@@ -15,7 +16,9 @@ import com.tlpcraft.adbdesktop.feature.screen.contract.ScreenIntent
 import com.tlpcraft.adbdesktop.feature.screen.contract.ScreenSideEffect
 import com.tlpcraft.adbdesktop.feature.screen.contract.ScreenUiState
 import com.tlpcraft.adbdesktop.feature.screen.contract.Screenshot
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -31,6 +34,7 @@ class ScreenViewModel(
     private val stopRecording: StopRecordingUseCase,
     private val saveRecording: SaveRecordingUseCase,
     private val hostFiles: HostFiles,
+    private val hostClipboard: HostClipboard,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ScreenUiState())
@@ -49,6 +53,7 @@ class ScreenViewModel(
         when (intent) {
             ScreenIntent.CaptureClicked -> capture()
             ScreenIntent.SaveScreenshotClicked -> saveScreenshot()
+            ScreenIntent.CopyScreenshotClicked -> copyScreenshot()
             ScreenIntent.RecordClicked -> record()
             ScreenIntent.StopClicked -> stop()
         }
@@ -77,16 +82,34 @@ class ScreenViewModel(
         }
     }
 
+    private fun copyScreenshot() {
+        val screenshot = _uiState.value.screenshot ?: return
+        viewModelScope.launch {
+            hostClipboard.copyPng(screenshot.png)
+            _sideEffects.send(ScreenSideEffect.ScreenshotCopied)
+        }
+    }
+
     private fun record() {
         val state = _uiState.value
         val serial = state.serial?.takeIf { state.canRecord } ?: return
-        _uiState.update { it.copy(recording = RecordingState.Recording) }
+        _uiState.update { it.copy(recording = RecordingState.Recording, recordingSeconds = 0) }
+        val clock = startRecordingClock()
         viewModelScope.launch {
-            when (val result = recordScreen(serial)) {
+            val result = recordScreen(serial)
+            clock.cancel()
+            when (result) {
                 is Outcome.Success -> offerToSaveRecording(serial)
                 is Outcome.Failure -> report(result.error)
             }
             _uiState.update { it.copy(recording = RecordingState.Idle) }
+        }
+    }
+
+    private fun startRecordingClock() = viewModelScope.launch {
+        while (true) {
+            delay(1.seconds)
+            _uiState.update { it.copy(recordingSeconds = it.recordingSeconds + 1) }
         }
     }
 

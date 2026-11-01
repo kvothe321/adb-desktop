@@ -3,6 +3,7 @@ package com.tlpcraft.adbdesktop.di
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.BinaryCommandResult
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.CommandExecutor
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.CommandResult
+import com.tlpcraft.adbdesktop.core.domain.service.HostClipboard
 import com.tlpcraft.adbdesktop.core.domain.service.HostFiles
 import com.tlpcraft.adbdesktop.feature.apps.AppsViewModel
 import com.tlpcraft.adbdesktop.feature.devices.DevicesViewModel
@@ -45,6 +46,7 @@ class AppModulesTest : FunSpec({
         }.koin
 
         koin.get<HostFiles>()
+        koin.get<HostClipboard>()
         koin.get<AppShellViewModel>()
         koin.get<DevicesViewModel>()
         koin.get<AppsViewModel>()

@@ -5,6 +5,8 @@ sealed interface ScreenIntent {
 
     data object SaveScreenshotClicked : ScreenIntent
 
+    data object CopyScreenshotClicked : ScreenIntent
+
     data object RecordClicked : ScreenIntent
 
     data object StopClicked : ScreenIntent

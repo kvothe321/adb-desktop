@@ -11,6 +11,7 @@ import com.tlpcraft.adbdesktop.core.domain.usecase.screen.SaveRecordingUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.StopRecordingUseCase
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceSelectionRepository
+import com.tlpcraft.adbdesktop.core.testing.FakeHostClipboard
 import com.tlpcraft.adbdesktop.core.testing.FakeHostFiles
 import com.tlpcraft.adbdesktop.core.testing.FakeScreenRepository
 import com.tlpcraft.adbdesktop.core.testing.onlineDevice
@@ -23,6 +24,8 @@ import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -31,12 +34,15 @@ import kotlinx.coroutines.test.setMain
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ScreenViewModelTest : FunSpec({
-    beforeTest { Dispatchers.setMain(UnconfinedTestDispatcher()) }
+    val dispatcher = UnconfinedTestDispatcher()
+
+    beforeTest { Dispatchers.setMain(dispatcher) }
     afterTest { Dispatchers.resetMain() }
 
     class Fixture(selectedSerial: String? = "pixel") {
         val screen = FakeScreenRepository()
         val hostFiles = FakeHostFiles()
+        val hostClipboard = FakeHostClipboard()
         val viewModel = ScreenViewModel(
             observeSelectedDevice = ObserveSelectedDeviceUseCase(
                 ObserveDevicesUseCase(FakeDeviceRepository(listOf(onlineDevice("pixel")))),
@@ -47,6 +53,7 @@ class ScreenViewModelTest : FunSpec({
             stopRecording = StopRecordingUseCase(screen),
             saveRecording = SaveRecordingUseCase(screen),
             hostFiles = hostFiles,
+            hostClipboard = hostClipboard,
         )
 
         val state get() = viewModel.uiState.value
@@ -92,7 +99,31 @@ class ScreenViewModelTest : FunSpec({
         fixture.hostFiles.written["/home/me/shot.png"].shouldNotBeNull().size shouldBe 2
     }
 
+    test("copying puts the image on the clipboard") {
+        val fixture = Fixture()
+        fixture.viewModel.reduceIntent(ScreenIntent.CaptureClicked)
+
+        fixture.viewModel.sideEffects.test {
+            fixture.viewModel.reduceIntent(ScreenIntent.CopyScreenshotClicked)
+
+            awaitItem() shouldBe ScreenSideEffect.ScreenshotCopied
+        }
+        fixture.hostClipboard.copied.shouldNotBeNull().size shouldBe 2
+    }
+
     context("recording") {
+        test("the clock counts while recording and stops with it") {
+            val fixture = Fixture()
+
+            fixture.viewModel.reduceIntent(ScreenIntent.RecordClicked)
+            dispatcher.scheduler.advanceTimeBy(3.seconds + 1.milliseconds)
+            fixture.state.recordingSeconds shouldBe 3
+
+            fixture.viewModel.reduceIntent(ScreenIntent.StopClicked)
+            dispatcher.scheduler.advanceTimeBy(5.seconds)
+            fixture.state.recordingSeconds shouldBe 3
+        }
+
         test("stopping moves the recording to the picked location") {
             val fixture = Fixture().apply { hostFiles.saveLocation = "/home/me/clip.mp4" }
 
