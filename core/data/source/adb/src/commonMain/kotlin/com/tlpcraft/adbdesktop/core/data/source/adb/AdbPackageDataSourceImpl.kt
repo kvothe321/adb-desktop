@@ -48,7 +48,8 @@ class AdbPackageDataSourceImpl(private val client: AdbClient) : AdbPackageDataSo
 
     override suspend fun install(serial: String, apkPaths: List<String>) {
         val command = if (apkPaths.size == 1) "install" else "install-multiple"
-        val args = listOf("-s", serial, command, "-r") + apkPaths
+        // -t because debug builds from an IDE are marked test-only, and the package manager refuses them otherwise.
+        val args = listOf("-s", serial, command, "-r", "-t") + apkPaths
         val result = client.execute(args)
         val output = result.stdout + result.stderr
         if (!InstallOutputParser.isSuccess(output)) {
