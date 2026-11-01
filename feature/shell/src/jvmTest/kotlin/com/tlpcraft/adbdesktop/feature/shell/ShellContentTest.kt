@@ -6,6 +6,7 @@ import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.tlpcraft.adbdesktop.feature.shell.contract.SessionState
@@ -62,6 +63,19 @@ class ShellContentTest : FunSpec({
 
             intents.filterIsInstance<ShellIntent.InputTyped>().size shouldBe 0
             intents shouldContain ShellIntent.PasteRequested
+        }
+    }
+
+    test("typed text, as an input method commits it, goes to the device as it is") {
+        runComposeUiTest {
+            val intents = mutableListOf<ShellIntent>()
+            setContent {
+                AppTheme { ShellContent(uiState = ShellUiState(session = SessionState.Running, rows = rows), onIntent = { intents += it }) }
+            }
+
+            onNode(isFocused()).performTextInput("日本語")
+
+            intents shouldContain ShellIntent.InputTyped("日本語")
         }
     }
 

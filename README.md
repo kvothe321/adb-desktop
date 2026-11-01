@@ -8,7 +8,8 @@ A desktop GUI for `adb`, built with Compose Multiplatform for Windows, macOS and
   by picking or dropping them.
 - **Files**: browse the device, upload and download with progress, drop files on the window, delete and create folders.
 - **Logcat**: live stream with level, text and package filters, pause, clear and export.
-- **Shell**: a real terminal on the device, with colors and full-screen programs such as `top` and `vi`.
+- **Shell**: a real terminal on the device, with colors, full-screen programs such as `top` and `vi`, CJK text and emoji in
+  their full width, and input methods for typing them.
 - **Screen**: live mirroring you can use with mouse and keyboard as in scrcpy, pinned beside every section if you like,
   plus screenshots, copied to the clipboard or saved, and screen recording with a running clock.
 - **Settings**: choose the adb executable and the theme.

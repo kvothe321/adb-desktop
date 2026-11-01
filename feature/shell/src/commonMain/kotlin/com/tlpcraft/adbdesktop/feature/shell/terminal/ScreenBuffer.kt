@@ -2,7 +2,11 @@ package com.tlpcraft.adbdesktop.feature.shell.terminal
 
 import com.tlpcraft.adbdesktop.uikit.component.TerminalSpan
 
-internal data class Cell(val text: String, val style: TerminalSpan)
+/** One column. A wide character fills its own cell and the next, which holds no text and is [isContinuation]. */
+internal data class Cell(val text: String, val style: TerminalSpan) {
+    val isContinuation: Boolean
+        get() = text.isEmpty()
+}
 
 internal val BLANK_STYLE = TerminalSpan(text = "")
 internal val BLANK_CELL = Cell(" ", BLANK_STYLE)
@@ -32,13 +36,30 @@ internal class ScreenBuffer(rows: Int, columns: Int, private val onLineScrolledO
 
     fun blankLine(blank: Cell = BLANK_CELL): Array<Cell> = Array(columns) { blank }
 
-    fun put(text: String, style: TerminalSpan) {
-        if (isWrapPending) {
+    /** Prints [text] taking [width] columns. Zero width text, such as a combining accent, joins the character before it. */
+    fun put(text: String, style: TerminalSpan, width: Int = 1) {
+        if (width == 0) return joinPrevious(text)
+        val cellCount = width.coerceAtMost(columns)
+        if (isWrapPending || (cursorColumn + cellCount > columns && isAutoWrapOn)) {
+            if (!isWrapPending) lines[cursorRow].fill(BLANK_CELL, cursorColumn, columns)
             carriageReturn()
             lineFeed(BLANK_CELL)
         }
-        lines[cursorRow][cursorColumn] = Cell(text, style)
-        if (cursorColumn < columns - 1) cursorColumn++ else isWrapPending = isAutoWrapOn
+        val column = cursorColumn.coerceAtMost(columns - cellCount)
+        val line = lines[cursorRow]
+        line.breakWideCharacters(column, column + cellCount)
+        line[column] = Cell(text, style)
+        for (continuation in column + 1 until column + cellCount) line[continuation] = Cell("", style)
+        val next = column + cellCount
+        if (next < columns) cursorColumn = next else isWrapPending = isAutoWrapOn
+    }
+
+    private fun joinPrevious(text: String) {
+        val line = lines[cursorRow]
+        var column = if (isWrapPending) cursorColumn else cursorColumn - 1
+        while (column > 0 && line[column].isContinuation) column--
+        if (column < 0) return
+        line[column] = line[column].copy(text = line[column].text + text)
     }
 
     fun carriageReturn() {
