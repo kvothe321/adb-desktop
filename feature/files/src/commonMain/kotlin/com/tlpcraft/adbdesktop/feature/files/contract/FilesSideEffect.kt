@@ -5,6 +5,8 @@ sealed interface FilesSideEffect {
 
     data class Downloaded(val name: String, val directory: String) : FilesSideEffect
 
+    data object TransferCancelled : FilesSideEffect
+
     data class Deleted(val name: String) : FilesSideEffect
 
     data class FolderCreated(val name: String) : FilesSideEffect

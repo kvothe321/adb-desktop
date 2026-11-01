@@ -10,6 +10,7 @@ data class FilesUiState(
     val pathInput: String = DEFAULT_DIRECTORY,
     val listing: FileListing = FileListing.NoDevice,
     val isBusy: Boolean = false,
+    val transfer: TransferState? = null,
     val newFolder: NewFolderForm? = null,
     val pendingDelete: RemoteFile? = null,
 ) {
@@ -26,6 +27,9 @@ sealed interface FileListing {
 
     data class Failed(val details: String) : FileListing
 }
+
+/** [fraction] is `null` while the size is unknown, as for folders. [position] counts from 1 in a batch of [count]. */
+data class TransferState(val name: String, val fraction: Float?, val position: Int, val count: Int)
 
 data class NewFolderForm(val name: String = "", val isInvalid: Boolean = false) {
     val canSubmit: Boolean

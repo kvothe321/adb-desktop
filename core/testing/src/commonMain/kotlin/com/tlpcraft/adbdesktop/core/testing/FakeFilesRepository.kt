@@ -1,14 +1,22 @@
 package com.tlpcraft.adbdesktop.core.testing
 
 import com.tlpcraft.adbdesktop.core.common.Outcome
+import com.tlpcraft.adbdesktop.core.common.map
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.RemoteFile
 import com.tlpcraft.adbdesktop.core.domain.model.RemoteFileType
 import com.tlpcraft.adbdesktop.core.domain.model.RemotePath
+import com.tlpcraft.adbdesktop.core.domain.model.TransferProgress
 import com.tlpcraft.adbdesktop.core.domain.repository.FilesRepository
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 class FakeFilesRepository(private val listing: Map<String, List<String>> = emptyMap()) : FilesRepository {
     var failure: DeviceError? = null
+
+    /** When set, transfers stay in progress until it completes. */
+    var transferGate: CompletableDeferred<Unit>? = null
     val uploads = mutableListOf<Pair<String, String>>()
     val downloads = mutableListOf<Pair<String, String>>()
     val deleted = mutableListOf<String>()
@@ -29,11 +37,15 @@ class FakeFilesRepository(private val listing: Map<String, List<String>> = empty
         }
     }
 
-    override suspend fun upload(serial: String, localPaths: List<String>, remoteDirectory: String): Outcome<Unit, DeviceError> =
-        result { localPaths.forEach { uploads += it to remoteDirectory } }
+    override fun upload(serial: String, localPath: String, remoteDirectory: String): Flow<Outcome<TransferProgress, DeviceError>> = flow {
+        emit(result { uploads += localPath to remoteDirectory }.map { TransferProgress(localPath, transferredBytes = 1, totalBytes = 2) })
+        transferGate?.await()
+    }
 
-    override suspend fun download(serial: String, remotePath: String, localDirectory: String): Outcome<Unit, DeviceError> =
-        result { downloads += remotePath to localDirectory }
+    override fun download(serial: String, file: RemoteFile, localDirectory: String): Flow<Outcome<TransferProgress, DeviceError>> = flow {
+        emit(result { downloads += file.path to localDirectory }.map { TransferProgress(file.name, transferredBytes = 1, totalBytes = 2) })
+        transferGate?.await()
+    }
 
     override suspend fun delete(serial: String, remotePath: String): Outcome<Unit, DeviceError> = result { deleted += remotePath }
 

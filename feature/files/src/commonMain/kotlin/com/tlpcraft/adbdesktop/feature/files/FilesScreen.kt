@@ -22,12 +22,15 @@ import com.tlpcraft.adbdesktop.core.domain.model.RemoteFileType
 import com.tlpcraft.adbdesktop.feature.files.component.DeleteFileDialog
 import com.tlpcraft.adbdesktop.feature.files.component.FileRow
 import com.tlpcraft.adbdesktop.feature.files.component.NewFolderDialog
+import com.tlpcraft.adbdesktop.feature.files.component.TransferBar
 import com.tlpcraft.adbdesktop.feature.files.contract.FileListing
 import com.tlpcraft.adbdesktop.feature.files.contract.FilesIntent
 import com.tlpcraft.adbdesktop.feature.files.contract.FilesSideEffect
 import com.tlpcraft.adbdesktop.feature.files.contract.FilesUiState
 import com.tlpcraft.adbdesktop.feature.files.contract.NewFolderForm
+import com.tlpcraft.adbdesktop.feature.files.contract.TransferState
 import com.tlpcraft.adbdesktop.feature.files.resources.Res
+import com.tlpcraft.adbdesktop.feature.files.resources.files_drop_hint
 import com.tlpcraft.adbdesktop.feature.files.resources.files_empty
 import com.tlpcraft.adbdesktop.feature.files.resources.files_load_failed
 import com.tlpcraft.adbdesktop.feature.files.resources.files_new_folder
@@ -43,11 +46,13 @@ import com.tlpcraft.adbdesktop.feature.files.resources.message_deleted
 import com.tlpcraft.adbdesktop.feature.files.resources.message_downloaded
 import com.tlpcraft.adbdesktop.feature.files.resources.message_folder_created
 import com.tlpcraft.adbdesktop.feature.files.resources.message_operation_failed
+import com.tlpcraft.adbdesktop.feature.files.resources.message_transfer_cancelled
 import com.tlpcraft.adbdesktop.feature.files.resources.message_uploaded
 import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.Divider
 import com.tlpcraft.adbdesktop.uikit.component.EmptyState
+import com.tlpcraft.adbdesktop.uikit.component.FileDropArea
 import com.tlpcraft.adbdesktop.uikit.component.IconButton
 import com.tlpcraft.adbdesktop.uikit.component.ProgressIndicator
 import com.tlpcraft.adbdesktop.uikit.component.TextField
@@ -91,7 +96,17 @@ fun FilesContent(uiState: FilesUiState, onIntent: (FilesIntent) -> Unit, modifie
         } else {
             PathBar(pathInput = uiState.pathInput, canGoUp = uiState.canGoUp, onIntent = onIntent)
             Divider()
-            FileListingView(listing = uiState.listing, isBusy = uiState.isBusy, onIntent = onIntent, modifier = Modifier.weight(1f))
+            uiState.transfer?.let { transfer ->
+                TransferBar(transfer = transfer, onCancel = { onIntent(FilesIntent.CancelTransferClicked) })
+                Divider()
+            }
+            FileDropArea(
+                onFilesDrop = { onIntent(FilesIntent.FilesDropped(it)) },
+                hint = stringResource(Res.string.files_drop_hint),
+                modifier = Modifier.weight(1f),
+            ) {
+                FileListingView(listing = uiState.listing, isBusy = uiState.isBusy, onIntent = onIntent)
+            }
         }
         FilesDialogs(newFolder = uiState.newFolder, pendingDelete = uiState.pendingDelete, onIntent = onIntent)
     }
@@ -201,6 +216,7 @@ private fun FilesDialogs(newFolder: NewFolderForm?, pendingDelete: RemoteFile?, 
 private suspend fun FilesSideEffect.message(): String = when (this) {
     is FilesSideEffect.Uploaded -> getString(Res.string.message_uploaded, directory)
     is FilesSideEffect.Downloaded -> getString(Res.string.message_downloaded, name, directory)
+    FilesSideEffect.TransferCancelled -> getString(Res.string.message_transfer_cancelled)
     is FilesSideEffect.Deleted -> getString(Res.string.message_deleted, name)
     is FilesSideEffect.FolderCreated -> getString(Res.string.message_folder_created, name)
     is FilesSideEffect.OperationFailed -> getString(Res.string.message_operation_failed, details)
@@ -215,6 +231,20 @@ private val previewFiles = listOf(
 @Composable
 private fun FilesContentLoadedPreview() = PreviewContext {
     FilesContent(uiState = FilesUiState(serial = "emulator-5554", listing = FileListing.Loaded(previewFiles)), onIntent = {})
+}
+
+@UiKitPreview
+@Composable
+private fun FilesContentTransferringPreview() = PreviewContext {
+    FilesContent(
+        uiState = FilesUiState(
+            serial = "emulator-5554",
+            listing = FileListing.Loaded(previewFiles),
+            isBusy = true,
+            transfer = TransferState("big.bin", fraction = 0.4f, position = 1, count = 1),
+        ),
+        onIntent = {},
+    )
 }
 
 @UiKitPreview

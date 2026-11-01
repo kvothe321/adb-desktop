@@ -9,4 +9,9 @@ interface AdbEnvironment {
     fun variable(name: String): String?
 
     fun isExecutableFile(path: String): Boolean
+
+    /** Size of a regular file, or `null` for folders and missing paths. */
+    fun fileSize(path: String): Long?
+
+    fun deleteFile(path: String)
 }

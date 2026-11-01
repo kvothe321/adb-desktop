@@ -39,6 +39,6 @@ val repositoryModule = module {
     singleOf(::AppearanceRepositoryImpl) bind AppearanceRepository::class
     singleOf(::LogcatRepositoryImpl) bind LogcatRepository::class
     singleOf(::ShellRepositoryImpl) bind ShellRepository::class
-    singleOf(::FilesRepositoryImpl) bind FilesRepository::class
+    single<FilesRepository> { FilesRepositoryImpl(get()) }
     singleOf(::ScreenRepositoryImpl) bind ScreenRepository::class
 }
