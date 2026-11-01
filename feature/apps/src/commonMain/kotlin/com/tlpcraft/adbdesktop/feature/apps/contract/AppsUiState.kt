@@ -3,6 +3,7 @@ package com.tlpcraft.adbdesktop.feature.apps.contract
 import com.tlpcraft.adbdesktop.core.domain.model.AppAction
 import com.tlpcraft.adbdesktop.core.domain.model.AppDetails
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
+import com.tlpcraft.adbdesktop.core.domain.model.AppIcon
 
 data class AppsUiState(
     val serial: String? = null,
@@ -14,6 +15,8 @@ data class AppsUiState(
     val runningAction: AppAction? = null,
     val pendingConfirmation: AppAction? = null,
     val isInstalling: Boolean = false,
+    /** App icons by package. Apps missing here show the plain app glyph. */
+    val icons: Map<String, AppIcon> = emptyMap(),
 ) {
     val visiblePackages: List<String>
         get() = (list as? AppListState.Loaded)?.packages.orEmpty().filter { it.contains(query.trim(), ignoreCase = true) }

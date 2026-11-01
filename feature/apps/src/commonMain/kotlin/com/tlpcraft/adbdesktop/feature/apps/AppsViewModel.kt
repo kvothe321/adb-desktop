@@ -12,6 +12,7 @@ import com.tlpcraft.adbdesktop.core.domain.service.HostFiles
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ExecuteAppActionUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.InstallApkUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppDetailsUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppIconsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.apps.ObserveAppsUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.feature.apps.contract.AppDetailsState
@@ -30,6 +31,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
@@ -40,6 +42,7 @@ class AppsViewModel(
     private val observeSelectedDevice: ObserveSelectedDeviceUseCase,
     private val observeApps: ObserveAppsUseCase,
     private val observeAppDetails: ObserveAppDetailsUseCase,
+    private val observeAppIcons: ObserveAppIconsUseCase,
     private val executeAppAction: ExecuteAppActionUseCase,
     private val installApk: InstallApkUseCase,
     private val hostFiles: HostFiles,
@@ -57,6 +60,7 @@ class AppsViewModel(
         trackSelectedDevice()
         trackApps()
         trackAppDetails()
+        trackIcons()
     }
 
     fun reduceIntent(intent: AppsIntent) {
@@ -75,7 +79,7 @@ class AppsViewModel(
 
     private fun trackSelectedDevice() = viewModelScope.launch {
         observeSelectedDevice(Unit).map { it?.serial }.distinctUntilChanged().collect { serial ->
-            _uiState.update { it.copy(serial = serial, selectedPackage = null, pendingConfirmation = null) }
+            _uiState.update { it.copy(serial = serial, selectedPackage = null, pendingConfirmation = null, icons = emptyMap()) }
         }
     }
 
@@ -103,6 +107,14 @@ class AppsViewModel(
                     .onStart { emit(AppDetailsState.Loading) }
             }
         }.collect { details -> _uiState.update { it.copy(details = details) } }
+    }
+
+    /** Keeps the icons while the list reloads, so they do not blink when the filter changes. */
+    private fun trackIcons() = viewModelScope.launch {
+        _uiState.mapNotNull { state -> state.serial?.let { serial -> (state.list as? AppListState.Loaded)?.let { serial to it.packages } } }
+            .distinctUntilChanged()
+            .flatMapLatest { (serial, packages) -> observeAppIcons(ObserveAppIconsUseCase.Params(serial, packages)).whileActive(isVisible) }
+            .collect { icons -> _uiState.update { it.copy(icons = it.icons + icons) } }
     }
 
     private suspend fun installDropped(paths: List<String>) {

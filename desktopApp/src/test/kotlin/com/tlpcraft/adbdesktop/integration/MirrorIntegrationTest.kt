@@ -35,11 +35,6 @@ private val CLEANUP_TIME = 3.seconds
 private val SWIPE_STEP_TIME = 16.milliseconds
 private const val SWIPE_STEPS = 20
 
-private fun adb(serial: String, vararg args: String): String {
-    val process = ProcessBuilder(listOf("adb", "-s", serial) + args).redirectErrorStream(true).start()
-    return process.inputStream.bufferedReader().readText().also { process.waitFor() }
-}
-
 private fun MirrorFrame.toImage() = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB).also { image ->
     for (y in 0 until height) {
         for (x in 0 until width) {

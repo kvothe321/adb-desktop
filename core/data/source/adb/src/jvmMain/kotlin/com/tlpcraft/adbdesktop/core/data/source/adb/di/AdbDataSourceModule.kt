@@ -1,5 +1,6 @@
 package com.tlpcraft.adbdesktop.core.data.source.adb.di
 
+import com.tlpcraft.adbdesktop.core.data.source.adb.AdbAppIconDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbDeviceDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbDeviceDataSourceImpl
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbDevicePropertiesDataSource
@@ -21,6 +22,7 @@ import com.tlpcraft.adbdesktop.core.data.source.adb.binary.AdbBinaryResolver
 import com.tlpcraft.adbdesktop.core.data.source.adb.binary.AdbEnvironment
 import com.tlpcraft.adbdesktop.core.data.source.adb.binary.JvmAdbEnvironment
 import com.tlpcraft.adbdesktop.core.data.source.adb.client.AdbClient
+import com.tlpcraft.adbdesktop.core.data.source.adb.helper.HelperAppIconDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.mirror.ScrcpyMirrorDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.CommandExecutor
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.ProcessCommandExecutor
@@ -42,5 +44,6 @@ val adbDataSourceModule = module {
     singleOf(::AdbFileDataSourceImpl) bind AdbFileDataSource::class
     singleOf(::AdbScreenDataSourceImpl) bind AdbScreenDataSource::class
     singleOf(::ScrcpyMirrorDataSource) bind AdbMirrorDataSource::class
+    singleOf(::HelperAppIconDataSource) bind AdbAppIconDataSource::class
     singleOf(::AdbInfoDataSourceImpl) bind AdbInfoDataSource::class
 }
