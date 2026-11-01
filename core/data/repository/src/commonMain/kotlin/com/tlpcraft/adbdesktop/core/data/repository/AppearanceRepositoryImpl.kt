@@ -13,7 +13,7 @@ class AppearanceRepositoryImpl(private val preferencesDataSource: PreferencesDat
 
     override suspend fun setThemeMode(mode: ThemeMode) = preferencesDataSource.writeThemeMode(mode.name)
 
-    override fun observeMirrorPinned(): Flow<Boolean> = preferencesDataSource.observeMirrorPinned().map { it ?: false }
+    override fun observePhonePanelShown(): Flow<Boolean> = preferencesDataSource.observePhonePanelShown().map { it ?: true }
 
-    override suspend fun setMirrorPinned(isPinned: Boolean) = preferencesDataSource.writeMirrorPinned(isPinned)
+    override suspend fun setPhonePanelShown(isShown: Boolean) = preferencesDataSource.writePhonePanelShown(isShown)
 }

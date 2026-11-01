@@ -18,3 +18,9 @@ fun KeyEvent.sectionShortcut(): Section? {
     if (type != KeyEventType.KeyDown || !modifierPressed) return null
     return digitKeys.indexOf(key).takeIf { it >= 0 }?.let { index -> Section.forShortcut(index + 1) }
 }
+
+/** Whether this key press opens the command palette: Ctrl+K, or Cmd+K on macOS. */
+fun KeyEvent.isPaletteShortcut(): Boolean {
+    val modifierPressed = if (isMacOs) isMetaPressed else isCtrlPressed
+    return type == KeyEventType.KeyDown && modifierPressed && key == Key.K
+}

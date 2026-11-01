@@ -10,7 +10,19 @@ data class DevicesUiState(
     val selectedSerial: String? = null,
     val adbPathInput: String = "",
     val connectForm: ConnectFormState? = null,
-)
+    /** The quick action still at work, so it shows a spinner and cannot run twice. */
+    val runningAction: QuickAction? = null,
+) {
+    private val devices: List<DeviceItem>
+        get() = (list as? DeviceListState.Loaded)?.devices.orEmpty()
+
+    /** The device the overview is about: the selected one, while it is online. */
+    val selectedDevice: DeviceItem?
+        get() = devices.firstOrNull { it.serial == selectedSerial && it.isOnline }
+
+    val otherDevices: List<DeviceItem>
+        get() = devices.filter { it.serial != selectedDevice?.serial }
+}
 
 sealed interface DeviceListState {
     data object Loading : DeviceListState

@@ -38,6 +38,7 @@ import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.Card
 import com.tlpcraft.adbdesktop.uikit.component.Chip
+import com.tlpcraft.adbdesktop.uikit.component.Page
 import com.tlpcraft.adbdesktop.uikit.component.Text
 import com.tlpcraft.adbdesktop.uikit.component.TextEmphasis
 import com.tlpcraft.adbdesktop.uikit.component.TextField
@@ -63,10 +64,11 @@ fun SettingsScreen(modifier: Modifier = Modifier, viewModel: SettingsViewModel =
 
 @Composable
 fun SettingsContent(uiState: SettingsUiState, onIntent: (SettingsIntent) -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxSize()) {
-        TopBar(title = stringResource(Res.string.settings_title))
+    Page(title = stringResource(Res.string.settings_title), modifier = modifier) {
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(AppTheme.spacing.lg),
+            modifier = Modifier.fillMaxSize().verticalScroll(
+                rememberScrollState(),
+            ).padding(start = AppTheme.spacing.md, end = AppTheme.spacing.md, bottom = AppTheme.spacing.md),
             verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.lg),
         ) {
             Section(title = stringResource(Res.string.settings_adb_section)) {

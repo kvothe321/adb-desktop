@@ -39,7 +39,7 @@ fun ProgressIndicator(
         }
 
         ProgressStyle.Linear -> {
-            val barModifier = modifier.height(6.dp).clip(AppTheme.shapes.pill)
+            val barModifier = modifier.height(4.dp).clip(AppTheme.shapes.pill)
             if (progress == null) {
                 LinearProgressIndicator(barModifier, color = color, trackColor = track, strokeCap = StrokeCap.Round)
             } else {

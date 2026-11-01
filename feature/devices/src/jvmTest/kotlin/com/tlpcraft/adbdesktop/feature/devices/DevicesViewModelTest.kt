@@ -7,6 +7,7 @@ import com.tlpcraft.adbdesktop.core.domain.model.CpuInfo
 import com.tlpcraft.adbdesktop.core.domain.model.DeviceInfo
 import com.tlpcraft.adbdesktop.core.domain.model.WirelessEndpoint
 import com.tlpcraft.adbdesktop.core.domain.model.WirelessService
+import com.tlpcraft.adbdesktop.core.domain.usecase.apps.InstallApkUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ConnectWirelessDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.DisconnectDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveCpuInfoUseCase
@@ -16,13 +17,18 @@ import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceU
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveWirelessDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.PairWirelessDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.SelectDeviceUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.screen.CaptureScreenshotUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.settings.ObserveAdbPathOverrideUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.settings.SetAdbPathOverrideUseCase
 import com.tlpcraft.adbdesktop.core.testing.FakeAdbSettingsRepository
+import com.tlpcraft.adbdesktop.core.testing.FakeAppsRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeCpuRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceInfoRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceSelectionRepository
+import com.tlpcraft.adbdesktop.core.testing.FakeHostClipboard
+import com.tlpcraft.adbdesktop.core.testing.FakeHostFiles
+import com.tlpcraft.adbdesktop.core.testing.FakeScreenRepository
 import com.tlpcraft.adbdesktop.core.testing.offlineDevice
 import com.tlpcraft.adbdesktop.core.testing.onlineDevice
 import com.tlpcraft.adbdesktop.feature.devices.contract.ConnectFormError
@@ -32,8 +38,10 @@ import com.tlpcraft.adbdesktop.feature.devices.contract.DeviceStats
 import com.tlpcraft.adbdesktop.feature.devices.contract.DevicesFailure
 import com.tlpcraft.adbdesktop.feature.devices.contract.DevicesIntent
 import com.tlpcraft.adbdesktop.feature.devices.contract.DevicesSideEffect
+import com.tlpcraft.adbdesktop.feature.devices.contract.QuickAction
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
@@ -57,6 +65,10 @@ class DevicesViewModelTest : FunSpec({
         cpuBySerial: Map<String, CpuInfo> = emptyMap(),
         isVisible: Boolean = true,
     ) {
+        val screen = FakeScreenRepository()
+        val apps = FakeAppsRepository()
+        val clipboard = FakeHostClipboard()
+        val hostFiles = FakeHostFiles()
         private val observeDevices = ObserveDevicesUseCase(devices)
         val viewModel = DevicesViewModel(
             observeDevices = observeDevices,
@@ -70,6 +82,7 @@ class DevicesViewModelTest : FunSpec({
             observeWirelessDevices = ObserveWirelessDevicesUseCase(devices),
             observeAdbPathOverride = ObserveAdbPathOverrideUseCase(settings),
             setAdbPathOverride = SetAdbPathOverrideUseCase(settings),
+            quickActions = QuickActionRunner(CaptureScreenshotUseCase(screen), InstallApkUseCase(apps), clipboard, hostFiles),
         ).apply { reduceIntent(DevicesIntent.VisibilityChanged(isVisible)) }
     }
 
@@ -216,6 +229,52 @@ class DevicesViewModelTest : FunSpec({
         fixture.viewModel.sideEffects.test {
             fixture.viewModel.reduceIntent(DevicesIntent.DisconnectClicked("192.168.1.42:5555"))
             awaitItem() shouldBe DevicesSideEffect.Disconnected("192.168.1.42:5555")
+        }
+    }
+
+    context("quick actions") {
+        test("a screenshot of the selected device goes to the clipboard") {
+            val fixture = Fixture(selection = FakeDeviceSelectionRepository("pixel"))
+
+            fixture.viewModel.sideEffects.test {
+                fixture.viewModel.reduceIntent(DevicesIntent.QuickActionClicked(QuickAction.Screenshot))
+
+                awaitItem() shouldBe DevicesSideEffect.ScreenshotCopied
+            }
+            fixture.clipboard.copied?.toList() shouldBe listOf<Byte>(1, 2)
+            fixture.viewModel.uiState.value.runningAction.shouldBeNull()
+        }
+
+        test("installing asks for files and installs what was picked, and nothing when none were") {
+            val fixture = Fixture(selection = FakeDeviceSelectionRepository("pixel"))
+            fixture.viewModel.reduceIntent(DevicesIntent.QuickActionClicked(QuickAction.InstallApk))
+            fixture.apps.installedApks.shouldBeEmpty()
+
+            fixture.hostFiles.pickedFiles = listOf("/home/me/app.apk")
+            fixture.viewModel.sideEffects.test {
+                fixture.viewModel.reduceIntent(DevicesIntent.QuickActionClicked(QuickAction.InstallApk))
+
+                awaitItem() shouldBe DevicesSideEffect.Installed(1)
+            }
+            fixture.apps.installedApks shouldContainExactly listOf(listOf("/home/me/app.apk"))
+        }
+
+        test("the others ask the window to open their section") {
+            val fixture = Fixture(selection = FakeDeviceSelectionRepository("pixel"))
+
+            fixture.viewModel.sideEffects.test {
+                fixture.viewModel.reduceIntent(DevicesIntent.QuickActionClicked(QuickAction.Shell))
+
+                awaitItem() shouldBe DevicesSideEffect.SectionRequested(QuickAction.Shell)
+            }
+        }
+
+        test("nothing runs without a selected device") {
+            val fixture = Fixture(devices = FakeDeviceRepository(listOf(onlineDevice("pixel"), onlineDevice("tablet"))))
+
+            fixture.viewModel.reduceIntent(DevicesIntent.QuickActionClicked(QuickAction.Screenshot))
+
+            fixture.clipboard.copied.shouldBeNull()
         }
     }
 })

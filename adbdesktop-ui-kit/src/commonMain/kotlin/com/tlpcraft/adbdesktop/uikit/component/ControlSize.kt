@@ -4,6 +4,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 enum class ControlSize(internal val height: Dp, internal val horizontalPadding: Dp) {
-    Small(height = 26.dp, horizontalPadding = 8.dp),
-    Medium(height = 32.dp, horizontalPadding = 12.dp),
+    Small(height = 30.dp, horizontalPadding = 12.dp),
+    Medium(height = 36.dp, horizontalPadding = 16.dp),
 }

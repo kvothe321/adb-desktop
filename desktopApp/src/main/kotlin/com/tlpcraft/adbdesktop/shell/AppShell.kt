@@ -3,11 +3,12 @@ package com.tlpcraft.adbdesktop.shell
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -16,46 +17,49 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tlpcraft.adbdesktop.navigation.Section
-import com.tlpcraft.adbdesktop.navigation.isMacOs
+import com.tlpcraft.adbdesktop.navigation.shortcutHint
 import com.tlpcraft.adbdesktop.resources.Res
 import com.tlpcraft.adbdesktop.resources.app_logo
-import com.tlpcraft.adbdesktop.resources.app_name
 import com.tlpcraft.adbdesktop.resources.device_picker_placeholder
-import com.tlpcraft.adbdesktop.resources.shortcut_cmd
-import com.tlpcraft.adbdesktop.resources.shortcut_ctrl
+import com.tlpcraft.adbdesktop.resources.palette_open
+import com.tlpcraft.adbdesktop.resources.phone_hide
+import com.tlpcraft.adbdesktop.resources.phone_show
+import com.tlpcraft.adbdesktop.resources.section_settings
 import com.tlpcraft.adbdesktop.resources.theme_switch_to_dark
 import com.tlpcraft.adbdesktop.resources.theme_switch_to_light
 import com.tlpcraft.adbdesktop.shell.contract.AppShellIntent
 import com.tlpcraft.adbdesktop.shell.contract.AppShellUiState
 import com.tlpcraft.adbdesktop.shell.contract.DeviceOption
+import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.Dropdown
 import com.tlpcraft.adbdesktop.uikit.component.IconButton
 import com.tlpcraft.adbdesktop.uikit.component.MessageHostState
 import com.tlpcraft.adbdesktop.uikit.component.Scaffold
-import com.tlpcraft.adbdesktop.uikit.component.Sidebar
-import com.tlpcraft.adbdesktop.uikit.component.SidebarItem
-import com.tlpcraft.adbdesktop.uikit.component.Text
-import com.tlpcraft.adbdesktop.uikit.component.TextVariant
+import com.tlpcraft.adbdesktop.uikit.component.SegmentedTabs
+import com.tlpcraft.adbdesktop.uikit.component.TabItem
 import com.tlpcraft.adbdesktop.uikit.component.rememberMessageHostState
 import com.tlpcraft.adbdesktop.uikit.icon.IconName
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
+import com.tlpcraft.adbdesktop.uikit.theme.WindowWidth
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
- * Window chrome: sidebar navigation, device picker, the message host and the mirror dock. [content] renders the
- * current section and [mirror] the device mirror; both receive a callback to show transient messages. The mirror
- * shows beside the Screen section, or beside every section once pinned.
+ * The device workspace: a top bar with the device switcher, section tabs and app actions, the current section in
+ * [content], and the live phone from [phone] on the right unless the user hid it. Both slots receive a callback to show
+ * transient messages. While [isPaletteOpen] the command palette floats above everything.
  */
 @Composable
 fun AppShellScreen(
     currentSection: Section,
     onSectionSelect: (Section) -> Unit,
-    mirror: @Composable (onShowMessage: (String) -> Unit) -> Unit,
+    isPaletteOpen: Boolean,
+    onPaletteOpenChange: (Boolean) -> Unit,
+    phone: @Composable (onShowMessage: (String) -> Unit) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AppShellViewModel = koinViewModel(),
     content: @Composable (onShowMessage: (String) -> Unit) -> Unit,
@@ -66,7 +70,6 @@ fun AppShellScreen(
 
     val isDarkTheme = uiState.isDarkTheme(isSystemDark = isSystemInDarkTheme())
     val onShowMessage: (String) -> Unit = { message -> scope.launch { messageHostState.show(message) } }
-    val isMirrorShown = uiState.isMirrorPinned || currentSection == Section.Screen
 
     AppTheme(darkTheme = isDarkTheme) {
         AppShellContent(
@@ -76,10 +79,20 @@ fun AppShellScreen(
             messageHostState = messageHostState,
             onIntent = viewModel::reduceIntent,
             onSectionSelect = onSectionSelect,
+            onPaletteOpen = { onPaletteOpenChange(true) },
             modifier = modifier,
-            dock = if (isMirrorShown) ({ mirror(onShowMessage) }) else null,
+            phone = if (uiState.isPhonePanelShown) ({ phone(onShowMessage) }) else null,
         ) {
             content(onShowMessage)
+        }
+        if (isPaletteOpen) {
+            AppCommandPalette(
+                uiState = uiState,
+                isDarkTheme = isDarkTheme,
+                onSectionSelect = onSectionSelect,
+                onIntent = viewModel::reduceIntent,
+                onDismiss = { onPaletteOpenChange(false) },
+            )
         }
     }
 }
@@ -92,63 +105,104 @@ fun AppShellContent(
     messageHostState: MessageHostState,
     onIntent: (AppShellIntent) -> Unit,
     onSectionSelect: (Section) -> Unit,
+    onPaletteOpen: () -> Unit,
     modifier: Modifier = Modifier,
-    dock: (@Composable () -> Unit)? = null,
+    phone: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     Scaffold(
         modifier = modifier,
         messageHostState = messageHostState,
-        dock = dock,
-        sidebar = {
-            Sidebar(
-                header = { SidebarHeader(uiState = uiState, onDeviceSelect = { onIntent(AppShellIntent.DeviceSelected(it.serial)) }) },
-                footer = { ThemeToggle(isDarkTheme = isDarkTheme, onThemeToggle = { onIntent(AppShellIntent.ThemeToggled(isDarkTheme)) }) },
-            ) {
-                Section.entries.forEach { section ->
-                    SidebarItem(
-                        label = stringResource(section.label),
-                        icon = section.icon,
-                        selected = section == currentSection,
-                        onClick = { onSectionSelect(section) },
-                        shortcut = stringResource(if (isMacOs) Res.string.shortcut_cmd else Res.string.shortcut_ctrl, section.shortcutDigit),
-                    )
-                }
-            }
+        side = phone,
+        topBar = {
+            WorkspaceBar(
+                uiState = uiState,
+                currentSection = currentSection,
+                isDarkTheme = isDarkTheme,
+                onIntent = onIntent,
+                onSectionSelect = onSectionSelect,
+                onPaletteOpen = onPaletteOpen,
+            )
         },
         content = content,
     )
 }
 
+/** Device on the left, sections in the middle, app actions on the right. Narrow windows keep only the tab icons. */
 @Composable
-private fun SidebarHeader(uiState: AppShellUiState, onDeviceSelect: (DeviceOption) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.md)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm)) {
+private fun WorkspaceBar(
+    uiState: AppShellUiState,
+    currentSection: Section,
+    isDarkTheme: Boolean,
+    onIntent: (AppShellIntent) -> Unit,
+    onSectionSelect: (Section) -> Unit,
+    onPaletteOpen: () -> Unit,
+) {
+    val isCompact = AppTheme.windowWidth == WindowWidth.Compact
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = AppTheme.spacing.md, vertical = AppTheme.spacing.sm),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
+    ) {
+        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md)) {
             Image(painterResource(Res.drawable.app_logo), contentDescription = null, modifier = Modifier.size(28.dp))
-            Text(stringResource(Res.string.app_name), variant = TextVariant.Heading)
+            DeviceSwitcher(uiState = uiState, onDeviceSelect = { onIntent(AppShellIntent.DeviceSelected(it.serial)) })
         }
-        Dropdown(
-            items = uiState.devices,
-            selected = uiState.selectedDevice,
-            onSelect = onDeviceSelect,
-            itemLabel = DeviceOption::name,
-            itemDetail = DeviceOption::serial,
-            placeholder = stringResource(Res.string.device_picker_placeholder),
-            modifier = Modifier.fillMaxWidth(),
-        )
+        SectionTabs(currentSection = currentSection, onSectionSelect = onSectionSelect, isIconOnly = AppTheme.windowWidth != WindowWidth.Expanded)
+        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.xs)) {
+            Spacer(Modifier.weight(1f))
+            if (isCompact) {
+                IconButton(icon = IconName.Search, contentDescription = stringResource(Res.string.palette_open), onClick = onPaletteOpen)
+            } else {
+                Button(text = stringResource(Res.string.palette_open), onClick = onPaletteOpen, icon = IconName.Search)
+            }
+            IconButton(
+                icon = IconName.Mirror,
+                contentDescription = stringResource(if (uiState.isPhonePanelShown) Res.string.phone_hide else Res.string.phone_show),
+                onClick = { onIntent(AppShellIntent.PhoneToggled) },
+                selected = uiState.isPhonePanelShown,
+            )
+            IconButton(
+                icon = if (isDarkTheme) IconName.Sun else IconName.Moon,
+                contentDescription = stringResource(if (isDarkTheme) Res.string.theme_switch_to_light else Res.string.theme_switch_to_dark),
+                onClick = { onIntent(AppShellIntent.ThemeToggled(isDarkTheme)) },
+            )
+            IconButton(
+                icon = IconName.Settings,
+                contentDescription = stringResource(Res.string.section_settings),
+                onClick = { onSectionSelect(Section.Settings) },
+                selected = currentSection == Section.Settings,
+            )
+        }
     }
 }
 
 @Composable
-private fun ThemeToggle(isDarkTheme: Boolean, onThemeToggle: () -> Unit) {
-    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-        IconButton(
-            icon = if (isDarkTheme) IconName.Sun else IconName.Moon,
-            contentDescription = stringResource(if (isDarkTheme) Res.string.theme_switch_to_light else Res.string.theme_switch_to_dark),
-            onClick = onThemeToggle,
-        )
-    }
+private fun DeviceSwitcher(uiState: AppShellUiState, onDeviceSelect: (DeviceOption) -> Unit) {
+    Dropdown(
+        items = uiState.devices,
+        selected = uiState.selectedDevice,
+        onSelect = onDeviceSelect,
+        itemLabel = DeviceOption::name,
+        itemDetail = DeviceOption::serial,
+        placeholder = stringResource(Res.string.device_picker_placeholder),
+        modifier = Modifier.widthIn(max = DEVICE_SWITCHER_MAX_WIDTH),
+        icon = IconName.Devices,
+    )
 }
+
+@Composable
+private fun SectionTabs(currentSection: Section, onSectionSelect: (Section) -> Unit, isIconOnly: Boolean) {
+    val tabs = Section.tabs
+    SegmentedTabs(
+        items = tabs.map { section -> TabItem(stringResource(section.label), section.icon, hint = section.shortcutHint()) },
+        selectedIndex = tabs.indexOf(currentSection),
+        onSelect = { onSectionSelect(tabs[it]) },
+        isIconOnly = isIconOnly,
+    )
+}
+
+private val DEVICE_SWITCHER_MAX_WIDTH = 260.dp
 
 @UiKitPreview
 @Composable
@@ -160,5 +214,6 @@ private fun AppShellContentPreview() = PreviewContext {
         messageHostState = rememberMessageHostState(),
         onIntent = {},
         onSectionSelect = {},
+        onPaletteOpen = {},
     ) {}
 }

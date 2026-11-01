@@ -6,7 +6,7 @@ data class AppShellUiState(
     val devices: List<DeviceOption> = emptyList(),
     val selectedSerial: String? = null,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
-    val isMirrorPinned: Boolean = false,
+    val isPhonePanelShown: Boolean = true,
 ) {
     val selectedDevice: DeviceOption?
         get() = devices.firstOrNull { it.serial == selectedSerial }

@@ -1,7 +1,7 @@
 <resources>
     <string name="shell_title">Shell</string>
     <string name="shell_no_device_title">No device selected</string>
-    <string name="shell_no_device_description">Pick an online device in the sidebar to open a shell on it.</string>
+    <string name="shell_no_device_description">Pick an online device at the top left to open a shell on it.</string>
     <string name="shell_clear">Clear</string>
     <string name="shell_restart">New session</string>
     <string name="shell_session_ended">Session ended</string>

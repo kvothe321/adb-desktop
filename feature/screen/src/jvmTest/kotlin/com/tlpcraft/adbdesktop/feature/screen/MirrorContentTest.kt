@@ -1,5 +1,8 @@
 package com.tlpcraft.adbdesktop.feature.screen
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -26,23 +29,17 @@ class MirrorContentTest : FunSpec({
     val frame = MirrorFrame(width = 10, height = 20, pixels = ByteArray(10 * 20 * 4))
     val live = MirrorUiState(serial = "pixel", isOn = true, mirror = MirrorState.Live(frame))
 
-    test("mirroring can be started and the panel pinned") {
+    test("mirroring starts from the empty phone and stops from the header") {
         runComposeUiTest {
             val intents = mutableListOf<MirrorIntent>()
-            setContent { AppTheme { MirrorContent(uiState = MirrorUiState(serial = "pixel"), onIntent = { intents += it }) } }
+            var state by mutableStateOf(MirrorUiState(serial = "pixel"))
+            setContent { AppTheme { MirrorContent(uiState = state, onIntent = { intents += it }) } }
 
-            onNodeWithText("Start").performClick()
-            onNodeWithContentDescription("Keep beside every section").performClick()
+            onNodeWithText("Start mirroring").performClick()
+            state = live
+            onNodeWithText("Stop").performClick()
 
-            intents shouldContainExactly listOf(MirrorIntent.MirrorClicked, MirrorIntent.PinClicked)
-        }
-    }
-
-    test("a pinned panel offers to go back to the Screen section") {
-        runComposeUiTest {
-            setContent { AppTheme { MirrorContent(uiState = MirrorUiState(serial = "pixel", isPinned = true), onIntent = {}) } }
-
-            onNodeWithContentDescription("Show only in Screen").assertExists()
+            intents shouldContainExactly listOf(MirrorIntent.MirrorClicked, MirrorIntent.MirrorClicked)
         }
     }
 

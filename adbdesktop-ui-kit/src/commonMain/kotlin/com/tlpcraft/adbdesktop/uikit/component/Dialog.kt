@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,12 +37,12 @@ fun Dialog(
     PlatformDialog(onDismissRequest = onDismissRequest) {
         Column(
             modifier = modifier
-                .width(420.dp)
-                .shadow(Elevation.overlay, AppTheme.shapes.large)
-                .background(AppTheme.colors.surface, AppTheme.shapes.large)
-                .border(1.dp, AppTheme.colors.border, AppTheme.shapes.large)
-                .padding(AppTheme.spacing.lg),
-            verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
+                .width(440.dp)
+                .shadow(Elevation.overlay, DIALOG_SHAPE)
+                .background(AppTheme.colors.surface, DIALOG_SHAPE)
+                .border(1.dp, AppTheme.colors.border, DIALOG_SHAPE)
+                .padding(AppTheme.spacing.xl),
+            verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.lg),
         ) {
             Text(title, variant = TextVariant.Title)
             content()
@@ -53,6 +54,8 @@ fun Dialog(
         }
     }
 }
+
+private val DIALOG_SHAPE = RoundedCornerShape(24.dp)
 
 @UiKitPreview
 @Composable

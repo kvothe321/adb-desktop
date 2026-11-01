@@ -2,6 +2,8 @@ package com.tlpcraft.adbdesktop.uikit.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,11 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -30,7 +34,8 @@ import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
 
 /**
- * Single-line text input. [error] replaces the hint below the field and colors the border.
+ * Single-line filled text input, outlined in the accent color while focused. [error] shows below the field and
+ * outlines it in red.
  * Enter calls [onSubmit]; the Up and Down keys call [onArrowUp] and [onArrowDown] when set, for command
  * history. With [autoFocus] the field takes the keyboard focus when it appears. `modifier` is for layout only.
  */
@@ -52,7 +57,13 @@ fun TextField(
     trailing: (@Composable () -> Unit)? = null,
 ) {
     val textStyle = if (monospace) AppTheme.typography.mono else AppTheme.typography.body
-    val borderColor = if (error != null) AppTheme.colors.error else AppTheme.colors.border
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val borderColor = when {
+        error != null -> AppTheme.colors.error
+        isFocused -> AppTheme.colors.accent
+        else -> Color.Transparent
+    }
     val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(autoFocus) {
@@ -66,6 +77,7 @@ fun TextField(
             onValueChange = onValueChange,
             enabled = enabled,
             singleLine = true,
+            interactionSource = interactionSource,
             textStyle = textStyle.copy(color = if (enabled) AppTheme.colors.textPrimary else AppTheme.colors.textDisabled),
             cursorBrush = SolidColor(AppTheme.colors.accent),
             modifier = Modifier
@@ -86,13 +98,13 @@ fun TextField(
                 Row(
                     modifier = Modifier
                         .heightIn(min = ControlSize.Medium.height)
-                        .background(AppTheme.colors.surface, AppTheme.shapes.medium)
-                        .border(1.dp, borderColor, AppTheme.shapes.medium)
-                        .padding(horizontal = AppTheme.spacing.sm),
+                        .background(AppTheme.colors.surfaceRaised, AppTheme.shapes.medium)
+                        .border(FOCUS_RING, borderColor, AppTheme.shapes.medium)
+                        .padding(horizontal = AppTheme.spacing.md),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.xs),
+                    horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm),
                 ) {
-                    if (leadingIcon != null) Icon(leadingIcon, contentDescription = null, size = IconSize.Small)
+                    if (leadingIcon != null) Icon(leadingIcon, contentDescription = null)
                     Box(Modifier.weight(1f)) {
                         if (value.isEmpty() && placeholder != null) Text(placeholder, emphasis = TextEmphasis.Disabled, maxLines = 1)
                         innerTextField()
@@ -104,6 +116,8 @@ fun TextField(
         if (error != null) Text(error, variant = TextVariant.Caption, tone = Tone.Error)
     }
 }
+
+private val FOCUS_RING = 1.5.dp
 
 @UiKitPreview
 @Composable

@@ -1,7 +1,7 @@
 <resources>
     <string name="screen_title">Screen</string>
     <string name="screen_no_device_title">No device selected</string>
-    <string name="screen_no_device_description">Pick an online device in the sidebar to capture its screen.</string>
+    <string name="screen_no_device_description">Pick an online device at the top left to capture its screen.</string>
     <string name="screen_capture">Take screenshot</string>
     <string name="screen_save">Save</string>
     <string name="screen_record">Record</string>
@@ -18,16 +18,14 @@
     <string name="message_recording_saved">Saved recording to %1$s</string>
     <string name="message_recording_discarded">Recording left on the device, not saved</string>
     <string name="message_screen_failed">That did not work: %1$s</string>
-    <string name="mirror_title">Mirror</string>
-    <string name="mirror_start">Start</string>
+    <string name="mirror_title">Phone</string>
+    <string name="mirror_start">Start mirroring</string>
     <string name="mirror_stop">Stop</string>
-    <string name="mirror_pin">Keep beside every section</string>
-    <string name="mirror_unpin">Show only in Screen</string>
+    <string name="mirror_live">Live</string>
     <string name="mirror_description">Live view of the device screen</string>
     <string name="mirror_no_device_title">No device selected</string>
-    <string name="mirror_no_device_description">Pick an online device in the sidebar to mirror its screen.</string>
-    <string name="mirror_off_title">Not mirroring</string>
-    <string name="mirror_off_description">Start to see the device screen and use it from here. Click to tap, drag to swipe, right click for back, middle click for home. Typing goes to the device, Ctrl+V pastes your clipboard.</string>
+    <string name="mirror_no_device_description">Pick an online device at the top left to mirror its screen.</string>
+    <string name="mirror_off_description">Click to tap, drag to swipe, right click for back, middle click for home. Typing goes to the phone, Ctrl+V pastes your clipboard.</string>
     <string name="mirror_back">Back</string>
     <string name="mirror_home">Home</string>
     <string name="mirror_recents">Recent apps</string>

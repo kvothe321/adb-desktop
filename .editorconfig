@@ -127,7 +127,7 @@ ktlint_standard_class-signature = disabled
 ktlint_standard_annotation = disabled
 ktlint_function_naming_ignore_when_annotated_with = Composable
 
-compose_allowed_composition_locals = LocalAppColors,LocalAppTypography,LocalAppSpacing,LocalAppShapes,LocalContentTone
+compose_allowed_composition_locals = LocalAppColors,LocalAppTypography,LocalAppSpacing,LocalAppShapes,LocalContentTone,LocalWindowWidth,LocalIsRail,LocalIconOnlyButtons
 compose_view_model_factories = koinViewModel
 compose_disallow_material2 = true
 compose_allowed_from_m2 = icons.Icons,icons.filled,icons.automirrored.filled

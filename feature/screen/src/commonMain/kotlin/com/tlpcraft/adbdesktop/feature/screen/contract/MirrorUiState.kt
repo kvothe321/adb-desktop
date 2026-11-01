@@ -5,7 +5,6 @@ import com.tlpcraft.adbdesktop.core.domain.model.MirrorFrame
 data class MirrorUiState(
     val serial: String? = null,
     val isOn: Boolean = false,
-    val isPinned: Boolean = false,
     val mirror: MirrorState = MirrorState.Off,
 )
 

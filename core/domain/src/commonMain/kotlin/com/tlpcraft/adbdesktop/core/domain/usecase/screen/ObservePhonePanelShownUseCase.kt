@@ -4,9 +4,9 @@ import com.tlpcraft.adbdesktop.core.domain.repository.AppearanceRepository
 import com.tlpcraft.adbdesktop.core.domain.usecase.ReactiveUseCase
 import kotlinx.coroutines.flow.Flow
 
-class ObserveMirrorPinnedUseCase(
+class ObservePhonePanelShownUseCase(
     private val repository: AppearanceRepository,
 ) : ReactiveUseCase<Unit, Flow<Boolean>> {
 
-    override fun invoke(param: Unit): Flow<Boolean> = repository.observeMirrorPinned()
+    override fun invoke(param: Unit): Flow<Boolean> = repository.observePhonePanelShown()
 }

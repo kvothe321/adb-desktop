@@ -1,20 +1,22 @@
 package com.tlpcraft.adbdesktop.uikit.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,89 +24,111 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
 import com.tlpcraft.adbdesktop.uikit.theme.Elevation
+import com.tlpcraft.adbdesktop.uikit.theme.LocalWindowWidth
+import com.tlpcraft.adbdesktop.uikit.theme.WindowWidth
 
 /**
- * Top-level window layout: a [sidebar] beside the main [content], with messages from [messageHostState]
- * floating above it. A [dock], when given, sits on the right edge and the user can drag its border to resize it.
- * `modifier` is for layout only.
+ * Top-level window layout: a [topBar] above the main [content], with messages from [messageHostState] floating above
+ * it. A [side] panel, when given, fills the right edge and the user can widen it by dragging its border. It also
+ * decides [AppTheme.windowWidth] from the room the window gives. `modifier` is for layout only.
  */
 @Composable
 fun Scaffold(
-    sidebar: @Composable () -> Unit,
+    topBar: @Composable () -> Unit,
     messageHostState: MessageHostState,
     modifier: Modifier = Modifier,
-    dock: (@Composable () -> Unit)? = null,
+    side: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
-    Row(modifier.fillMaxSize().background(AppTheme.colors.background)) {
-        sidebar()
-        Box(Modifier.weight(1f).fillMaxSize()) {
-            Column(Modifier.fillMaxSize()) { content() }
-            SnackbarHost(messageHostState.snackbarHostState, Modifier.align(Alignment.BottomCenter).padding(AppTheme.spacing.lg)) { data ->
-                Box(
-                    Modifier
-                        .widthIn(max = 520.dp)
-                        .shadow(Elevation.overlay, AppTheme.shapes.medium)
-                        .background(AppTheme.colors.surfaceRaised, AppTheme.shapes.medium)
-                        .border(1.dp, AppTheme.colors.border, AppTheme.shapes.medium)
-                        .padding(horizontal = AppTheme.spacing.md, vertical = AppTheme.spacing.sm),
-                ) {
-                    Text(data.visuals.message)
+    BoxWithConstraints(modifier.fillMaxSize().background(AppTheme.colors.background)) {
+        val windowWidth = WindowWidth.of(maxWidth)
+        val sideMaxWidth = maxWidth * SIDE_MAX_SHARE
+        CompositionLocalProvider(LocalWindowWidth provides windowWidth) {
+            Column(Modifier.fillMaxSize()) {
+                Box(Modifier.fillMaxWidth().background(AppTheme.colors.surface)) { topBar() }
+                Divider()
+                Row(Modifier.weight(1f).fillMaxWidth()) {
+                    Box(Modifier.weight(1f).fillMaxHeight()) {
+                        Column(Modifier.fillMaxSize()) { content() }
+                        SnackbarHost(messageHostState.snackbarHostState, Modifier.align(Alignment.BottomCenter).padding(AppTheme.spacing.xl)) { data ->
+                            Toast(data.visuals.message)
+                        }
+                    }
+                    if (side != null) SidePanel(maxWidth = sideMaxWidth, windowWidth = windowWidth, content = side)
                 }
             }
         }
-        if (dock != null) Dock(dock)
+    }
+}
+
+/** A dark pill in light mode and a light one in dark mode, as system notices look. */
+@Composable
+private fun Toast(message: String) {
+    Box(
+        Modifier
+            .widthIn(max = 520.dp)
+            .shadow(Elevation.overlay, AppTheme.shapes.pill)
+            .background(AppTheme.colors.textPrimary, AppTheme.shapes.pill)
+            .padding(horizontal = AppTheme.spacing.lg, vertical = AppTheme.spacing.sm),
+    ) {
+        InverseText(message)
     }
 }
 
 @Composable
-private fun Dock(content: @Composable () -> Unit) {
-    var width by remember { mutableStateOf(DOCK_INITIAL_WIDTH) }
+private fun SidePanel(maxWidth: Dp, windowWidth: WindowWidth, content: @Composable () -> Unit) {
+    val preferred = when (windowWidth) {
+        WindowWidth.Compact -> SIDE_COMPACT_WIDTH
+        WindowWidth.Medium -> SIDE_MEDIUM_WIDTH
+        WindowWidth.Expanded -> SIDE_EXPANDED_WIDTH
+    }
+    var dragged by remember { mutableStateOf<Dp?>(null) }
+    val width = (dragged ?: preferred).coerceIn(SIDE_MIN_WIDTH, maxWidth.coerceAtLeast(SIDE_MIN_WIDTH))
     val density = LocalDensity.current
     val dragState = rememberDraggableState { delta ->
-        width = (width - with(density) { delta.toDp() }).coerceIn(DOCK_MIN_WIDTH, DOCK_MAX_WIDTH)
+        dragged = (width - with(density) { delta.toDp() }).coerceIn(SIDE_MIN_WIDTH, maxWidth.coerceAtLeast(SIDE_MIN_WIDTH))
     }
-    Row(Modifier.fillMaxHeight()) {
+    Row(Modifier.fillMaxHeight().background(AppTheme.colors.surface)) {
         Box(
-            modifier = Modifier.width(DOCK_HANDLE_WIDTH).fillMaxHeight().draggable(dragState, Orientation.Horizontal),
-            contentAlignment = Alignment.Center,
+            Modifier
+                .width(SIDE_HANDLE_WIDTH)
+                .fillMaxHeight()
+                .pointerHoverIcon(HorizontalResizePointer)
+                .draggable(dragState, Orientation.Horizontal),
         ) {
             Divider(orientation = DividerOrientation.Vertical)
         }
-        Box(Modifier.width(width).fillMaxHeight().background(AppTheme.colors.surface)) { content() }
+        Box(Modifier.width(width).fillMaxHeight()) { content() }
     }
 }
 
-private val DOCK_INITIAL_WIDTH = 380.dp
-private val DOCK_MIN_WIDTH = 260.dp
-private val DOCK_MAX_WIDTH = 720.dp
-private val DOCK_HANDLE_WIDTH = 6.dp
+private const val SIDE_MAX_SHARE = 0.45f
+private val SIDE_COMPACT_WIDTH = 280.dp
+private val SIDE_MEDIUM_WIDTH = 320.dp
+private val SIDE_EXPANDED_WIDTH = 380.dp
+private val SIDE_MIN_WIDTH = 240.dp
+private val SIDE_HANDLE_WIDTH = 8.dp
 
 @UiKitPreview
 @Composable
 private fun ScaffoldPreview() = PreviewContext {
-    Scaffold(
-        sidebar = { Sidebar(header = { Text("ADB Desktop") }, footer = {}) {} },
-        messageHostState = rememberMessageHostState(),
-    ) {
-        TopBar(title = "Devices")
+    Scaffold(topBar = { Text("ADB Desktop", variant = TextVariant.Title) }, messageHostState = rememberMessageHostState()) {
+        TopBar(title = "Apps")
     }
 }
 
 @UiKitPreview
 @Composable
-private fun ScaffoldDockPreview() = PreviewContext {
-    Scaffold(
-        sidebar = { Sidebar(header = { Text("ADB Desktop") }, footer = {}) {} },
-        messageHostState = rememberMessageHostState(),
-        dock = { TopBar(title = "Mirror") },
-    ) {
+private fun ScaffoldSidePreview() = PreviewContext {
+    Scaffold(topBar = { Text("ADB Desktop", variant = TextVariant.Title) }, messageHostState = rememberMessageHostState(), side = { TopBar(title = "Phone") }) {
         TopBar(title = "Files")
     }
 }

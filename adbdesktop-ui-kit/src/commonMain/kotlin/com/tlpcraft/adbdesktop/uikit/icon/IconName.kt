@@ -7,24 +7,25 @@ enum class IconName {
     Add,
     Back,
     Camera,
+    Category,
     Check,
     ChevronDown,
     ChevronUp,
     Close,
     Delete,
     Devices,
+    DocumentText,
     Download,
     File,
     Folder,
     Home,
     Info,
-    List,
     Lock,
     Mirror,
+    Monitor,
     Moon,
     Package,
     Pause,
-    Pin,
     Play,
     Recents,
     Refresh,
@@ -46,24 +47,25 @@ enum class IconName {
             Add -> AddVector
             Back -> BackVector
             Camera -> CameraVector
+            Category -> CategoryVector
             Check -> CheckVector
             ChevronDown -> ChevronDownVector
             ChevronUp -> ChevronUpVector
             Close -> CloseVector
             Delete -> DeleteVector
             Devices -> DevicesVector
+            DocumentText -> DocumentTextVector
             Download -> DownloadVector
             File -> FileVector
             Folder -> FolderVector
             Home -> HomeVector
             Info -> InfoVector
-            List -> ListVector
             Lock -> LockVector
             Mirror -> MirrorVector
+            Monitor -> MonitorVector
             Moon -> MoonVector
             Package -> PackageVector
             Pause -> PauseVector
-            Pin -> PinVector
             Play -> PlayVector
             Recents -> RecentsVector
             Refresh -> RefreshVector

@@ -53,28 +53,31 @@ import com.tlpcraft.adbdesktop.feature.screen.resources.message_screen_failed
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_back
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_description
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_home
+import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_live
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_no_device_description
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_no_device_title
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_off_description
-import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_off_title
-import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_pin
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_power
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_recents
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_rotate
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_start
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_stop
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_title
-import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_unpin
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_volume_down
 import com.tlpcraft.adbdesktop.feature.screen.resources.mirror_volume_up
+import com.tlpcraft.adbdesktop.uikit.component.Badge
 import com.tlpcraft.adbdesktop.uikit.component.Button
+import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.ControlSize
-import com.tlpcraft.adbdesktop.uikit.component.Divider
+import com.tlpcraft.adbdesktop.uikit.component.DeviceScreen
 import com.tlpcraft.adbdesktop.uikit.component.EmptyState
 import com.tlpcraft.adbdesktop.uikit.component.IconButton
 import com.tlpcraft.adbdesktop.uikit.component.PixelImage
 import com.tlpcraft.adbdesktop.uikit.component.ProgressIndicator
-import com.tlpcraft.adbdesktop.uikit.component.TopBar
+import com.tlpcraft.adbdesktop.uikit.component.Text
+import com.tlpcraft.adbdesktop.uikit.component.TextEmphasis
+import com.tlpcraft.adbdesktop.uikit.component.TextVariant
+import com.tlpcraft.adbdesktop.uikit.component.Tone
 import com.tlpcraft.adbdesktop.uikit.component.VisibilityEffect
 import com.tlpcraft.adbdesktop.uikit.icon.IconName
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
@@ -109,25 +112,16 @@ fun MirrorPanel(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier, 
     MirrorContent(uiState = uiState, onIntent = viewModel::reduceIntent, modifier = modifier)
 }
 
+/** The phone panel: the live device screen, with its own buttons underneath. */
 @Composable
 fun MirrorContent(uiState: MirrorUiState, onIntent: (MirrorIntent) -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxSize()) {
-        TopBar(title = stringResource(Res.string.mirror_title)) {
-            if (uiState.serial != null) {
-                Button(
-                    text = stringResource(if (uiState.isOn) Res.string.mirror_stop else Res.string.mirror_start),
-                    onClick = { onIntent(MirrorIntent.MirrorClicked) },
-                    icon = if (uiState.isOn) IconName.Stop else IconName.Mirror,
-                )
-            }
-            IconButton(
-                icon = IconName.Pin,
-                contentDescription = stringResource(if (uiState.isPinned) Res.string.mirror_unpin else Res.string.mirror_pin),
-                onClick = { onIntent(MirrorIntent.PinClicked) },
-                selected = uiState.isPinned,
-            )
-        }
-        Box(Modifier.weight(1f).fillMaxWidth().padding(AppTheme.spacing.md), contentAlignment = Alignment.Center) {
+    Column(
+        modifier = modifier.fillMaxSize().padding(AppTheme.spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        PanelHeader(uiState = uiState, onIntent = onIntent)
+        Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
             when {
                 uiState.serial == null -> EmptyState(
                     title = stringResource(Res.string.mirror_no_device_title),
@@ -135,28 +129,64 @@ fun MirrorContent(uiState: MirrorUiState, onIntent: (MirrorIntent) -> Unit, modi
                     icon = IconName.Mirror,
                 )
 
-                uiState.mirror is MirrorState.Live -> MirrorSurface(frame = uiState.mirror.frame, onIntent = onIntent)
+                uiState.mirror is MirrorState.Live -> DeviceScreen(aspectRatio = uiState.mirror.frame.aspectRatio) {
+                    MirrorSurface(frame = uiState.mirror.frame, onIntent = onIntent)
+                }
 
-                uiState.mirror == MirrorState.Starting -> ProgressIndicator()
-
-                else -> EmptyState(
-                    title = stringResource(Res.string.mirror_off_title),
-                    description = stringResource(Res.string.mirror_off_description),
-                    icon = IconName.Mirror,
-                )
+                else -> DeviceScreen(aspectRatio = IDLE_ASPECT_RATIO) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        if (uiState.mirror == MirrorState.Starting) {
+                            ProgressIndicator()
+                        } else {
+                            Button(
+                                text = stringResource(Res.string.mirror_start),
+                                onClick = { onIntent(MirrorIntent.MirrorClicked) },
+                                variant = ButtonVariant.Primary,
+                                icon = IconName.Mirror,
+                            )
+                        }
+                    }
+                }
             }
         }
-        if (uiState.mirror is MirrorState.Live) {
-            Divider()
-            DeviceButtons(onClick = { onIntent(MirrorIntent.DeviceButtonClicked(it)) })
+        when {
+            uiState.mirror is MirrorState.Live -> DeviceButtons(onClick = { onIntent(MirrorIntent.DeviceButtonClicked(it)) })
+
+            uiState.serial != null && uiState.mirror == MirrorState.Off -> Text(
+                stringResource(Res.string.mirror_off_description),
+                variant = TextVariant.Caption,
+                emphasis = TextEmphasis.Medium,
+            )
         }
     }
 }
 
 @Composable
+private fun PanelHeader(uiState: MirrorUiState, onIntent: (MirrorIntent) -> Unit) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm)) {
+        Text(stringResource(Res.string.mirror_title), modifier = Modifier.weight(1f), variant = TextVariant.Title, maxLines = 1)
+        if (uiState.mirror is MirrorState.Live) Badge(stringResource(Res.string.mirror_live), tone = Tone.Success)
+        if (uiState.isOn) {
+            Button(
+                text = stringResource(Res.string.mirror_stop),
+                onClick = { onIntent(MirrorIntent.MirrorClicked) },
+                size = ControlSize.Small,
+                icon = IconName.Stop,
+            )
+        }
+    }
+}
+
+private val MirrorFrame.aspectRatio: Float
+    get() = width.toFloat() / height
+
+/** A typical phone, for the screen shown before the first picture arrives. */
+private const val IDLE_ASPECT_RATIO = 9f / 19.5f
+
+@Composable
 private fun DeviceButtons(onClick: (DeviceButton) -> Unit) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(AppTheme.spacing.sm),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.xs, Alignment.CenterHorizontally),
     ) {
         DeviceButton.entries.forEach { button ->
@@ -300,7 +330,7 @@ private fun MirrorContentLivePreview() = PreviewContext {
 @UiKitPreview
 @Composable
 private fun MirrorContentOffPreview() = PreviewContext {
-    MirrorContent(uiState = MirrorUiState(serial = "emulator-5554", isPinned = true), onIntent = {})
+    MirrorContent(uiState = MirrorUiState(serial = "emulator-5554"), onIntent = {})
 }
 
 @UiKitPreview

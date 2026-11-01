@@ -26,10 +26,26 @@
     <string name="device_connection_usb">USB</string>
     <string name="device_connection_wireless">Wi-Fi</string>
     <string name="device_connection_emulator">Emulator</string>
-    <string name="device_android_version">Android %1$s</string>
+    <string name="device_android">Android</string>
     <string name="device_battery">Battery</string>
     <string name="device_cpu">CPU</string>
     <string name="device_disconnect">Disconnect</string>
+    <string name="device_connection">Connection</string>
+    <string name="overview_quick_actions">Quick actions</string>
+    <string name="overview_other_devices">Other devices</string>
+    <string name="overview_all_devices">Pick a device to work with</string>
+    <string name="action_screenshot">Copy a screenshot</string>
+    <string name="action_screenshot_detail">Straight to your clipboard</string>
+    <string name="action_install">Install APK</string>
+    <string name="action_install_detail">Pick one or more files</string>
+    <string name="action_apps">Apps</string>
+    <string name="action_apps_detail">Open, stop or remove apps</string>
+    <string name="action_files">Files</string>
+    <string name="action_files_detail">Browse and transfer</string>
+    <string name="action_logcat">Logs</string>
+    <string name="action_logcat_detail">Follow logcat live</string>
+    <string name="action_shell">Shell</string>
+    <string name="action_shell_detail">Run commands</string>
     <string name="device_unauthorized_hint">Accept the debugging prompt on the device.</string>
 
     <string name="connect_title">Connect over Wi-Fi</string>
@@ -54,4 +70,7 @@
     <string name="message_paired">Paired with %1$s</string>
     <string name="message_disconnected">Disconnected %1$s</string>
     <string name="message_disconnect_failed">Could not disconnect %1$s</string>
+    <string name="message_screenshot_copied">Screenshot copied to the clipboard</string>
+    <string name="message_installed">Installed %1$d APK file(s)</string>
+    <string name="message_action_failed">That did not work: %1$s</string>
 </resources>

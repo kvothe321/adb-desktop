@@ -52,6 +52,8 @@ import com.tlpcraft.adbdesktop.uikit.component.Divider
 import com.tlpcraft.adbdesktop.uikit.component.EmptyState
 import com.tlpcraft.adbdesktop.uikit.component.FileDropArea
 import com.tlpcraft.adbdesktop.uikit.component.IconButton
+import com.tlpcraft.adbdesktop.uikit.component.Page
+import com.tlpcraft.adbdesktop.uikit.component.Panel
 import com.tlpcraft.adbdesktop.uikit.component.ProgressIndicator
 import com.tlpcraft.adbdesktop.uikit.component.TextField
 import com.tlpcraft.adbdesktop.uikit.component.Tone
@@ -81,10 +83,11 @@ fun FilesScreen(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier, 
 
 @Composable
 fun FilesContent(uiState: FilesUiState, onIntent: (FilesIntent) -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxSize()) {
-        TopBar(title = stringResource(Res.string.files_title)) {
-            if (uiState.serial != null) FilesActions(isBusy = uiState.isBusy, onIntent = onIntent)
-        }
+    Page(
+        title = stringResource(Res.string.files_title),
+        modifier = modifier,
+        actions = { if (uiState.serial != null) FilesActions(isBusy = uiState.isBusy, onIntent = onIntent) },
+    ) {
         if (uiState.serial == null) {
             Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) {
                 EmptyState(
@@ -94,18 +97,20 @@ fun FilesContent(uiState: FilesUiState, onIntent: (FilesIntent) -> Unit, modifie
                 )
             }
         } else {
-            PathBar(pathInput = uiState.pathInput, canGoUp = uiState.canGoUp, onIntent = onIntent)
-            Divider()
-            uiState.transfer?.let { transfer ->
-                TransferBar(transfer = transfer, onCancel = { onIntent(FilesIntent.CancelTransferClicked) })
+            Panel(Modifier.weight(1f).fillMaxWidth()) {
+                PathBar(pathInput = uiState.pathInput, canGoUp = uiState.canGoUp, onIntent = onIntent)
                 Divider()
-            }
-            FileDropArea(
-                onFilesDrop = { onIntent(FilesIntent.FilesDropped(it)) },
-                hint = stringResource(Res.string.files_drop_hint),
-                modifier = Modifier.weight(1f),
-            ) {
-                FileListingView(listing = uiState.listing, isBusy = uiState.isBusy, onIntent = onIntent)
+                uiState.transfer?.let { transfer ->
+                    TransferBar(transfer = transfer, onCancel = { onIntent(FilesIntent.CancelTransferClicked) })
+                    Divider()
+                }
+                FileDropArea(
+                    onFilesDrop = { onIntent(FilesIntent.FilesDropped(it)) },
+                    hint = stringResource(Res.string.files_drop_hint),
+                    modifier = Modifier.weight(1f),
+                ) {
+                    FileListingView(listing = uiState.listing, isBusy = uiState.isBusy, onIntent = onIntent)
+                }
             }
         }
         FilesDialogs(newFolder = uiState.newFolder, pendingDelete = uiState.pendingDelete, onIntent = onIntent)

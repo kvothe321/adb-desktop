@@ -8,8 +8,8 @@ interface AppearanceRepository {
 
     suspend fun setThemeMode(mode: ThemeMode)
 
-    /** Whether the mirror stays beside every section instead of living in the Screen section. */
-    fun observeMirrorPinned(): Flow<Boolean>
+    /** Whether the live phone panel shows beside the sections. It does until the user hides it. */
+    fun observePhonePanelShown(): Flow<Boolean>
 
-    suspend fun setMirrorPinned(isPinned: Boolean)
+    suspend fun setPhonePanelShown(isShown: Boolean)
 }

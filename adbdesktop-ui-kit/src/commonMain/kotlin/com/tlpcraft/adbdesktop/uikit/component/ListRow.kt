@@ -13,16 +13,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 import com.tlpcraft.adbdesktop.uikit.icon.IconName
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
 
 /**
- * A dense, full-width row for lists: a headline, optional supporting line and leading/trailing slots.
- * `modifier` is for layout only.
+ * A row for lists: a headline, optional supporting line and leading/trailing slots. Hover and selection show as a
+ * rounded highlight inset from the edges. `modifier` is for layout only.
  */
 @Composable
 fun ListRow(
@@ -46,15 +48,17 @@ fun ListRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .padding(horizontal = AppTheme.spacing.sm, vertical = 1.dp)
+            .clip(AppTheme.shapes.medium)
             .background(background)
             .then(if (onClick != null) Modifier.interactive(interactionSource, enabled = true, role = Role.Button, onClick = onClick) else Modifier)
-            .padding(horizontal = AppTheme.spacing.md, vertical = AppTheme.spacing.sm),
+            .padding(horizontal = AppTheme.spacing.md, vertical = AppTheme.spacing.sm + 2.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
     ) {
         leading?.invoke()
         Column(Modifier.weight(1f)) {
-            Text(headline, variant = TextVariant.BodyStrong, tone = if (selected) Tone.Accent else Tone.Neutral, maxLines = 1)
+            Text(headline, variant = TextVariant.BodyStrong, maxLines = 1)
             if (supporting != null) {
                 if (monospaceSupporting) {
                     MonospaceText(supporting, emphasis = TextEmphasis.Medium, maxLines = 1)

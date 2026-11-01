@@ -11,10 +11,7 @@ import com.tlpcraft.adbdesktop.core.domain.model.MirrorPoint
 import com.tlpcraft.adbdesktop.core.domain.model.TouchAction
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.screen.ObserveMirrorPinnedUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.ObserveMirrorUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.screen.SetMirrorPinnedUseCase
-import com.tlpcraft.adbdesktop.core.testing.FakeAppearanceRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeDeviceSelectionRepository
 import com.tlpcraft.adbdesktop.core.testing.FakeHostClipboard
@@ -46,7 +43,6 @@ class MirrorViewModelTest : FunSpec({
 
     class Fixture(selectedSerial: String? = "pixel") {
         val screen = FakeScreenRepository()
-        val appearance = FakeAppearanceRepository()
         val clipboard = FakeHostClipboard()
         val viewModel = MirrorViewModel(
             observeSelectedDevice = ObserveSelectedDeviceUseCase(
@@ -54,8 +50,6 @@ class MirrorViewModelTest : FunSpec({
                 FakeDeviceSelectionRepository(selectedSerial),
             ),
             observeMirror = ObserveMirrorUseCase(screen),
-            observeMirrorPinned = ObserveMirrorPinnedUseCase(appearance),
-            setMirrorPinned = SetMirrorPinnedUseCase(appearance),
             hostClipboard = clipboard,
         ).apply { reduceIntent(MirrorIntent.VisibilityChanged(true)) }
 
@@ -177,17 +171,6 @@ class MirrorViewModelTest : FunSpec({
         fixture.viewModel.reduceIntent(MirrorIntent.PasteRequested)
 
         fixture.screen.mirrorInput shouldContainExactly listOf(MirrorInput.Paste("hello"))
-    }
-
-    test("pinning is stored and toggles back") {
-        val fixture = Fixture()
-
-        fixture.viewModel.reduceIntent(MirrorIntent.PinClicked)
-        fixture.appearance.mirrorPinned.value shouldBe true
-        fixture.state.isPinned shouldBe true
-
-        fixture.viewModel.reduceIntent(MirrorIntent.PinClicked)
-        fixture.appearance.mirrorPinned.value shouldBe false
     }
 
     test("a session restarted after hiding keeps taking input") {
