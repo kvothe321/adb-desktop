@@ -9,6 +9,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.invoke
+import org.jetbrains.compose.ComposePlugin
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 /** A feature sees the domain and the design system, never the data layer. */
@@ -30,6 +31,11 @@ class FeatureLibrary : Plugin<Project> {
                     }
                     commonTest.dependencies {
                         implementation(project(":core:testing"))
+                        implementation(libs.library("compose-uiTest"))
+                    }
+                    jvmTest.dependencies {
+                        // UI tests render off screen, which needs the Skia runtime of the host.
+                        implementation(ComposePlugin.DesktopDependencies.currentOs)
                     }
                 }
             }
