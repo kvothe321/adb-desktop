@@ -1,20 +1,14 @@
 # Roadmap
 
-Next features, highest priority first. Each one lands as its own feature module that depends on `core:domain` and
-`adbdesktop-ui-kit` only.
+The main features are in place. What comes next, highest priority first:
 
-1. **Settings** (`feature:settings`): adb path override (today it can only be set from the "adb not found" state),
-   persisted theme choice, polling intervals.
-2. **Logcat** (`feature:logcat`): streaming `logcat -v threadtime` as a `Flow`, filters by level, tag, package and
-   text, pause and clear, export to file.
-3. **Shell** (`feature:shell`): interactive `adb shell` session with history and copyable monospace output.
-4. **Files** (`feature:files`): browse the device file system, push and pull with progress, drag and drop.
-   The sidebar entry exists and currently shows a placeholder that links here.
-5. **Apps: install** (`feature:apps`): install and update APKs and split APKs by picking or dropping files.
-6. **Screen** (`feature:screen`): screenshot to clipboard or file, screen recording with `screenrecord`.
-7. **Wireless discovery**: list `adb mdns services` so pairing does not need typing the address.
+1. **Files**: transfer progress, and drag and drop onto the window.
+2. **Apps**: install by dropping APK files on the window.
+3. **Logcat**: filter by package, and export to a file.
+4. **Screen**: copy a screenshot to the clipboard, show the elapsed recording time.
+5. **Shell**: colored output and a real pseudo-terminal, so full-screen programs work.
 
 Engineering follow-ups:
 
-- Compose UI tests for the screen contents.
 - Publish the packaged installers as GitHub release assets and derive `packageVersion` from the tag.
+- Run `DeviceIntegrationTest` on an emulator in CI.
