@@ -2,10 +2,12 @@ package com.tlpcraft.adbdesktop.feature.shell
 
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performMouseInput
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runComposeUiTest
@@ -99,6 +101,21 @@ class ShellContentTest : FunSpec({
 
             intents.first().shouldBeInstanceOf<ShellIntent.TerminalResized>()
             onNodeWithText("New session").assertDoesNotExist()
+        }
+    }
+
+    test("after clicking into the terminal, typing still reaches the device") {
+        runComposeUiTest {
+            val intents = mutableListOf<ShellIntent>()
+            setContent {
+                AppTheme { ShellContent(uiState = ShellUiState(session = SessionState.Running, rows = rows), onIntent = { intents += it }) }
+            }
+
+            onNodeWithText("pixel:/ $ ls").performMouseInput { click(center) }
+            waitForIdle()
+            onNode(isFocused()).performTextInput("pwd")
+
+            intents shouldContain ShellIntent.InputTyped("pwd")
         }
     }
 })
