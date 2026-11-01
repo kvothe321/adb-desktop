@@ -3,13 +3,13 @@ package com.tlpcraft.adbdesktop.plugin.convention
 import com.tlpcraft.adbdesktop.plugin.shared.PluginDefinitions.ADBDESKTOP_COMPOSE_LIBRARY
 import com.tlpcraft.adbdesktop.plugin.shared.PluginDefinitions.ADBDESKTOP_KOTLIN_LIBRARY
 import com.tlpcraft.adbdesktop.plugin.shared.applyPlugins
+import com.tlpcraft.adbdesktop.plugin.shared.composeDesktopRuntime
 import com.tlpcraft.adbdesktop.plugin.shared.library
 import com.tlpcraft.adbdesktop.plugin.shared.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.invoke
-import org.jetbrains.compose.ComposePlugin
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
 /** A feature sees the domain and the design system, never the data layer. */
@@ -29,13 +29,10 @@ class FeatureLibrary : Plugin<Project> {
                         implementation(libs.library.androidx.lifecycle.runtime.compose)
                         implementation(libs.library.androidx.lifecycle.viewmodel.compose)
                     }
-                    commonTest.dependencies {
+                    jvmTest.dependencies {
                         implementation(project(":core:testing"))
                         implementation(libs.library("compose-uiTest"))
-                    }
-                    jvmTest.dependencies {
-                        // UI tests render off screen, which needs the Skia runtime of the host.
-                        implementation(ComposePlugin.DesktopDependencies.currentOs)
+                        implementation(composeDesktopRuntime)
                     }
                 }
             }

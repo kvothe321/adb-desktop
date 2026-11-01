@@ -10,10 +10,26 @@ internal fun Project.applyPlugins(vararg names: String): Unit = names.forEach { 
 internal val Project.javaToolchainVersion: Int
     get() = libs.findVersion("java").get().requiredVersion.toInt()
 
+/** Compose Desktop with the Skia runtime of the host, which local runs and off screen UI tests need. */
+val Project.composeDesktopRuntime: String
+    get() {
+        val osName = providers.systemProperty("os.name").get().lowercase()
+        val platform = when {
+            "mac" in osName -> "macos"
+            "windows" in osName -> "windows"
+            else -> "linux"
+        }
+        val architecture = if (providers.systemProperty("os.arch").get() in ARM_ARCHITECTURES) "arm64" else "x64"
+        val version = libs.findVersion("composeMultiplatform").get().requiredVersion
+        return "org.jetbrains.compose.desktop:desktop-jvm-$platform-$architecture:$version"
+    }
+
 internal fun Project.getPackageLikeProjectPathName(): String = path
     .split(':')
     .filter { it.isNotBlank() }
     .joinToString(separator = ".") { it.toValidPackageSegment() }
+
+private val ARM_ARCHITECTURES = setOf("aarch64", "arm64")
 
 private fun String.toValidPackageSegment(): String {
     val normalized = lowercase()
