@@ -88,7 +88,7 @@ fun ShellContent(uiState: ShellUiState, onIntent: (ShellIntent) -> Unit, modifie
                 onTextInput = { text -> onIntent(ShellIntent.InputTyped(text)) },
                 modifier = Modifier.weight(1f),
             )
-            if (uiState.session != SessionState.Running) {
+            if (uiState.session != SessionState.Running && uiState.session != SessionState.Starting) {
                 Divider()
                 SessionClosedBar(
                     session = uiState.session,

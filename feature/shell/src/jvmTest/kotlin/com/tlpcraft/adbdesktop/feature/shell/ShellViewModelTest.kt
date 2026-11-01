@@ -53,8 +53,9 @@ class ShellViewModelTest : FunSpec({
         fixture.shell.sessionsStarted shouldBe 0
     }
 
-    test("a session waits until the terminal size is known") {
+    test("with a device the terminal shows at once, and the session waits until its size is known") {
         val fixture = Fixture(isMeasured = false)
+        fixture.state.session shouldBe SessionState.Starting
         fixture.shell.sessionsStarted shouldBe 0
 
         fixture.viewModel.reduceIntent(ShellIntent.TerminalResized(rows = 30, columns = 100))

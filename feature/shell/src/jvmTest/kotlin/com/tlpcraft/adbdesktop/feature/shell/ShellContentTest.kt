@@ -91,4 +91,14 @@ class ShellContentTest : FunSpec({
             intents shouldContain ShellIntent.RestartClicked
         }
     }
+
+    test("a starting session shows the terminal so it can report its size") {
+        runComposeUiTest {
+            val intents = mutableListOf<ShellIntent>()
+            setContent { AppTheme { ShellContent(uiState = ShellUiState(session = SessionState.Starting), onIntent = { intents += it }) } }
+
+            intents.first().shouldBeInstanceOf<ShellIntent.TerminalResized>()
+            onNodeWithText("New session").assertDoesNotExist()
+        }
+    }
 })
