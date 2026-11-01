@@ -123,8 +123,14 @@ class LogcatViewModel(
         publish()
         observeLogcat(serial).collect { outcome ->
             when (outcome) {
-                is Outcome.Success -> append(outcome.data)
-                is Outcome.Failure -> _uiState.update { it.copy(failure = outcome.error.message) }
+                is Outcome.Success -> {
+                    _uiState.update { it.copy(failure = null) }
+                    append(outcome.data)
+                }
+
+                is Outcome.Failure -> {
+                    _uiState.update { it.copy(failure = outcome.error.message) }
+                }
             }
         }
     }

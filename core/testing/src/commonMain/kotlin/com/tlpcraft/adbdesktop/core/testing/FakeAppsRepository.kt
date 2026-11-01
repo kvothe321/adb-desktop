@@ -3,6 +3,7 @@ package com.tlpcraft.adbdesktop.core.testing
 import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.error.DeviceError
 import com.tlpcraft.adbdesktop.core.domain.model.AppAction
+import com.tlpcraft.adbdesktop.core.domain.model.AppAppearance
 import com.tlpcraft.adbdesktop.core.domain.model.AppDetails
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
 import com.tlpcraft.adbdesktop.core.domain.model.AppInfo
@@ -21,6 +22,8 @@ class FakeAppsRepository : AppsRepository {
     val executedActions = mutableListOf<Pair<String, AppAction>>()
     val installedApks = mutableListOf<List<String>>()
     var installResult: Outcome<Unit, DeviceError> = Outcome.Success(Unit)
+    val appearances = MutableStateFlow<Map<String, AppAppearance>>(emptyMap())
+    val appearanceRequests = mutableListOf<List<String>>()
 
     override fun observeApps(serial: String, filter: AppFilter): Flow<Outcome<List<AppInfo>, DeviceError>> = apps.onStart { requestedFilters += filter }
 
@@ -30,6 +33,11 @@ class FakeAppsRepository : AppsRepository {
     override suspend fun executeAction(serial: String, packageName: String, action: AppAction): Outcome<Unit, DeviceError> {
         executedActions += packageName to action
         return actionResult
+    }
+
+    override fun observeAppAppearances(serial: String, packageNames: List<String>): Flow<Map<String, AppAppearance>> = appearances.onStart {
+        appearanceRequests +=
+            packageNames
     }
 
     override suspend fun install(serial: String, apkPaths: List<String>): Outcome<Unit, DeviceError> {

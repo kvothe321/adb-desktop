@@ -50,6 +50,14 @@ internal val AddVector: ImageVector by lazy {
     )
 }
 
+internal val BackVector: ImageVector by lazy {
+    iconsax(
+        "Back",
+        stroke("M9.57 5.92969L3.5 11.9997L9.57 18.0697"),
+        stroke("M20.4999 12H3.66992"),
+    )
+}
+
 internal val CameraVector: ImageVector by lazy {
     iconsax(
         "Camera",
@@ -153,6 +161,17 @@ internal val FolderVector: ImageVector by lazy {
     )
 }
 
+internal val HomeVector: ImageVector by lazy {
+    iconsax(
+        "Home",
+        stroke(
+            "M9.02 2.84016L3.63 7.04016C2.73 7.74016 2 9.23016 2 10.3602V17.7702C2 20.0902 3.89 21.9902 6.21 21.9902H17.79C20.11 21.9902 22 20." +
+                "0902 22 17.7802V10.5002C22 9.29016 21.19 7.74016 20.2 7.05016L14.02 2.72016C12.62 1.74016 10.37 1.79016 9.02 2.84016Z",
+        ),
+        stroke("M12 17.9902V14.9902"),
+    )
+}
+
 internal val InfoVector: ImageVector by lazy {
     iconsax(
         "Info",
@@ -238,6 +257,18 @@ internal val PauseVector: ImageVector by lazy {
     )
 }
 
+internal val PinVector: ImageVector by lazy {
+    iconsax(
+        "Pin",
+        stroke(
+            "M21.97 15V9C21.97 4 19.97 2 14.97 2H8.96997C3.96997 2 1.96997 4 1.96997 9V15C1.96997 20 3.96997 22 8.96997 22H14.97C19.97 22 21.97" +
+                " 20 21.97 15Z",
+        ),
+        stroke("M14.97 2V22"),
+        stroke("M7.96997 9.43945L10.53 11.9995L7.96997 14.5595"),
+    )
+}
+
 internal val PlayVector: ImageVector by lazy {
     iconsax(
         "Play",
@@ -248,6 +279,14 @@ internal val PlayVector: ImageVector by lazy {
     )
 }
 
+internal val RecentsVector: ImageVector by lazy {
+    iconsax(
+        "Recents",
+        stroke("M16 12.9V17.1C16 20.6 14.6 22 11.1 22H6.9C3.4 22 2 20.6 2 17.1V12.9C2 9.4 3.4 8 6.9 8H11.1C14.6 8 16 9.4 16 12.9Z"),
+        stroke("M22 6.9V11.1C22 14.6 20.6 16 17.1 16H16V12.9C16 9.4 14.6 8 11.1 8H8V6.9C8 3.4 9.4 2 12.9 2H17.1C20.6 2 22 3.4 22 6.9Z"),
+    )
+}
+
 internal val RefreshVector: ImageVector by lazy {
     iconsax(
         "Refresh",
@@ -255,6 +294,18 @@ internal val RefreshVector: ImageVector by lazy {
             "M22 12C22 17.52 17.52 22 12 22C6.48 22 3.11 16.44 3.11 16.44M3.11 16.44H7.63M3.11 16.44V21.44M2 12C2 6.48 6.44 2 12 2C18.67 2 22 7" +
                 ".56 22 7.56M22 7.56V2.56M22 7.56H17.56",
         ),
+    )
+}
+
+internal val RotateVector: ImageVector by lazy {
+    iconsax(
+        "Rotate",
+        stroke(
+            "M14.8901 5.08039C14.0201 4.82039 13.0601 4.65039 12.0001 4.65039C7.21008 4.65039 3.33008 8.53039 3.33008 13.3204C3.33008 18.1204 7" +
+                ".21008 22.0004 12.0001 22.0004C16.7901 22.0004 20.6701 18.1204 20.6701 13.3304C20.6701 11.5504 20.1301 9.89039 19.2101 8.51039",
+        ),
+        stroke("M16.13 5.32L13.24 2"),
+        stroke("M16.13 5.32031L12.76 7.78031"),
     )
 }
 
@@ -328,6 +379,33 @@ internal val UploadVector: ImageVector by lazy {
         ),
         stroke("M12 15.0001V3.62012"),
         stroke("M15.3499 5.85L11.9999 2.5L8.6499 5.85"),
+    )
+}
+
+internal val VolumeDownVector: ImageVector by lazy {
+    iconsax(
+        "VolumeDown",
+        stroke(
+            "M2 9.96021V14.0402C2 16.0802 3.02 17.1002 5.06 17.1002H6.52C6.9 17.1002 7.28 17.2102 7.6 17.4102L10.58 19.2702C13.16 20.8802 15.26" +
+                " 19.7102 15.26 16.6702V7.32021C15.26 4.28021 13.15 3.11021 10.58 4.72021L7.6 6.59021C7.27 6.79021 6.9 6.90021 6.52 6.90021H5.06C3." +
+                "02 6.90021 2 7.92021 2 9.96021Z",
+            isRoundCapped = false,
+        ),
+        stroke("M18 12H22"),
+    )
+}
+
+internal val VolumeUpVector: ImageVector by lazy {
+    iconsax(
+        "VolumeUp",
+        stroke(
+            "M2 9.99979V13.9998C2 15.9998 3 16.9998 5 16.9998H6.43C6.8 16.9998 7.17 17.1098 7.49 17.2998L10.41 19.1298C12.93 20.7098 15 19.5598" +
+                " 15 16.5898V7.40979C15 4.42979 12.93 3.28979 10.41 4.86979L7.49 6.69979C7.17 6.88979 6.8 6.99979 6.43 6.99979H5C3 6.99979 2 7.9997" +
+                "9 2 9.99979Z",
+            isRoundCapped = false,
+        ),
+        stroke("M18 8C19.78 10.37 19.78 13.63 18 16"),
+        stroke("M19.83 5.5C22.72 9.35 22.72 14.65 19.83 18.5"),
     )
 }
 

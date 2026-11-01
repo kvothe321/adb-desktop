@@ -4,6 +4,17 @@ private const val TO_START = 1
 private const val ALL = 2
 private const val TAB_WIDTH = 8
 
+/** Overwriting part of a wide character blanks the rest of it, so no half character is left behind. */
+internal fun Array<Cell>.breakWideCharacters(from: Int, until: Int) {
+    if (this[from].isContinuation) {
+        var start = from - 1
+        while (start > 0 && this[start].isContinuation) start--
+        fill(BLANK_CELL, start, from)
+    }
+    var end = until
+    while (end < size && this[end].isContinuation) this[end++] = BLANK_CELL
+}
+
 internal fun ScreenBuffer.backspace() = moveTo(cursorRow, cursorColumn - 1)
 
 internal fun ScreenBuffer.tab() = moveTo(cursorRow, (cursorColumn / TAB_WIDTH + 1) * TAB_WIDTH)

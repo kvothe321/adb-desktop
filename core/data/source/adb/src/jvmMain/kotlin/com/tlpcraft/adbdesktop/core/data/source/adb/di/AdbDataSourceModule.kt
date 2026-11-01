@@ -1,5 +1,6 @@
 package com.tlpcraft.adbdesktop.core.data.source.adb.di
 
+import com.tlpcraft.adbdesktop.core.data.source.adb.AdbAppAppearanceDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbDeviceDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbDeviceDataSourceImpl
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbDevicePropertiesDataSource
@@ -13,6 +14,7 @@ import com.tlpcraft.adbdesktop.core.data.source.adb.AdbLogcatDataSourceImpl
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbMirrorDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbPackageDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbPackageDataSourceImpl
+import com.tlpcraft.adbdesktop.core.data.source.adb.AdbPackageEventDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbScreenDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbScreenDataSourceImpl
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbShellDataSource
@@ -21,6 +23,9 @@ import com.tlpcraft.adbdesktop.core.data.source.adb.binary.AdbBinaryResolver
 import com.tlpcraft.adbdesktop.core.data.source.adb.binary.AdbEnvironment
 import com.tlpcraft.adbdesktop.core.data.source.adb.binary.JvmAdbEnvironment
 import com.tlpcraft.adbdesktop.core.data.source.adb.client.AdbClient
+import com.tlpcraft.adbdesktop.core.data.source.adb.helper.DeviceHelper
+import com.tlpcraft.adbdesktop.core.data.source.adb.helper.HelperAppAppearanceDataSource
+import com.tlpcraft.adbdesktop.core.data.source.adb.helper.HelperPackageEventDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.mirror.ScrcpyMirrorDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.CommandExecutor
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.ProcessCommandExecutor
@@ -42,5 +47,8 @@ val adbDataSourceModule = module {
     singleOf(::AdbFileDataSourceImpl) bind AdbFileDataSource::class
     singleOf(::AdbScreenDataSourceImpl) bind AdbScreenDataSource::class
     singleOf(::ScrcpyMirrorDataSource) bind AdbMirrorDataSource::class
+    singleOf(::DeviceHelper)
+    singleOf(::HelperAppAppearanceDataSource) bind AdbAppAppearanceDataSource::class
+    singleOf(::HelperPackageEventDataSource) bind AdbPackageEventDataSource::class
     singleOf(::AdbInfoDataSourceImpl) bind AdbInfoDataSource::class
 }

@@ -15,8 +15,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.tlpcraft.adbdesktop.core.domain.model.MirrorFrame
-import com.tlpcraft.adbdesktop.feature.screen.contract.MirrorState
 import com.tlpcraft.adbdesktop.feature.screen.contract.RecordingState
 import com.tlpcraft.adbdesktop.feature.screen.contract.ScreenIntent
 import com.tlpcraft.adbdesktop.feature.screen.contract.ScreenSideEffect
@@ -32,9 +30,6 @@ import com.tlpcraft.adbdesktop.feature.screen.resources.screen_capture
 import com.tlpcraft.adbdesktop.feature.screen.resources.screen_copy
 import com.tlpcraft.adbdesktop.feature.screen.resources.screen_empty_description
 import com.tlpcraft.adbdesktop.feature.screen.resources.screen_empty_title
-import com.tlpcraft.adbdesktop.feature.screen.resources.screen_mirror
-import com.tlpcraft.adbdesktop.feature.screen.resources.screen_mirror_description
-import com.tlpcraft.adbdesktop.feature.screen.resources.screen_mirror_stop
 import com.tlpcraft.adbdesktop.feature.screen.resources.screen_no_device_description
 import com.tlpcraft.adbdesktop.feature.screen.resources.screen_no_device_title
 import com.tlpcraft.adbdesktop.feature.screen.resources.screen_preview_description
@@ -49,11 +44,9 @@ import com.tlpcraft.adbdesktop.uikit.component.Badge
 import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.EmptyState
-import com.tlpcraft.adbdesktop.uikit.component.PixelImage
 import com.tlpcraft.adbdesktop.uikit.component.ProgressIndicator
 import com.tlpcraft.adbdesktop.uikit.component.Tone
 import com.tlpcraft.adbdesktop.uikit.component.TopBar
-import com.tlpcraft.adbdesktop.uikit.component.VisibilityEffect
 import com.tlpcraft.adbdesktop.uikit.icon.IconName
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
@@ -64,17 +57,12 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 private const val SECONDS_PER_MINUTE = 60
-private const val PREVIEW_FRAME_SIDE = 2
-private const val PREVIEW_FRAME_BYTES = PREVIEW_FRAME_SIDE * PREVIEW_FRAME_SIDE * 4
-private const val PREVIEW_FRAME_SHADE: Byte = 120
 
-/** Live mirroring, screenshots and screen recordings of the selected device. One-shot results go through [onShowMessage]. */
+/** Screenshots and screen recordings of the selected device. One-shot results go through [onShowMessage]. */
 @Composable
 fun ScreenScreen(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier, viewModel: ScreenViewModel = koinViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val currentOnShowMessage by rememberUpdatedState(onShowMessage)
-
-    VisibilityEffect { viewModel.reduceIntent(ScreenIntent.VisibilityChanged(it)) }
 
     LaunchedEffect(viewModel) {
         viewModel.sideEffects.collect { effect -> currentOnShowMessage(effect.message()) }
@@ -97,15 +85,7 @@ fun ScreenContent(uiState: ScreenUiState, onIntent: (ScreenIntent) -> Unit, modi
                     icon = IconName.Camera,
                 )
 
-                uiState.mirror is MirrorState.Live -> PixelImage(
-                    width = uiState.mirror.frame.width,
-                    height = uiState.mirror.frame.height,
-                    pixels = uiState.mirror.frame.pixels,
-                    contentDescription = stringResource(Res.string.screen_mirror_description),
-                    modifier = Modifier.fillMaxSize(),
-                )
-
-                uiState.mirror == MirrorState.Starting || uiState.isCapturing -> ProgressIndicator()
+                uiState.isCapturing -> ProgressIndicator()
 
                 uiState.screenshot != null -> ScreenshotPreview(uiState.screenshot)
 
@@ -122,11 +102,6 @@ fun ScreenContent(uiState: ScreenUiState, onIntent: (ScreenIntent) -> Unit, modi
 @Composable
 private fun RowScope.ScreenActions(uiState: ScreenUiState, onIntent: (ScreenIntent) -> Unit) {
     uiState.recording.statusText(uiState.recordingSeconds)?.let { status -> Badge(status, tone = Tone.Error) }
-    Button(
-        text = stringResource(if (uiState.isMirrorOn) Res.string.screen_mirror_stop else Res.string.screen_mirror),
-        onClick = { onIntent(ScreenIntent.MirrorClicked) },
-        icon = if (uiState.isMirrorOn) IconName.Stop else IconName.Mirror,
-    )
     if (uiState.recording == RecordingState.Recording) {
         Button(text = stringResource(Res.string.screen_stop), onClick = {
             onIntent(ScreenIntent.StopClicked)
@@ -180,13 +155,6 @@ private suspend fun ScreenSideEffect.message(): String = when (this) {
 @Composable
 private fun ScreenContentEmptyPreview() = PreviewContext {
     ScreenContent(uiState = ScreenUiState(serial = "emulator-5554"), onIntent = {})
-}
-
-@UiKitPreview
-@Composable
-private fun ScreenContentMirrorPreview() = PreviewContext {
-    val frame = MirrorFrame(PREVIEW_FRAME_SIDE, PREVIEW_FRAME_SIDE, pixels = ByteArray(PREVIEW_FRAME_BYTES) { PREVIEW_FRAME_SHADE })
-    ScreenContent(uiState = ScreenUiState(serial = "emulator-5554", isMirrorOn = true, mirror = MirrorState.Live(frame)), onIntent = {})
 }
 
 @UiKitPreview

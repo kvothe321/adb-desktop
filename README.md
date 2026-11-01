@@ -4,12 +4,14 @@ A desktop GUI for `adb`, built with Compose Multiplatform for Windows, macOS and
 
 - **Devices**: live list over USB, emulator and Wi-Fi with battery and CPU usage, connect, pair and disconnect over
   Wi-Fi, including devices discovered on the network.
-- **Apps**: browse and filter packages, see details, open, force stop, clear cache or data, uninstall, install APKs
-  by picking or dropping them.
+- **Apps**: browse and filter packages with their own icons, updated the moment an app is installed or removed
+  anywhere, see details, open, force stop, clear cache or data, uninstall, install APKs by picking or dropping them.
 - **Files**: browse the device, upload and download with progress, drop files on the window, delete and create folders.
 - **Logcat**: live stream with level, text and package filters, pause, clear and export.
-- **Shell**: a real terminal on the device, with colors and full-screen programs such as `top` and `vi`.
-- **Screen**: live mirroring, screenshots, copied to the clipboard or saved, and screen recording with a running clock.
+- **Shell**: a real terminal on the device, with colors, full-screen programs such as `top` and `vi`, CJK text and emoji in
+  their full width, and input methods for typing them.
+- **Screen**: live mirroring you can use with mouse and keyboard as in scrcpy, pinned beside every section if you like,
+  plus screenshots, copied to the clipboard or saved, and screen recording with a running clock.
 - **Settings**: choose the adb executable and the theme.
 
 Everything on screen stays current on its own: changes made on the device, by other tools or by this app appear
@@ -24,7 +26,8 @@ Actions apply to the device picked in the sidebar. See [docs/ROADMAP.md](docs/RO
 - **Android platform-tools** (`adb`). It is found through, in order: the path set in the app, `ANDROID_HOME`,
   `ANDROID_SDK_ROOT`, then `PATH`.
 - **An Android SDK** (`ANDROID_HOME`, or `sdk.dir` in `local.properties`). Only the build needs it: Compose modules
-  carry an Android target so IDE previews render ([ADR 2](docs/adr/0002-preview-only-android-target.md)).
+  carry an Android target so IDE previews render ([ADR 2](docs/adr/0002-preview-only-android-target.md)), and
+  `device-helper` is built from it.
 
 ## Run
 
@@ -113,6 +116,7 @@ graph LR
     domain --> common[core:common]
     adb --> common
     adb --> logger
+    adb -. bundles .-> helper[device-helper]
     preferences --> common
 ```
 
@@ -125,6 +129,7 @@ graph LR
 | `core:data:repository` | Implements the domain repositories and maps DTOs to domain models |
 | `core:data:source:adb` | Finds and runs adb, streams and parses its output into DTOs |
 | `core:data:source:preferences` | Per-user settings storage |
+| `device-helper` | Java run on the device with `app_process` for what adb cannot ask: app icons and app changes. Never installed |
 | `core:common` | `Outcome`, `DomainError`, dispatchers |
 | `core:logger` | Logging behind `AppLogger` |
 | `core:testing` | Fakes of the domain repositories for tests |

@@ -44,6 +44,7 @@ include(
 )
 
 include(":adbdesktop-ui-kit")
+include(":device-helper")
 
 val frameworkLayer
     get() = "desktopApp"

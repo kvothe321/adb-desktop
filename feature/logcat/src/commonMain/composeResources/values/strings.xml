@@ -3,8 +3,8 @@
     <string name="logcat_no_device_title">No device selected</string>
     <string name="logcat_no_device_description">Pick an online device in the sidebar to stream its logs.</string>
     <string name="logcat_waiting">Waiting for log entries</string>
-    <string name="logcat_failed_title">The log stream stopped</string>
-    <string name="logcat_retry">Reconnect</string>
+    <string name="logcat_reconnecting">Reconnecting</string>
+    <string name="logcat_retry">Reconnect now</string>
     <string name="logcat_pause">Pause</string>
     <string name="logcat_resume">Resume</string>
     <string name="logcat_clear">Clear</string>

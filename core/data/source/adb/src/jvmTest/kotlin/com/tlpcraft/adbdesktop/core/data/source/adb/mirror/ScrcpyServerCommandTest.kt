@@ -12,10 +12,10 @@ class ScrcpyServerCommandTest : FunSpec({
         ScrcpyServerCommand.remotePath(0x2a) shouldBe "/data/local/tmp/adb-desktop-scrcpy-0000002a.jar"
     }
 
-    test("the stream is video only and keeps its frame headers") {
+    test("the stream carries video and input and keeps its frame headers") {
         val arguments = ScrcpyServerCommand.shellArguments(1)
 
-        arguments shouldContainAll listOf("audio=false", "control=false", "tunnel_forward=true", "video_codec=h264", "send_stream_meta=false")
+        arguments shouldContainAll listOf("audio=false", "clipboard_autosync=false", "tunnel_forward=true", "video_codec=h264", "send_stream_meta=false")
         arguments.none { it.startsWith("raw_stream") || it.startsWith("send_frame_meta") } shouldBe true
     }
 

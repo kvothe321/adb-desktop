@@ -20,8 +20,8 @@ import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
 
 /**
- * An icon-only action. [contentDescription] is also shown as a tooltip, so it is required.
- * `modifier` is for layout only.
+ * An icon-only action. [contentDescription] is also shown as a tooltip, so it is required. A [selected] button is
+ * highlighted, for actions that toggle a mode on. `modifier` is for layout only.
  */
 @Composable
 fun IconButton(
@@ -31,6 +31,7 @@ fun IconButton(
     modifier: Modifier = Modifier,
     size: ControlSize = ControlSize.Medium,
     enabled: Boolean = true,
+    selected: Boolean = false,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val hovered by interactionSource.collectIsHoveredAsState()
@@ -40,11 +41,21 @@ fun IconButton(
             modifier = Modifier
                 .size(size.height)
                 .clip(AppTheme.shapes.medium)
-                .background(if (hovered && enabled) AppTheme.colors.surfaceHover else Color.Transparent)
+                .background(
+                    when {
+                        selected -> AppTheme.colors.accentSubtle
+                        hovered && enabled -> AppTheme.colors.surfaceHover
+                        else -> Color.Transparent
+                    },
+                )
                 .interactive(interactionSource, enabled = enabled, role = Role.Button, onClick = onClick),
             contentAlignment = Alignment.Center,
         ) {
-            val tint = if (enabled) AppTheme.colors.textSecondary else AppTheme.colors.textDisabled
+            val tint = when {
+                !enabled -> AppTheme.colors.textDisabled
+                selected -> AppTheme.colors.accent
+                else -> AppTheme.colors.textSecondary
+            }
             IconGlyph(icon, contentDescription = contentDescription, tint = tint)
         }
     }
@@ -57,5 +68,6 @@ private fun IconButtonPreview() = PreviewContext {
         IconButton(IconName.Refresh, contentDescription = "Refresh", onClick = {})
         IconButton(IconName.Close, contentDescription = "Close", onClick = {}, size = ControlSize.Small)
         IconButton(IconName.Delete, contentDescription = "Delete", onClick = {}, enabled = false)
+        IconButton(IconName.Pin, contentDescription = "Pin", onClick = {}, selected = true)
     }
 }

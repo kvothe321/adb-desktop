@@ -1,6 +1,7 @@
 package com.tlpcraft.adbdesktop.feature.apps.component
 
 import com.tlpcraft.adbdesktop.core.domain.model.AppAction
+import com.tlpcraft.adbdesktop.core.domain.model.AppAppearance
 import com.tlpcraft.adbdesktop.core.domain.model.AppFilter
 import com.tlpcraft.adbdesktop.feature.apps.resources.Res
 import com.tlpcraft.adbdesktop.feature.apps.resources.app_action_clear_cache
@@ -48,3 +49,6 @@ internal fun Long.toReadableSize(): String {
 
 /** Last package segment, capitalized: `com.example.notes` becomes `Notes`. */
 internal fun String.packageDisplayName(): String = substringAfterLast('.').replaceFirstChar(Char::uppercaseChar)
+
+/** The app's own name when it has one, otherwise a name made from the package. */
+internal fun String.appTitle(appearance: AppAppearance?): String = appearance?.label ?: packageDisplayName()

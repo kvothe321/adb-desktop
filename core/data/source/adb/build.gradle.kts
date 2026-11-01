@@ -4,8 +4,26 @@ plugins {
     id(libs.plugins.adbdesktop.kotlin.multiplatform.library.get().pluginId)
 }
 
+val deviceHelper = configurations.create("deviceHelper") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+}
+
+dependencies {
+    deviceHelper.name(project(path = ":device-helper", configuration = "helperApk"))
+}
+
+/** The helper APK goes in as a resource next to the scrcpy server. */
+val bundleDeviceHelper = tasks.register<Sync>("bundleDeviceHelper") {
+    from(deviceHelper) { rename { "device-helper.apk" } }
+    into(layout.buildDirectory.dir("generated/deviceHelper"))
+}
+
 kotlin {
     sourceSets {
+        jvmMain {
+            resources.srcDir(bundleDeviceHelper)
+        }
         commonMain.dependencies {
             implementation(projects.core.common)
             implementation(projects.core.logger)

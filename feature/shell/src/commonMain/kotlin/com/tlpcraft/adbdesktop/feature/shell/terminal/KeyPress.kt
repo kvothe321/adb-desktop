@@ -81,14 +81,18 @@ internal data class KeyPress(
     val isShift: Boolean = false,
 )
 
-/** What a terminal sends for [press], or `null` for keys that send nothing, such as a lone Shift. */
+/**
+ * What a terminal sends for [press], or `null` for keys that send nothing here: a lone Shift, or plain typing, which
+ * arrives as text instead so input methods can take part.
+ */
 internal fun encodeKey(press: KeyPress, hasApplicationCursorKeys: Boolean): String? {
     val encoded = when {
         press.key in CURSOR_KEYS -> (if (hasApplicationCursorKeys) "${ESCAPE}O" else "$ESCAPE[") + CURSOR_KEYS.getValue(press.key)
         press.key == Key.Tab && press.isShift -> "$ESCAPE[Z"
         press.key in SPECIAL_KEYS -> SPECIAL_KEYS.getValue(press.key)
         press.isCtrl -> press.controlCode()
-        else -> press.printedText()
+        press.isAlt -> press.printedText()
+        else -> null
     }
     return if (press.isAlt && encoded != null) ESCAPE + encoded else encoded
 }

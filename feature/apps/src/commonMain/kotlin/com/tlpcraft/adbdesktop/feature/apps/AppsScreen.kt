@@ -88,6 +88,7 @@ fun AppsContent(uiState: AppsUiState, onIntent: (AppsIntent) -> Unit, modifier: 
                                 filter = uiState.filter,
                                 query = uiState.query,
                                 selectedPackage = uiState.selectedPackage,
+                                appearances = uiState.appearances,
                                 onFilterSelect = { onIntent(AppsIntent.FilterSelected(it)) },
                                 onQueryChange = { onIntent(AppsIntent.QueryChanged(it)) },
                                 onAppClick = { onIntent(AppsIntent.AppClicked(it)) },
@@ -96,6 +97,7 @@ fun AppsContent(uiState: AppsUiState, onIntent: (AppsIntent) -> Unit, modifier: 
                         end = {
                             AppDetailsPane(
                                 details = uiState.details,
+                                appearance = uiState.selectedPackage?.let(uiState.appearances::get),
                                 runningAction = uiState.runningAction,
                                 onActionClick = { onIntent(AppsIntent.ActionClicked(it)) },
                             )

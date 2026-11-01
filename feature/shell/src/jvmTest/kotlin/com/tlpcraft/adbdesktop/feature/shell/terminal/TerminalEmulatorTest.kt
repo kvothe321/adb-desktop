@@ -248,4 +248,57 @@ class TerminalEmulatorTest : FunSpec({
             terminal.text().first().trimEnd() shouldBe "pixel:/ $ echo"
         }
     }
+
+    context("wide characters") {
+        test("take two columns, so the cursor lands after both") {
+            val terminal = terminal()
+
+            terminal.feed("日本$ESC[6n")
+
+            replies shouldContainExactly listOf("$ESC[1;5R")
+            terminal.spans(0).take(2) shouldContainExactly listOf(TerminalSpan("日", isWide = true), TerminalSpan("本", isWide = true))
+        }
+
+        test("emoji outside the basic plane count as wide too") {
+            val terminal = terminal()
+
+            terminal.feed("\uD83D\uDE00x$ESC[6n")
+
+            replies shouldContainExactly listOf("$ESC[1;4R")
+            terminal.text().first() shouldBe "\uD83D\uDE00x"
+        }
+
+        test("one that does not fit wraps whole to the next line") {
+            val terminal = terminal(rows = 2, columns = 3)
+
+            terminal.feed("ab日")
+
+            terminal.text() shouldContainExactly listOf("ab", "日")
+        }
+
+        test("overwriting half of one blanks the other half") {
+            val terminal = terminal()
+            terminal.feed("日本")
+
+            terminal.feed("$ESC[1;2Hx")
+
+            terminal.text().first() shouldBe " x本"
+        }
+
+        test("a combining accent joins the character before it") {
+            val terminal = terminal()
+
+            terminal.feed("e\u0301x$ESC[6n")
+
+            replies shouldContainExactly listOf("$ESC[1;3R")
+            terminal.text().first() shouldBe "e\u0301x"
+        }
+
+        test("the cursor on a wide character inverts it whole") {
+            val terminal = terminal()
+            terminal.feed("日$ESC[1;1H")
+
+            terminal.spans(0).first() shouldBe TerminalSpan("日", isInverted = true, isWide = true)
+        }
+    }
 })

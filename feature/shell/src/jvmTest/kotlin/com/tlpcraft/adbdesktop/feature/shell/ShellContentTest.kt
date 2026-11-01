@@ -2,10 +2,13 @@ package com.tlpcraft.adbdesktop.feature.shell
 
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.click
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
+import androidx.compose.ui.test.performMouseInput
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.tlpcraft.adbdesktop.feature.shell.contract.SessionState
@@ -65,6 +68,19 @@ class ShellContentTest : FunSpec({
         }
     }
 
+    test("typed text, as an input method commits it, goes to the device as it is") {
+        runComposeUiTest {
+            val intents = mutableListOf<ShellIntent>()
+            setContent {
+                AppTheme { ShellContent(uiState = ShellUiState(session = SessionState.Running, rows = rows), onIntent = { intents += it }) }
+            }
+
+            onNode(isFocused()).performTextInput("日本語")
+
+            intents shouldContain ShellIntent.InputTyped("日本語")
+        }
+    }
+
     test("an ended session offers a new one") {
         runComposeUiTest {
             val intents = mutableListOf<ShellIntent>()
@@ -75,6 +91,31 @@ class ShellContentTest : FunSpec({
             onNodeWithText("New session").performClick()
 
             intents shouldContain ShellIntent.RestartClicked
+        }
+    }
+
+    test("a starting session shows the terminal so it can report its size") {
+        runComposeUiTest {
+            val intents = mutableListOf<ShellIntent>()
+            setContent { AppTheme { ShellContent(uiState = ShellUiState(session = SessionState.Starting), onIntent = { intents += it }) } }
+
+            intents.first().shouldBeInstanceOf<ShellIntent.TerminalResized>()
+            onNodeWithText("New session").assertDoesNotExist()
+        }
+    }
+
+    test("after clicking into the terminal, typing still reaches the device") {
+        runComposeUiTest {
+            val intents = mutableListOf<ShellIntent>()
+            setContent {
+                AppTheme { ShellContent(uiState = ShellUiState(session = SessionState.Running, rows = rows), onIntent = { intents += it }) }
+            }
+
+            onNodeWithText("pixel:/ $ ls").performMouseInput { click(center) }
+            waitForIdle()
+            onNode(isFocused()).performTextInput("pwd")
+
+            intents shouldContain ShellIntent.InputTyped("pwd")
         }
     }
 })

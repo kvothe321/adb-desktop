@@ -12,7 +12,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onStart
 
-/** Keeps device data current: our own changes refresh it at once, the [Duration] catches everything done elsewhere. */
+/**
+ * Keeps device data current: our own changes refresh it at once, and changes made elsewhere arrive as signals from the
+ * device or, where it has none, every [Duration].
+ */
 internal class Invalidations {
     private val signals = MutableSharedFlow<Unit>(extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
@@ -21,7 +24,10 @@ internal class Invalidations {
     }
 
     /** Runs [read] on collection, on every [invalidate] and every [interval]. Emits only what changed. */
-    fun <T> observe(interval: Duration, read: suspend () -> T): Flow<T> = merge(signals, ticks(interval))
+    fun <T> observe(interval: Duration, read: suspend () -> T): Flow<T> = observe(ticks(interval), read)
+
+    /** Runs [read] on collection, on every [invalidate] and every signal of [changes]. Emits only what changed. */
+    fun <T> observe(changes: Flow<Unit>, read: suspend () -> T): Flow<T> = merge(signals, changes)
         .onStart { emit(Unit) }
         .conflate()
         .map { read() }

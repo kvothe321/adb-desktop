@@ -11,6 +11,7 @@ import com.tlpcraft.adbdesktop.feature.apps.AppsScreen
 import com.tlpcraft.adbdesktop.feature.devices.DevicesScreen
 import com.tlpcraft.adbdesktop.feature.files.FilesScreen
 import com.tlpcraft.adbdesktop.feature.logcat.LogcatScreen
+import com.tlpcraft.adbdesktop.feature.screen.MirrorPanel
 import com.tlpcraft.adbdesktop.feature.screen.ScreenScreen
 import com.tlpcraft.adbdesktop.feature.settings.SettingsScreen
 import com.tlpcraft.adbdesktop.feature.shell.ShellScreen
@@ -33,6 +34,7 @@ fun App(backStack: NavBackStack<NavKey>) {
         AppShellScreen(
             currentSection = Section.of(backStack.lastOrNull()),
             onSectionSelect = backStack::show,
+            mirror = { onShowMessage -> MirrorPanel(onShowMessage = onShowMessage) },
         ) { onShowMessage ->
             NavDisplay(
                 backStack = backStack,

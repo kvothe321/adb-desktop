@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 /** Every glyph the design system offers, named after what it depicts. */
 enum class IconName {
     Add,
+    Back,
     Camera,
     Check,
     ChevronDown,
@@ -15,6 +16,7 @@ enum class IconName {
     Download,
     File,
     Folder,
+    Home,
     Info,
     List,
     Lock,
@@ -22,14 +24,19 @@ enum class IconName {
     Moon,
     Package,
     Pause,
+    Pin,
     Play,
+    Recents,
     Refresh,
+    Rotate,
     Search,
     Settings,
     Stop,
     Sun,
     Terminal,
     Upload,
+    VolumeDown,
+    VolumeUp,
     Warning,
     Wifi,
     ;
@@ -37,6 +44,7 @@ enum class IconName {
     internal val vector: ImageVector
         get() = when (this) {
             Add -> AddVector
+            Back -> BackVector
             Camera -> CameraVector
             Check -> CheckVector
             ChevronDown -> ChevronDownVector
@@ -47,6 +55,7 @@ enum class IconName {
             Download -> DownloadVector
             File -> FileVector
             Folder -> FolderVector
+            Home -> HomeVector
             Info -> InfoVector
             List -> ListVector
             Lock -> LockVector
@@ -54,14 +63,19 @@ enum class IconName {
             Moon -> MoonVector
             Package -> PackageVector
             Pause -> PauseVector
+            Pin -> PinVector
             Play -> PlayVector
+            Recents -> RecentsVector
             Refresh -> RefreshVector
+            Rotate -> RotateVector
             Search -> SearchVector
             Settings -> SettingsVector
             Stop -> StopVector
             Sun -> SunVector
             Terminal -> TerminalVector
             Upload -> UploadVector
+            VolumeDown -> VolumeDownVector
+            VolumeUp -> VolumeUpVector
             Warning -> WarningVector
             Wifi -> WifiVector
         }

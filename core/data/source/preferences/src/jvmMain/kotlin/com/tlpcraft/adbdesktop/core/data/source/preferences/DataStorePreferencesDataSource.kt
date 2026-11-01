@@ -2,6 +2,7 @@ package com.tlpcraft.adbdesktop.core.data.source.preferences
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -34,11 +35,18 @@ class DataStorePreferencesDataSource(
         dataStore.edit { it[KEY_THEME_MODE] = mode }
     }
 
-    private fun observe(key: Preferences.Key<String>): Flow<String?> = preferences.map { it[key] }.distinctUntilChanged()
+    override fun observeMirrorPinned(): Flow<Boolean?> = observe(KEY_MIRROR_PINNED)
+
+    override suspend fun writeMirrorPinned(isPinned: Boolean) {
+        dataStore.edit { it[KEY_MIRROR_PINNED] = isPinned }
+    }
+
+    private fun <T> observe(key: Preferences.Key<T>): Flow<T?> = preferences.map { it[key] }.distinctUntilChanged()
 
     private companion object {
         const val TAG = "Preferences"
         val KEY_ADB_PATH = stringPreferencesKey("adb_path")
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
+        val KEY_MIRROR_PINNED = booleanPreferencesKey("mirror_pinned")
     }
 }
