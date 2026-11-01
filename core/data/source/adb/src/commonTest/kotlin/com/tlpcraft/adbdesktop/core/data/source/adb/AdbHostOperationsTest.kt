@@ -1,0 +1,230 @@
+package com.tlpcraft.adbdesktop.core.data.source.adb
+
+import app.cash.turbine.test
+import com.tlpcraft.adbdesktop.core.data.source.adb.dto.PackageActionDto
+import com.tlpcraft.adbdesktop.core.data.source.adb.dto.TerminalSizeDto
+import com.tlpcraft.adbdesktop.core.data.source.adb.fake.FakeAdbEnvironment
+import com.tlpcraft.adbdesktop.core.data.source.adb.fake.FakeCommandExecutor
+import com.tlpcraft.adbdesktop.core.data.source.adb.fake.testAdbClient
+import com.tlpcraft.adbdesktop.core.data.source.adb.fixtures.AdbOutputs
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.shouldBe
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.toList
+import kotlinx.coroutines.test.runTest
+
+class AdbHostOperationsTest : FunSpec({
+    test("logcat batches entries and reassembles lines cut by chunks") {
+        val executor = FakeCommandExecutor().apply {
+            respondStream(
+                "-s",
+                "pixel",
+                "logcat",
+                "-v",
+                "threadtime",
+                "-T",
+                "1000",
+                chunks = listOf("--------- beginning of main\n10-31 23:05:50.598  1537  4112 I Ta", "g: hello\n"),
+            )
+        }
+
+        AdbLogcatDataSourceImpl(testAdbClient(executor)).streamLogs("pixel").test {
+            awaitItem().single().message shouldBe "hello"
+            awaitComplete()
+        }
+    }
+
+    test("a package maps to its running processes, or none") {
+        val executor = FakeCommandExecutor().apply {
+            respond("-s", "pixel", "shell", "pidof", "'com.example.notes'", stdout = "1234 5678\n")
+            respond("-s", "pixel", "shell", "pidof", "'com.example.stopped'", exitCode = 1)
+        }
+        val source = AdbLogcatDataSourceImpl(testAdbClient(executor))
+
+        source.readProcessIds("pixel", "com.example.notes") shouldBe setOf(1234, 5678)
+        source.readProcessIds("pixel", "com.example.stopped") shouldBe emptySet()
+    }
+
+    context("files") {
+        test("lists with a trailing slash so links to directories are followed, and quotes the path") {
+            val executor = FakeCommandExecutor().apply { respond("-s", "pixel", "shell", "ls", "-la", "'/sdcard/a b/'", stdout = AdbOutputs.LS_SPACES) }
+
+            AdbFileDataSourceImpl(testAdbClient(executor), FakeAdbEnvironment()).list("pixel", "/sdcard/a b").single().name shouldBe "it's a file.txt"
+        }
+
+        test("the root directory is not doubled") {
+            val executor = FakeCommandExecutor().apply { respond("-s", "pixel", "shell", "ls", "-la", "'/'", stdout = AdbOutputs.LS_ROOT) }
+
+            AdbFileDataSourceImpl(testAdbClient(executor), FakeAdbEnvironment()).list("pixel", "/").size shouldBe 4
+        }
+
+        test("a partly unreadable directory still lists what it can") {
+            val executor = FakeCommandExecutor().apply {
+                respond("-s", "pixel", "shell", "ls", "-la", "'/'", stdout = AdbOutputs.LS_ROOT, stderr = "ls: /x: Permission denied", exitCode = 1)
+            }
+
+            AdbFileDataSourceImpl(testAdbClient(executor), FakeAdbEnvironment()).list("pixel", "/").size shouldBe 4
+        }
+
+        test("a missing directory fails with adb's message") {
+            val executor = FakeCommandExecutor().apply {
+                respond("-s", "pixel", "shell", "ls", "-la", "'/nonexistent/'", stderr = AdbOutputs.LS_MISSING, exitCode = 1)
+            }
+
+            shouldThrow<AdbException.CommandFailed> {
+                AdbFileDataSourceImpl(testAdbClient(executor), FakeAdbEnvironment()).list("pixel", "/nonexistent")
+            }.output shouldBe
+                "ls: /nonexistent: No such file or directory"
+        }
+
+        test("a file that does not exist yet has no size") {
+            val executor = FakeCommandExecutor().apply {
+                respond("-s", "pixel", "shell", "stat", "-c", "%s", "'/sdcard/a.bin'", stdout = "1024\n")
+                respond("-s", "pixel", "shell", "stat", "-c", "%s", "'/sdcard/b.bin'", stderr = "stat: No such file", exitCode = 1)
+            }
+            val source = AdbFileDataSourceImpl(testAdbClient(executor), FakeAdbEnvironment())
+
+            source.remoteFileSize("pixel", "/sdcard/a.bin") shouldBe 1024L
+            source.remoteFileSize("pixel", "/sdcard/b.bin") shouldBe null
+        }
+
+        test("deleting quotes the path") {
+            val executor = FakeCommandExecutor()
+
+            AdbFileDataSourceImpl(testAdbClient(executor), FakeAdbEnvironment()).delete("pixel", "/sdcard/it's")
+
+            executor.executed shouldContain listOf("-s", "pixel", "shell", "rm", "-rf", "'/sdcard/it'\\''s'")
+        }
+    }
+
+    context("screen") {
+        test("a screenshot returns the raw bytes") {
+            val png = byteArrayOf(0x89.toByte(), 0x50)
+            val executor = FakeCommandExecutor().apply { respondBinary("-s", "pixel", "exec-out", "screencap", "-p", stdout = png) }
+
+            AdbScreenDataSourceImpl(testAdbClient(executor)).captureScreenshot("pixel").toList() shouldBe png.toList()
+        }
+
+        test("moving a recording to the host removes it from the device") {
+            val executor = FakeCommandExecutor()
+
+            AdbScreenDataSourceImpl(testAdbClient(executor)).moveToHost("pixel", "/sdcard/r.mp4", "/home/me/r.mp4")
+
+            executor.executed shouldContainExactly listOf(
+                listOf("-s", "pixel", "pull", "/sdcard/r.mp4", "/home/me/r.mp4"),
+                listOf("-s", "pixel", "shell", "rm", "-f", "'/sdcard/r.mp4'"),
+            )
+        }
+    }
+
+    context("package actions") {
+        test("clearing the cache runs inside the app") {
+            val executor = FakeCommandExecutor()
+
+            AdbPackageDataSourceImpl(testAdbClient(executor)).runAction("pixel", "com.example.notes", PackageActionDto.CLEAR_CACHE)
+
+            executor.executed shouldContainExactly listOf(
+                listOf("-s", "pixel", "shell", "run-as", "com.example.notes", "sh", "-c", "'rm -rf cache/* code_cache/*'"),
+            )
+        }
+
+        test("a command that never returns times out") {
+            val executor = FakeCommandExecutor().apply { hangs = true }
+
+            runTest {
+                shouldThrow<AdbException.CommandFailed> {
+                    AdbPackageDataSourceImpl(testAdbClient(executor)).runAction("pixel", "com.example.notes", PackageActionDto.FORCE_STOP)
+                }.output shouldBe "Timed out"
+            }
+        }
+    }
+
+    context("install") {
+        test("several APKs install as one app") {
+            val executor = FakeCommandExecutor().apply { respond("-s", "pixel", "install-multiple", "-r", "-t", "a.apk", "b.apk", stdout = "Success\n") }
+
+            AdbPackageDataSourceImpl(testAdbClient(executor)).install("pixel", listOf("a.apk", "b.apk"))
+        }
+
+        test("a refused install reports adb's reason") {
+            val executor = FakeCommandExecutor().apply {
+                respond(
+                    "-s",
+                    "pixel",
+                    "install",
+                    "-r",
+                    "-t",
+                    "a.apk",
+                    stderr = "adb: failed to install a.apk: Failure [INSTALL_FAILED_OLDER_SDK: nope]",
+                    exitCode = 1,
+                )
+            }
+
+            shouldThrow<AdbException.CommandFailed> { AdbPackageDataSourceImpl(testAdbClient(executor)).install("pixel", listOf("a.apk")) }.output shouldBe
+                "INSTALL_FAILED_OLDER_SDK: nope"
+        }
+    }
+
+    test("adb info reports the resolved path and version") {
+        val executor = FakeCommandExecutor().apply { respond("version", stdout = AdbOutputs.ADB_VERSION) }
+
+        AdbInfoDataSourceImpl(testAdbClient(executor)).readInfo().version shouldBe "37.0.0p1-android-tools"
+    }
+
+    context("the terminal session") {
+        val script = "export TERM=xterm-256color; stty rows 24 cols 80; tty; exec sh"
+
+        test("starts at the requested size and hides the name of the terminal") {
+            val executor = FakeCommandExecutor().apply {
+                respondStream("-s", "pixel", "shell", "-tt", script, chunks = listOf("/dev/pts", "/0\r\npixel:/ $ ", "ls"))
+            }
+
+            AdbShellDataSourceImpl(testAdbClient(executor)).openSession("pixel", flowOf(), flowOf(TerminalSizeDto(24, 80))).test {
+                awaitItem() shouldBe "pixel:/ $ "
+                awaitItem() shouldBe "ls"
+                awaitComplete()
+            }
+        }
+
+        test("input waits for the terminal, so its echo cannot come before the name") {
+            val executor = FakeCommandExecutor().apply {
+                respondStream("-s", "pixel", "shell", "-tt", script, chunks = listOf("/dev/pts"))
+            }
+            var isInputRead = false
+            val input = flow<String> { isInputRead = true }
+
+            AdbShellDataSourceImpl(testAdbClient(executor)).openSession("pixel", input, flowOf(TerminalSizeDto(24, 80))).toList()
+            isInputRead shouldBe false
+
+            executor.respondStream("-s", "pixel", "shell", "-tt", script, chunks = listOf("/dev/pts/0\r\n"))
+            AdbShellDataSourceImpl(testAdbClient(executor)).openSession("pixel", input, flowOf(TerminalSizeDto(24, 80))).toList()
+            isInputRead shouldBe true
+        }
+
+        test("output that ends before a full line still arrives") {
+            val executor = FakeCommandExecutor().apply {
+                respondStream("-s", "pixel", "shell", "-tt", script, chunks = listOf("error: closed"))
+            }
+
+            AdbShellDataSourceImpl(testAdbClient(executor)).openSession("pixel", flowOf(), flowOf(TerminalSizeDto(24, 80))).test {
+                awaitItem() shouldBe "error: closed"
+                awaitComplete()
+            }
+        }
+
+        test("passes on an error from adb instead of a terminal name") {
+            val executor = FakeCommandExecutor().apply {
+                respondStream("-s", "pixel", "shell", "-tt", script, chunks = listOf("error: device offline\n"))
+            }
+
+            AdbShellDataSourceImpl(testAdbClient(executor)).openSession("pixel", flowOf(), flowOf(TerminalSizeDto(24, 80))).test {
+                awaitItem() shouldBe "error: device offline\n"
+                awaitComplete()
+            }
+        }
+    }
+})

@@ -15,7 +15,7 @@ import kotlinx.coroutines.flow.flow
 
 class DeviceInfoRepositoryImpl(
     private val propertiesDataSource: AdbDevicePropertiesDataSource,
-    private val pollInterval: Duration = 30.seconds,
+    private val pollInterval: Duration = 10.seconds,
 ) : DeviceInfoRepository {
 
     override fun observeDeviceInfo(serial: String): Flow<Outcome<DeviceInfo, DeviceError>> = flow {

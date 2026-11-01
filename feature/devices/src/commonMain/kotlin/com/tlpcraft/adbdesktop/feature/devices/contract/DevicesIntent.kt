@@ -1,7 +1,7 @@
 package com.tlpcraft.adbdesktop.feature.devices.contract
 
 sealed interface DevicesIntent {
-    data object RetryClicked : DevicesIntent
+    data class VisibilityChanged(val isVisible: Boolean) : DevicesIntent
 
     data class DeviceClicked(val serial: String) : DevicesIntent
 

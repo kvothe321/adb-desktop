@@ -106,9 +106,64 @@ object AdbOutputs {
     """.trimIndent()
 
     val APP_SIZES = """
-        Code size: 42991616
-        Data size: 12582912
-        Cache size: 2097152
+        code: 8192 bytes (8.00 Kb)
+        data: 12582912 bytes (12.00 Mb)
+        cache: 2097152 bytes (2.00 Mb)
+        apk: 0 bytes
+        lib: 0 bytes
+        dm: 0 bytes
+        dexopt artifacts: 0 bytes
+        current profile : 0 bytes
+        reference profile: 0 bytes
+        external cache: 0 bytes
+    """.trimIndent()
+
+    const val APP_SIZES_UNSUPPORTED = "Unknown command: get-package-storage-stats\n"
+
+    val LOGCAT = """
+        --------- beginning of main
+        10-31 23:05:50.598  1537  4112 I SpamListSync: Call spam module disabled. Skipping cleaning cache
+        10-31 23:05:50.599  1254  5024 W NetworkScheduler.Stats: (REDACTED) Task %s/%s finished executing. cause:%s
+        10-31 23:05:50.605  1254  3510 E AndroidRuntime:
+        10-31 23:05:50.606   712   712 D Spaced Tag  : message: with colons
+    """.trimIndent()
+
+    val LS_ROOT = """
+        total 84
+        drwxr-xr-x  28 root   root       683 2009-01-01 02:00 .
+        drwxr-xr-x  28 root   root       683 2009-01-01 02:00 ..
+        lrw-r--r--   1 root   root        30 2009-01-01 02:00 adb_keys -> /product/etc/security/adb_keys
+        drwxr-xr-x 101 root   root      2040 2026-10-31 23:03 apex
+        d?????????   ? ?      ?            ?                ? data_mirror
+        -rw-r--r--   1 root   root      1234 2009-01-01 02:00 init.rc
+    """.trimIndent()
+
+    const val LS_DEVICE_NODE = "crw-rw-rw- 1 root root 1,   3 2026-10-31 23:03 null\n"
+    const val LS_SPACES = "total 4\n-rw-rw---- 1 u0_a215 media_rw 0 2026-10-31 23:05 it's a file.txt\n"
+    const val LS_MISSING = "ls: /nonexistent: No such file or directory\n"
+
+    val ADB_VERSION = """
+        Android Debug Bridge version 1.0.41
+        Version 37.0.0p1-android-tools
+        Installed as /usr/bin/adb
+        Running on Linux 7.2.11-zen1-1-zen (x86_64)
+    """.trimIndent()
+
+    const val MDNS_SERVICES = "List of discovered mdns services\n" +
+        "adb-EMULATOR36X2X12X0\t_adb._tcp\t10.0.2.16:5555\n" +
+        "adb-EMULATOR36X2X12X0\t_adb._tcp\t10.0.2.16:5555\n" +
+        "adb-R5CT10ABCDE-xYz12\t_adb-tls-pairing._tcp\t192.168.1.42:41567\n"
+
+    val INSTALL_EXCEPTION = """
+        Performing Streamed Install
+        adb: failed to install /tmp/real.apk:
+        Exception occurred while executing 'install':
+        android.os.ParcelableException: java.io.IOException: Requested internal only, but not enough space
+        	at android.util.ExceptionUtils.wrap(ExceptionUtils.java:34)
+        	at com.android.server.pm.PackageInstallerService.createSession(PackageInstallerService.java:671)
+        Caused by: java.io.IOException: Requested internal only, but not enough space
+        	at com.android.internal.content.InstallLocationUtils.resolveInstallVolume(InstallLocationUtils.java:242)
+        	... 13 more
     """.trimIndent()
 
     const val PM_FAILURE = "Failure [DELETE_FAILED_INTERNAL_ERROR]\n"

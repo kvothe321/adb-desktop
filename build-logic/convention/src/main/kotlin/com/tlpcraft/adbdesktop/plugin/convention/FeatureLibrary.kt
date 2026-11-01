@@ -3,6 +3,7 @@ package com.tlpcraft.adbdesktop.plugin.convention
 import com.tlpcraft.adbdesktop.plugin.shared.PluginDefinitions.ADBDESKTOP_COMPOSE_LIBRARY
 import com.tlpcraft.adbdesktop.plugin.shared.PluginDefinitions.ADBDESKTOP_KOTLIN_LIBRARY
 import com.tlpcraft.adbdesktop.plugin.shared.applyPlugins
+import com.tlpcraft.adbdesktop.plugin.shared.composeDesktopRuntime
 import com.tlpcraft.adbdesktop.plugin.shared.library
 import com.tlpcraft.adbdesktop.plugin.shared.libs
 import org.gradle.api.Plugin
@@ -28,8 +29,10 @@ class FeatureLibrary : Plugin<Project> {
                         implementation(libs.library.androidx.lifecycle.runtime.compose)
                         implementation(libs.library.androidx.lifecycle.viewmodel.compose)
                     }
-                    commonTest.dependencies {
+                    jvmTest.dependencies {
                         implementation(project(":core:testing"))
+                        implementation(libs.library("compose-uiTest"))
+                        implementation(composeDesktopRuntime)
                     }
                 }
             }

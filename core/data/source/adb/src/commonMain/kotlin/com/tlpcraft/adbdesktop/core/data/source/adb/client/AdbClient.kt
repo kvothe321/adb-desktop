@@ -2,6 +2,7 @@ package com.tlpcraft.adbdesktop.core.data.source.adb.client
 
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbException
 import com.tlpcraft.adbdesktop.core.data.source.adb.binary.AdbBinaryResolver
+import com.tlpcraft.adbdesktop.core.data.source.adb.process.BinaryCommandResult
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.CommandExecutor
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.CommandResult
 import com.tlpcraft.adbdesktop.core.logger.AppLogger
@@ -15,7 +16,9 @@ class AdbClient(
     private val logger: AppLogger,
 ) {
     /** Runs a command and returns its result without judging the exit code. */
-    suspend fun execute(vararg args: String): CommandResult = executor.execute(command(args.asList()))
+    suspend fun execute(vararg args: String): CommandResult = execute(args.asList())
+
+    suspend fun execute(args: List<String>): CommandResult = executor.execute(command(args))
 
     /** Runs a command and returns stdout, failing on a non-zero exit code. */
     suspend fun run(args: List<String>): String {
@@ -29,9 +32,27 @@ class AdbClient(
 
     suspend fun shell(serial: String, args: List<String>): String = run(listOf("-s", serial, "shell") + args)
 
-    fun stream(vararg args: String): Flow<String> = flow {
-        executor.stream(command(args.asList())).collect { emit(it) }
+    /** Like [shell], but keeps stdout of commands that fail for only some of their arguments. */
+    suspend fun shellResult(serial: String, args: List<String>): CommandResult = executor.execute(command(listOf("-s", serial, "shell") + args))
+
+    suspend fun binary(vararg args: String): ByteArray {
+        val command = command(args.asList())
+        val result: BinaryCommandResult = executor.executeBinary(command)
+        if (result.exitCode != 0) throw failure(command, CommandResult(result.exitCode, stdout = "", stderr = result.stderr))
+        return result.stdout
     }
+
+    fun stream(vararg args: String): Flow<String> = stream(args.asList())
+
+    fun stream(args: List<String>): Flow<String> = flow {
+        executor.stream(command(args)).collect { emit(it) }
+    }
+
+    fun interact(input: Flow<String>, vararg args: String): Flow<String> = flow {
+        executor.interact(command(args.asList()), input).collect { emit(it) }
+    }
+
+    suspend fun executablePath(): String = binaryResolver.resolve()
 
     private suspend fun command(args: List<String>): List<String> = listOf(binaryResolver.resolve()) + args
 

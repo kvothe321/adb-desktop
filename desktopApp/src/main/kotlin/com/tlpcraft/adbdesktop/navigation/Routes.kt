@@ -19,12 +19,28 @@ data object AppsRoute : Route
 @Serializable
 data object FilesRoute : Route
 
+@Serializable
+data object LogcatRoute : Route
+
+@Serializable
+data object ShellRoute : Route
+
+@Serializable
+data object ScreenRoute : Route
+
+@Serializable
+data object SettingsRoute : Route
+
 val navigationConfig = SavedStateConfiguration {
     serializersModule = SerializersModule {
         polymorphic(NavKey::class) {
             subclass(DevicesRoute::class, DevicesRoute.serializer())
             subclass(AppsRoute::class, AppsRoute.serializer())
             subclass(FilesRoute::class, FilesRoute.serializer())
+            subclass(LogcatRoute::class, LogcatRoute.serializer())
+            subclass(ShellRoute::class, ShellRoute.serializer())
+            subclass(ScreenRoute::class, ScreenRoute.serializer())
+            subclass(SettingsRoute::class, SettingsRoute.serializer())
         }
     }
 }

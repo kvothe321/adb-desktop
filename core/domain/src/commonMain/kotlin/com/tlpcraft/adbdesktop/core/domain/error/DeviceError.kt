@@ -26,6 +26,10 @@ sealed interface DeviceError : DomainError {
         override val message: String = "Pairing code must be 6 digits"
     }
 
+    data class InvalidFileName(val name: String) : DeviceError {
+        override val message: String = "Not a valid file name: $name"
+    }
+
     data class ConnectionFailed(val endpoint: String, val reason: String) : DeviceError {
         override val message: String = "Could not connect to $endpoint: $reason"
     }

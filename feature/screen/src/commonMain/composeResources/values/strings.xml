@@ -1,0 +1,24 @@
+<resources>
+    <string name="screen_title">Screen</string>
+    <string name="screen_no_device_title">No device selected</string>
+    <string name="screen_no_device_description">Pick an online device in the sidebar to capture its screen.</string>
+    <string name="screen_capture">Take screenshot</string>
+    <string name="screen_mirror">Mirror</string>
+    <string name="screen_mirror_stop">Stop mirroring</string>
+    <string name="screen_mirror_description">Live view of the device screen</string>
+    <string name="screen_save">Save</string>
+    <string name="screen_record">Record</string>
+    <string name="screen_stop">Stop</string>
+    <string name="screen_preview_description">Screenshot of the device</string>
+    <string name="screen_empty_title">No screenshot yet</string>
+    <string name="screen_empty_description">Mirror the screen live, take a screenshot, or record the screen. Android stops a recording after 3 minutes.</string>
+    <string name="screen_recording">Recording %1$s</string>
+    <string name="screen_copy">Copy</string>
+    <string name="message_screenshot_copied">Copied screenshot to the clipboard</string>
+    <string name="screen_stopping">Finishing the recording</string>
+    <string name="screen_saving">Saving the recording</string>
+    <string name="message_screenshot_saved">Saved screenshot to %1$s</string>
+    <string name="message_recording_saved">Saved recording to %1$s</string>
+    <string name="message_recording_discarded">Recording left on the device, not saved</string>
+    <string name="message_screen_failed">That did not work: %1$s</string>
+</resources>

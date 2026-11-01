@@ -13,6 +13,7 @@ data class AppsUiState(
     val details: AppDetailsState = AppDetailsState.Hidden,
     val runningAction: AppAction? = null,
     val pendingConfirmation: AppAction? = null,
+    val isInstalling: Boolean = false,
 ) {
     val visiblePackages: List<String>
         get() = (list as? AppListState.Loaded)?.packages.orEmpty().filter { it.contains(query.trim(), ignoreCase = true) }
