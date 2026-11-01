@@ -2,23 +2,23 @@
 
 A desktop GUI for `adb`, built with Compose Multiplatform for Windows, macOS and Linux.
 
-- **Devices**: live list over USB, emulator and Wi-Fi with battery and CPU usage, connect, pair and disconnect over
-  Wi-Fi, including devices discovered on the network.
+- **Overview**: the selected device's battery, CPU and Android version with quick actions, plus every other device over
+  USB, emulator and Wi-Fi. Connect, pair and disconnect over Wi-Fi, including devices discovered on the network.
 - **Apps**: browse and filter packages with their own icons, updated the moment an app is installed or removed
   anywhere, see details, open, force stop, clear cache or data, uninstall, install APKs by picking or dropping them.
 - **Files**: browse the device, upload and download with progress, drop files on the window, delete and create folders.
 - **Logcat**: live stream with level, text and package filters, pause, clear and export.
 - **Shell**: a real terminal on the device, with colors, full-screen programs such as `top` and `vi`, CJK text and emoji in
   their full width, and input methods for typing them.
-- **Screen**: live mirroring you can use with mouse and keyboard as in scrcpy, pinned beside every section if you like,
-  plus screenshots, copied to the clipboard or saved, and screen recording with a running clock.
+- **Phone**: the live screen in a panel beside every section, usable with mouse and keyboard as in scrcpy.
+- **Screen**: screenshots, copied to the clipboard or saved, and screen recording with a running clock.
 - **Settings**: choose the adb executable and the theme.
 
 Everything on screen stays current on its own: changes made on the device, by other tools or by this app appear
 without a refresh, and failures clear once their cause is gone. Screens that are hidden or minimized stop reading from
 the device.
 
-Actions apply to the device picked in the sidebar. See [docs/ROADMAP.md](docs/ROADMAP.md) for what comes next.
+Actions apply to the device picked at the top left. See [docs/ROADMAP.md](docs/ROADMAP.md) for what comes next.
 
 ## Requirements
 
@@ -37,7 +37,8 @@ Actions apply to the device picked in the sidebar. See [docs/ROADMAP.md](docs/RO
 ./gradlew :desktopApp:packageDistributionForCurrentOS  # build a native installer (dmg, msi or deb)
 ```
 
-Keyboard shortcuts: `Ctrl+1` to `Ctrl+7` open the sections in sidebar order (`Cmd` on macOS).
+Keyboard shortcuts: `Ctrl+1` to `Ctrl+6` open the tabs in order, `Ctrl+7` opens Settings and `Ctrl+K` opens the command
+palette (`Cmd` on macOS).
 
 ## Check
 
