@@ -11,7 +11,11 @@ sealed interface LogcatIntent {
 
     data class QueryChanged(val value: String) : LogcatIntent
 
+    data class PackageChanged(val value: String) : LogcatIntent
+
     data object PauseToggled : LogcatIntent
+
+    data object ExportClicked : LogcatIntent
 
     data object ClearClicked : LogcatIntent
 

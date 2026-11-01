@@ -33,6 +33,8 @@ import com.tlpcraft.adbdesktop.feature.logcat.contract.LogcatUiState
 import com.tlpcraft.adbdesktop.feature.logcat.resources.Res
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_clear
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_clear_failed
+import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_export
+import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_exported
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_failed_title
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_level_debug
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_level_error
@@ -42,12 +44,15 @@ import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_level_verbose
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_level_warning
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_no_device_description
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_no_device_title
+import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_package_not_running
+import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_package_placeholder
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_pause
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_resume
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_retry
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_search_placeholder
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_title
 import com.tlpcraft.adbdesktop.feature.logcat.resources.logcat_waiting
+import com.tlpcraft.adbdesktop.uikit.component.Badge
 import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.Chip
@@ -57,6 +62,7 @@ import com.tlpcraft.adbdesktop.uikit.component.MonospaceText
 import com.tlpcraft.adbdesktop.uikit.component.SearchField
 import com.tlpcraft.adbdesktop.uikit.component.Text
 import com.tlpcraft.adbdesktop.uikit.component.TextEmphasis
+import com.tlpcraft.adbdesktop.uikit.component.TextField
 import com.tlpcraft.adbdesktop.uikit.component.Tone
 import com.tlpcraft.adbdesktop.uikit.component.TopBar
 import com.tlpcraft.adbdesktop.uikit.icon.IconName
@@ -80,9 +86,7 @@ fun LogcatScreen(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier,
     }
     LaunchedEffect(viewModel) {
         viewModel.sideEffects.collect { effect ->
-            when (effect) {
-                LogcatSideEffect.ClearFailed -> currentOnShowMessage(getString(Res.string.logcat_clear_failed))
-            }
+            currentOnShowMessage(effect.message())
         }
     }
 
@@ -104,7 +108,12 @@ fun LogcatContent(uiState: LogcatUiState, onIntent: (LogcatIntent) -> Unit, modi
                 )
             }
         } else {
-            FilterBar(filter = uiState.filter, onIntent = onIntent)
+            FilterBar(
+                filter = uiState.filter,
+                packageName = uiState.packageName,
+                showsPackageNotRunning = uiState.showsPackageNotRunning,
+                onIntent = onIntent,
+            )
             Divider()
             LogBody(uiState = uiState, onRetry = { onIntent(LogcatIntent.RetryClicked) }, modifier = Modifier.weight(1f))
         }
@@ -118,6 +127,9 @@ private fun RowScope.LogcatActions(isPaused: Boolean, onIntent: (LogcatIntent) -
         onClick = { onIntent(LogcatIntent.PauseToggled) },
         icon = if (isPaused) IconName.Play else IconName.Pause,
     )
+    Button(text = stringResource(Res.string.logcat_export), onClick = {
+        onIntent(LogcatIntent.ExportClicked)
+    }, variant = ButtonVariant.Ghost, icon = IconName.Download)
     Button(
         text = stringResource(Res.string.logcat_clear),
         onClick = { onIntent(LogcatIntent.ClearClicked) },
@@ -127,7 +139,12 @@ private fun RowScope.LogcatActions(isPaused: Boolean, onIntent: (LogcatIntent) -
 }
 
 @Composable
-private fun FilterBar(filter: LogFilter, onIntent: (LogcatIntent) -> Unit) {
+private fun FilterBar(
+    filter: LogFilter,
+    packageName: String,
+    showsPackageNotRunning: Boolean,
+    onIntent: (LogcatIntent) -> Unit,
+) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(AppTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
@@ -138,6 +155,19 @@ private fun FilterBar(filter: LogFilter, onIntent: (LogcatIntent) -> Unit) {
             onQueryChange = { onIntent(LogcatIntent.QueryChanged(it)) },
             placeholder = stringResource(Res.string.logcat_search_placeholder),
             modifier = Modifier.weight(1f),
+        )
+        TextField(
+            value = packageName,
+            onValueChange = { onIntent(LogcatIntent.PackageChanged(it)) },
+            modifier = Modifier.width(240.dp),
+            placeholder = stringResource(Res.string.logcat_package_placeholder),
+            leadingIcon = IconName.Package,
+            monospace = true,
+            trailing = if (showsPackageNotRunning) {
+                { Badge(stringResource(Res.string.logcat_package_not_running), tone = Tone.Warning) }
+            } else {
+                null
+            },
         )
         Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.xs)) {
             LogLevel.entries.forEach { level ->
@@ -191,6 +221,11 @@ private fun LogLine(entry: LogEntry) {
         MonospaceText(entry.tag, modifier = Modifier.width(180.dp), emphasis = TextEmphasis.Medium, maxLines = 1)
         MonospaceText(entry.message, modifier = Modifier.weight(1f), tone = entry.level.tone)
     }
+}
+
+private suspend fun LogcatSideEffect.message(): String = when (this) {
+    LogcatSideEffect.ClearFailed -> getString(Res.string.logcat_clear_failed)
+    is LogcatSideEffect.Exported -> getString(Res.string.logcat_exported, entryCount, path)
 }
 
 private val LogLevel.label: StringResource

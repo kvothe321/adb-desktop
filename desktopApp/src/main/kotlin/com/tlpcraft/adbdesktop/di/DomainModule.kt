@@ -19,6 +19,7 @@ import com.tlpcraft.adbdesktop.core.domain.usecase.files.DownloadFileUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.ListFilesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.files.UploadFileUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.logcat.ClearLogcatUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.logcat.ObserveAppProcessesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.logcat.ObserveLogcatUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.CaptureScreenshotUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.RecordScreenUseCase
@@ -56,6 +57,7 @@ val domainModule = module {
     factoryOf(::UploadFileUseCase)
     factoryOf(::ClearLogcatUseCase)
     factoryOf(::ObserveLogcatUseCase)
+    factoryOf(::ObserveAppProcessesUseCase)
     factoryOf(::CaptureScreenshotUseCase)
     factoryOf(::RecordScreenUseCase)
     factoryOf(::SaveRecordingUseCase)

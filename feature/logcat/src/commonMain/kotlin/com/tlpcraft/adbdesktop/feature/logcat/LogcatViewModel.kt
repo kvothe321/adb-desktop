@@ -4,8 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.model.LogEntry
+import com.tlpcraft.adbdesktop.core.domain.model.toThreadTimeLine
+import com.tlpcraft.adbdesktop.core.domain.service.HostFiles
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.logcat.ClearLogcatUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.logcat.ObserveAppProcessesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.logcat.ObserveLogcatUseCase
 import com.tlpcraft.adbdesktop.feature.logcat.contract.LogRow
 import com.tlpcraft.adbdesktop.feature.logcat.contract.LogcatIntent
@@ -29,6 +32,8 @@ class LogcatViewModel(
     private val observeSelectedDevice: ObserveSelectedDeviceUseCase,
     private val observeLogcat: ObserveLogcatUseCase,
     private val clearLogcat: ClearLogcatUseCase,
+    private val observeAppProcesses: ObserveAppProcessesUseCase,
+    private val hostFiles: HostFiles,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LogcatUiState())
@@ -39,11 +44,13 @@ class LogcatViewModel(
 
     private val isScreenOpen = MutableStateFlow(false)
     private val streamRequests = MutableStateFlow(0)
+    private val packageName = MutableStateFlow("")
     private val buffer = ArrayDeque<LogRow>()
     private var nextRowId = 0L
 
     init {
         streamWhileOpen()
+        followPackageProcesses()
     }
 
     fun reduceIntent(intent: LogcatIntent) {
@@ -52,9 +59,51 @@ class LogcatViewModel(
             LogcatIntent.ScreenClosed -> isScreenOpen.value = false
             is LogcatIntent.LevelSelected -> _uiState.update { it.copy(filter = it.filter.copy(minimumLevel = intent.level)) }
             is LogcatIntent.QueryChanged -> _uiState.update { it.copy(filter = it.filter.copy(query = intent.value)) }
+            is LogcatIntent.PackageChanged -> onPackageChanged(intent.value)
             LogcatIntent.PauseToggled -> togglePause()
+            LogcatIntent.ExportClicked -> export()
             LogcatIntent.ClearClicked -> clear()
             LogcatIntent.RetryClicked -> streamRequests.update { it + 1 }
+        }
+    }
+
+    private fun onPackageChanged(value: String) {
+        _uiState.update { it.copy(packageName = value) }
+        packageName.value = value.trim()
+    }
+
+    /** Processes pile up instead of being replaced, so a crash stays visible after the app restarts with a new one. */
+    private fun followPackageProcesses() = viewModelScope.launch {
+        combine(
+            _uiState.map { it.serial }.distinctUntilChanged(),
+            packageName,
+            isScreenOpen,
+        ) { serial, name, isOpen -> Triple(serial, name, isOpen) }.collectLatest { (serial, name, isOpen) ->
+            val filtersPackage = name.isNotEmpty()
+            _uiState.update { it.copy(isPackageRunning = false, filter = it.filter.copy(processIds = if (filtersPackage) emptySet() else null)) }
+            if (serial != null && filtersPackage && isOpen) {
+                observeAppProcesses(ObserveAppProcessesUseCase.Params(serial, name)).collect(::onProcessesChanged)
+            }
+        }
+    }
+
+    private fun onProcessesChanged(processIds: Set<Int>) {
+        _uiState.update { state ->
+            state.copy(
+                isPackageRunning = processIds.isNotEmpty(),
+                filter = state.filter.copy(processIds = state.filter.processIds.orEmpty() + processIds),
+            )
+        }
+    }
+
+    private fun export() {
+        val rows = _uiState.value.visibleRows
+        if (rows.isEmpty()) return
+        viewModelScope.launch {
+            hostFiles.pickSaveLocation(EXPORT_FILE_NAME)?.let { path ->
+                hostFiles.write(path, rows.joinToString("\n", postfix = "\n") { it.entry.toThreadTimeLine() }.encodeToByteArray())
+                _sideEffects.send(LogcatSideEffect.Exported(rows.size, path))
+            }
         }
     }
 
@@ -114,5 +163,6 @@ class LogcatViewModel(
 
     private companion object {
         const val MAX_ROWS = 5_000
+        const val EXPORT_FILE_NAME = "logcat.txt"
     }
 }

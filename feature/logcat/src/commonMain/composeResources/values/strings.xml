@@ -15,5 +15,9 @@
     <string name="logcat_level_warning">Warning</string>
     <string name="logcat_level_error">Error</string>
     <string name="logcat_level_fatal">Fatal</string>
+    <string name="logcat_package_placeholder">Filter by package</string>
+    <string name="logcat_package_not_running">Not running</string>
+    <string name="logcat_export">Export</string>
+    <string name="logcat_exported">Exported %1$d entries to %2$s</string>
     <string name="logcat_clear_failed">Could not clear the device log</string>
 </resources>

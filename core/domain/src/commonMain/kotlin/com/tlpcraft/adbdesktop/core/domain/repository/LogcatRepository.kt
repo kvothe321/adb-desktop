@@ -10,4 +10,7 @@ interface LogcatRepository {
     fun observeLogs(serial: String): Flow<Outcome<List<LogEntry>, DeviceError>>
 
     suspend fun clearLogs(serial: String): Outcome<Unit, DeviceError>
+
+    /** Emits the processes running for [packageName] whenever they change. */
+    fun observeProcessIds(serial: String, packageName: String): Flow<Set<Int>>
 }
