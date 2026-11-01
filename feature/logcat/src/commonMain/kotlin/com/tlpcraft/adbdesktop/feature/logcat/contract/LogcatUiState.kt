@@ -10,6 +10,7 @@ data class LogcatUiState(
     val packageName: String = "",
     val isPackageRunning: Boolean = false,
     val isPaused: Boolean = false,
+    /** Why the stream broke while it reconnects on its own; the rows shown so far stay. */
     val failure: String? = null,
 ) {
     val visibleRows: List<LogRow>

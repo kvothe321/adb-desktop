@@ -10,6 +10,8 @@ internal object ModuleGraphRules {
         Rule(module = ":core:logger"),
         Rule(module = ":core:domain", allowed = listOf(":core:common"), testOnly = listOf(":core:testing")),
         Rule(module = ":core:testing", allowed = listOf(":core:domain", ":core:common")),
+        Rule(module = ":device-helper", testOnly = listOf(":device-helper")),
+        Rule(module = ":core:data:source:adb", allowed = listOf(":core:common", ":core:logger", ":device-helper")),
         Rule(module = ":core:data:source:*", allowed = listOf(":core:common", ":core:logger")),
         Rule(module = ":core:data:repository", allowed = listOf(":core:domain", ":core:common", ":core:data:source:*")),
         Rule(module = ":adbdesktop-ui-kit"),

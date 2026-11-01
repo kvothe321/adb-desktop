@@ -10,4 +10,8 @@ interface PreferencesDataSource {
     fun observeThemeMode(): Flow<String?>
 
     suspend fun writeThemeMode(mode: String)
+
+    fun observeMirrorPinned(): Flow<Boolean?>
+
+    suspend fun writeMirrorPinned(isPinned: Boolean)
 }

@@ -2,8 +2,10 @@ package com.tlpcraft.adbdesktop.core.data.repository
 
 import app.cash.turbine.test
 import com.tlpcraft.adbdesktop.core.common.Outcome
+import com.tlpcraft.adbdesktop.core.data.repository.fake.FakeAdbAppAppearanceDataSource
 import com.tlpcraft.adbdesktop.core.data.repository.fake.FakeAdbDeviceDataSource
 import com.tlpcraft.adbdesktop.core.data.repository.fake.FakeAdbPackageDataSource
+import com.tlpcraft.adbdesktop.core.data.repository.fake.FakeAdbPackageEventDataSource
 import com.tlpcraft.adbdesktop.core.data.repository.fake.FakePreferencesDataSource
 import com.tlpcraft.adbdesktop.core.data.repository.mapper.toDomain
 import com.tlpcraft.adbdesktop.core.data.source.adb.dto.LogEntryDto
@@ -65,7 +67,8 @@ class NewRepositoriesTest : FunSpec({
     test("install passes every APK through") {
         val source = FakeAdbPackageDataSource()
 
-        AppsRepositoryImpl(source).install("pixel", listOf("a.apk", "b.apk")) shouldBe Outcome.Success(Unit)
+        AppsRepositoryImpl(source, FakeAdbAppAppearanceDataSource(), FakeAdbPackageEventDataSource(), scope).install("pixel", listOf("a.apk", "b.apk")) shouldBe
+            Outcome.Success(Unit)
         source.installed shouldContainExactly listOf(listOf("a.apk", "b.apk"))
     }
 
@@ -84,6 +87,18 @@ class NewRepositoriesTest : FunSpec({
             AppearanceRepositoryImpl(preferences).setThemeMode(ThemeMode.DARK)
 
             preferences.themeMode.value shouldBe "DARK"
+        }
+
+        test("the mirror is not pinned until the user pins it") {
+            val preferences = FakePreferencesDataSource()
+            val repository = AppearanceRepositoryImpl(preferences)
+
+            repository.observeMirrorPinned().test {
+                awaitItem() shouldBe false
+                repository.setMirrorPinned(true)
+                awaitItem() shouldBe true
+            }
+            preferences.mirrorPinned.value shouldBe true
         }
     }
 })

@@ -2,6 +2,9 @@ package com.tlpcraft.adbdesktop.integration
 
 import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.model.MirrorFrame
+import com.tlpcraft.adbdesktop.core.domain.model.MirrorInput
+import com.tlpcraft.adbdesktop.core.domain.model.MirrorPoint
+import com.tlpcraft.adbdesktop.core.domain.model.TouchAction
 import com.tlpcraft.adbdesktop.core.domain.repository.ScreenRepository
 import com.tlpcraft.adbdesktop.di.appModules
 import io.kotest.core.annotation.EnabledIf
@@ -9,25 +12,28 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
 import java.awt.image.BufferedImage
 import java.io.File
 import javax.imageio.ImageIO
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.dsl.koinApplication
 
 private val STREAM_TIME = 5.seconds
 private val CLEANUP_TIME = 3.seconds
-
-private fun adb(serial: String, vararg args: String): String {
-    val process = ProcessBuilder(listOf("adb", "-s", serial) + args).redirectErrorStream(true).start()
-    return process.inputStream.bufferedReader().readText().also { process.waitFor() }
-}
+private val SWIPE_STEP_TIME = 16.milliseconds
+private const val SWIPE_STEPS = 20
 
 private fun MirrorFrame.toImage() = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB).also { image ->
     for (y in 0 until height) {
@@ -50,7 +56,7 @@ class MirrorIntegrationTest : FunSpec({
         var firstFrameAfter = Duration.ZERO
         var last: MirrorFrame? = null
         withTimeoutOrNull(STREAM_TIME) {
-            koin.get<ScreenRepository>().observeMirror(serial)
+            koin.get<ScreenRepository>().observeMirror(serial, emptyFlow())
                 .map { (it as? Outcome.Success)?.data ?: error("Mirror failed: $it") }
                 .collect { frame ->
                     if (count++ == 0) firstFrameAfter = started.elapsedNow()
@@ -69,4 +75,38 @@ class MirrorIntegrationTest : FunSpec({
         adb(serial, "shell", "ls", "/data/local/tmp") shouldNotContain "adb-desktop-scrcpy"
         adb(serial, "shell", "ps", "-A", "-o", "ARGS") shouldNotContain "com.genymobile.scrcpy"
     }
+
+    test("a swipe down from the top edge opens the notification shade") {
+        adb(serial, "shell", "cmd", "statusbar", "collapse")
+        val input = Channel<MirrorInput>(Channel.UNLIMITED)
+        var hasSwiped = false
+        try {
+            withTimeoutOrNull(STREAM_TIME) {
+                koin.get<ScreenRepository>().observeMirror(serial, input.receiveAsFlow())
+                    .map { (it as? Outcome.Success)?.data ?: error("Mirror failed: $it") }
+                    .collect { frame ->
+                        if (!hasSwiped) {
+                            hasSwiped = true
+                            launch { swipeDown(frame, input) }
+                        }
+                    }
+            }
+            hasSwiped shouldBe true
+            adb(serial, "shell", "dumpsys", "window").lineSequence().first { "mCurrentFocus" in it } shouldContain "NotificationShade"
+        } finally {
+            adb(serial, "shell", "cmd", "statusbar", "collapse")
+        }
+    }
 })
+
+private suspend fun swipeDown(frame: MirrorFrame, input: Channel<MirrorInput>) {
+    val x = frame.width / 2
+
+    fun at(y: Int) = MirrorPoint(x, y, frame.width, frame.height)
+    input.send(MirrorInput.Touch(TouchAction.Down, at(0)))
+    for (step in 1..SWIPE_STEPS) {
+        delay(SWIPE_STEP_TIME)
+        input.send(MirrorInput.Touch(TouchAction.Move, at(frame.height * step / SWIPE_STEPS * 2 / 3)))
+    }
+    input.send(MirrorInput.Touch(TouchAction.Up, at(frame.height * 2 / 3)))
+}

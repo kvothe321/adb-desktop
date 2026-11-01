@@ -4,6 +4,7 @@ import com.tlpcraft.adbdesktop.core.domain.model.ThemeMode
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.SelectDeviceUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.screen.ObserveMirrorPinnedUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.settings.ObserveThemeModeUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.settings.SetThemeModeUseCase
 import com.tlpcraft.adbdesktop.core.testing.FakeAppearanceRepository
@@ -40,6 +41,7 @@ class AppShellViewModelTest : FunSpec({
             selectDevice = SelectDeviceUseCase(selection),
             observeThemeMode = ObserveThemeModeUseCase(appearance),
             setThemeMode = SetThemeModeUseCase(appearance),
+            observeMirrorPinned = ObserveMirrorPinnedUseCase(appearance),
         )
     }
 
@@ -51,6 +53,15 @@ class AppShellViewModelTest : FunSpec({
         fixture.viewModel.reduceIntent(AppShellIntent.DeviceSelected("pixel"))
 
         fixture.viewModel.uiState.value.selectedDevice shouldBe DeviceOption("pixel", "Pixel 8")
+    }
+
+    test("follows whether the mirror is pinned") {
+        val fixture = Fixture()
+        fixture.viewModel.uiState.value.isMirrorPinned.shouldBeFalse()
+
+        fixture.appearance.mirrorPinned.value = true
+
+        fixture.viewModel.uiState.value.isMirrorPinned.shouldBeTrue()
     }
 
     test("the toggle stores the opposite of the theme showing") {

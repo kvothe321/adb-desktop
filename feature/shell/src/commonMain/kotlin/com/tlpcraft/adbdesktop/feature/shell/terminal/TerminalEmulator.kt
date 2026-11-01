@@ -57,7 +57,7 @@ internal class TerminalEmulator(rows: Int, columns: Int, private val onReply: (S
         return if (isAlternate) visible else scrollback + visible
     }
 
-    override fun print(text: String) = screen.put(text, style)
+    override fun print(text: String) = screen.put(text, style, columnsOf(text.codePointOf()))
 
     override fun control(code: Char) {
         when (code) {
@@ -168,16 +168,34 @@ internal class TerminalEmulator(rows: Int, columns: Int, private val onReply: (S
     }
 }
 
-/** Blank cells at the end are dropped, so copied text has no trailing spaces. */
+private const val HIGH_SURROGATE_START = 0xD800
+private const val LOW_SURROGATE_START = 0xDC00
+private const val SURROGATE_SHIFT = 10
+private const val FIRST_SUPPLEMENTARY = 0x10000
+
+/** The first code point of [this], putting surrogate pairs back together. */
+private fun String.codePointOf(): Int {
+    val high = this[0]
+    if (!high.isHighSurrogate() || length < 2) return high.code
+    return ((high.code - HIGH_SURROGATE_START) shl SURROGATE_SHIFT) + (this[1].code - LOW_SURROGATE_START) + FIRST_SUPPLEMENTARY
+}
+
+/**
+ * Blank cells at the end are dropped, so copied text has no trailing spaces. Each wide character is a span of its own,
+ * marked so the grid gives it two columns whatever its glyph measures.
+ */
 private fun Array<Cell>.toRow(id: Long, cursorColumn: Int?): TerminalRow {
     val lastUsed = indexOfLast { it != BLANK_CELL }
     val end = maxOf(lastUsed, cursorColumn ?: -1) + 1
     val spans = mutableListOf<TerminalSpan>()
     for (column in 0 until end) {
-        val cell = this[column]
-        val cellStyle = if (column == cursorColumn) cell.style.copy(isInverted = !cell.style.isInverted) else cell.style
+        if (this[column].isContinuation && getOrNull(column - 1)?.isContinuation == false) continue
+        val cell = this[column].takeUnless { it.isContinuation } ?: BLANK_CELL
+        val isWide = getOrNull(column + 1)?.isContinuation == true
+        val isCursor = column == cursorColumn || (isWide && column + 1 == cursorColumn)
+        val cellStyle = (if (isCursor) cell.style.copy(isInverted = !cell.style.isInverted) else cell.style).copy(isWide = isWide)
         val last = spans.lastOrNull()
-        if (last != null && last.copy(text = "") == cellStyle) {
+        if (!isWide && last != null && last.copy(text = "") == cellStyle) {
             spans[spans.lastIndex] = last.copy(text = last.text + cell.text)
         } else {
             spans += cellStyle.copy(text = cell.text)

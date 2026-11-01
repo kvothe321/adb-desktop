@@ -189,4 +189,18 @@ class LogcatViewModelTest : FunSpec({
         fixture.viewModel.uiState.value.failure.shouldBeNull()
         fixture.logcat.streamsStarted shouldBe 2
     }
+
+    test("rows stay while the stream reconnects, and the next entries clear the failure") {
+        val fixture = Fixture()
+        fixture.viewModel.reduceIntent(LogcatIntent.ScreenOpened)
+        fixture.logcat.logs.trySend(Outcome.Success(listOf(entry("before"))))
+
+        fixture.logcat.logs.trySend(Outcome.Failure(DeviceError.CommandFailed("device offline")))
+        fixture.viewModel.uiState.value.rows.map { it.entry.message } shouldBe listOf("before")
+
+        fixture.logcat.logs.trySend(Outcome.Success(listOf(entry("after"))))
+        fixture.viewModel.uiState.value.failure.shouldBeNull()
+        fixture.viewModel.uiState.value.rows.map { it.entry.message } shouldBe listOf("before", "after")
+        fixture.logcat.streamsStarted shouldBe 1
+    }
 })

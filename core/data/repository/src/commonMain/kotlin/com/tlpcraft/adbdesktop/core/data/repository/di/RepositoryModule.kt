@@ -38,7 +38,7 @@ val repositoryModule = module {
     singleOf(::DeviceSelectionRepositoryImpl) bind DeviceSelectionRepository::class
     single<DeviceInfoRepository> { DeviceInfoRepositoryImpl(get()) }
     single<CpuRepository> { CpuRepositoryImpl(get()) }
-    single<AppsRepository> { AppsRepositoryImpl(get()) }
+    single<AppsRepository> { AppsRepositoryImpl(get(), get(), get(), CoroutineScope(get<DispatcherProvider>().io + SupervisorJob())) }
     single<AdbSettingsRepository> { AdbSettingsRepositoryImpl(get(), get()) }
     singleOf(::AppearanceRepositoryImpl) bind AppearanceRepository::class
     single<LogcatRepository> { LogcatRepositoryImpl(get()) }
