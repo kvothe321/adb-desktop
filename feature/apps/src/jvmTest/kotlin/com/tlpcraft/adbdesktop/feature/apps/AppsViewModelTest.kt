@@ -45,7 +45,18 @@ class AppsViewModelTest : FunSpec({
         val selection = FakeDeviceSelectionRepository(selectedSerial)
         val hostFiles = FakeHostFiles()
         val viewModel = AppsViewModel(
-            observeSelectedDevice = ObserveSelectedDeviceUseCase(ObserveDevicesUseCase(FakeDeviceRepository(listOf(onlineDevice("pixel")))), selection),
+            observeSelectedDevice = ObserveSelectedDeviceUseCase(
+                ObserveDevicesUseCase(
+                    FakeDeviceRepository(
+                        listOfNotNull(
+                            selectedSerial?.let {
+                                onlineDevice(it)
+                            },
+                        ),
+                    ),
+                ),
+                selection,
+            ),
             observeApps = ObserveAppsUseCase(apps),
             observeAppDetails = ObserveAppDetailsUseCase(apps),
             executeAppAction = ExecuteAppActionUseCase(apps),

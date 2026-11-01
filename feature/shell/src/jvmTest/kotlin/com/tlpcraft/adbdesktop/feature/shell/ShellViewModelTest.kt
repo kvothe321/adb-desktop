@@ -1,5 +1,6 @@
 package com.tlpcraft.adbdesktop.feature.shell
 
+import com.tlpcraft.adbdesktop.core.common.Outcome
 import com.tlpcraft.adbdesktop.core.domain.model.TerminalSize
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
@@ -29,10 +30,11 @@ class ShellViewModelTest : FunSpec({
 
     class Fixture(selectedSerial: String? = "pixel", isMeasured: Boolean = true) {
         val shell = FakeShellRepository()
+        val devices = FakeDeviceRepository(listOfNotNull(selectedSerial?.let { onlineDevice(it) }))
         val selection = FakeDeviceSelectionRepository(selectedSerial)
         val clipboard = FakeHostClipboard()
         val viewModel = ShellViewModel(
-            observeSelectedDevice = ObserveSelectedDeviceUseCase(ObserveDevicesUseCase(FakeDeviceRepository(listOf(onlineDevice("pixel")))), selection),
+            observeSelectedDevice = ObserveSelectedDeviceUseCase(ObserveDevicesUseCase(devices), selection),
             runShellSession = RunShellSessionUseCase(shell),
             hostClipboard = clipboard,
         ).apply { if (isMeasured) reduceIntent(ShellIntent.TerminalResized(rows = 24, columns = 80)) }
@@ -97,11 +99,11 @@ class ShellViewModelTest : FunSpec({
         fixture.shell.sessionsStarted shouldBe 2
     }
 
-    test("switching devices starts over") {
+    test("losing the device starts over") {
         val fixture = Fixture()
         fixture.type("ls")
 
-        fixture.selection.select(null)
+        fixture.devices.devices.value = Outcome.Success(emptyList())
 
         fixture.state.session shouldBe SessionState.NoDevice
         fixture.screen().shouldBeEmpty()
