@@ -4,12 +4,17 @@ A desktop GUI for `adb`, built with Compose Multiplatform for Windows, macOS and
 
 - **Devices**: live list over USB, emulator and Wi-Fi with battery and CPU usage, connect, pair and disconnect over
   Wi-Fi, including devices discovered on the network.
-- **Apps**: browse and filter packages, see details, open, force stop, clear cache or data, uninstall, install APKs.
-- **Files**: browse the device, upload, download, delete and create folders.
-- **Logcat**: live stream with level and text filters, pause and clear.
-- **Shell**: interactive session with command history.
-- **Screen**: screenshots and screen recording.
+- **Apps**: browse and filter packages, see details, open, force stop, clear cache or data, uninstall, install APKs
+  by picking or dropping them.
+- **Files**: browse the device, upload and download with progress, drop files on the window, delete and create folders.
+- **Logcat**: live stream with level, text and package filters, pause, clear and export.
+- **Shell**: a real terminal on the device, with colors and full-screen programs such as `top` and `vi`.
+- **Screen**: screenshots, copied to the clipboard or saved, and screen recording with a running clock.
 - **Settings**: choose the adb executable and the theme.
+
+Everything on screen stays current on its own: changes made on the device, by other tools or by this app appear
+without a refresh, and failures clear once their cause is gone. Screens that are hidden or minimized stop reading from
+the device.
 
 Actions apply to the device picked in the sidebar. See [docs/ROADMAP.md](docs/ROADMAP.md) for what comes next.
 
@@ -55,14 +60,22 @@ ADB_TEST_SERIAL=emulator-5554 ./gradlew :desktopApp:test --rerun --tests '*Devic
 - **Data and cache sizes** need a recent Android version; older ones show them as unknown.
 - **Screen recording** stops after 3 minutes, which is Android's limit.
 
+## Terminal
+
+Ctrl+C goes to the running program, as in any terminal. Paste with Ctrl+Shift+V, and copy a selection from its
+context menu. Colors beyond the 16 of the theme map to the closest one. Characters are one cell wide, so CJK text and
+emoji can misalign, and input methods and dead keys are not supported.
+
 ## Continuous integration
 
 - [`ci.yml`](.github/workflows/ci.yml) runs `./gradlew check` once on Linux for pushes to `main` and for pull
   requests. On macOS and Windows it runs only the specs tagged `platform`, which cover the code that depends on the
   host (finding and running executables, the settings file):
   `./gradlew :core:data:source:adb:jvmTest :core:data:source:preferences:jvmTest -Pkotest.tags=platform`.
-- [`package.yml`](.github/workflows/package.yml) builds the deb, dmg and msi on their native runners when a `v*` tag
-  is pushed, or on demand, and uploads them as artifacts.
+- [`ci.yml`](.github/workflows/ci.yml) also runs `DeviceIntegrationTest` on an Android emulator.
+- [`package.yml`](.github/workflows/package.yml) builds the deb, dmg and msi on their native runners, on demand or when
+  a tag is pushed. A tag such as `v1.2.0` sets the version and publishes the installers as a GitHub release. Tags need
+  a major version of at least 1, because the dmg format refuses 0.
 
 ## Modules
 
