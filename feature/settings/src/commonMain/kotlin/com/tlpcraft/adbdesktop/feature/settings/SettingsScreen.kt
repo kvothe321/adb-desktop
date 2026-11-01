@@ -66,7 +66,9 @@ fun SettingsScreen(modifier: Modifier = Modifier, viewModel: SettingsViewModel =
 fun SettingsContent(uiState: SettingsUiState, onIntent: (SettingsIntent) -> Unit, modifier: Modifier = Modifier) {
     Page(title = stringResource(Res.string.settings_title), modifier = modifier) {
         Column(
-            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxSize().verticalScroll(
+                rememberScrollState(),
+            ).padding(start = AppTheme.spacing.md, end = AppTheme.spacing.md, bottom = AppTheme.spacing.md),
             verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.lg),
         ) {
             Section(title = stringResource(Res.string.settings_adb_section)) {

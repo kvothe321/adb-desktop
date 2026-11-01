@@ -166,9 +166,9 @@ private fun OverviewGrid(uiState: DevicesUiState, onIntent: (DevicesIntent) -> U
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = TILE_MIN_WIDTH),
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(top = AppTheme.spacing.xxs, bottom = AppTheme.spacing.xs),
-        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.lg),
-        verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.lg),
+        contentPadding = PaddingValues(start = AppTheme.spacing.md, end = AppTheme.spacing.md, bottom = AppTheme.spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
+        verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
     ) {
         if (selected != null) {
             stats?.batteryLevel?.let { level ->

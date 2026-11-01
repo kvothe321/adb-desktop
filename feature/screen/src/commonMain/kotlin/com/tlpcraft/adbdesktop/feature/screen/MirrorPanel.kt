@@ -69,7 +69,7 @@ import com.tlpcraft.adbdesktop.uikit.component.Badge
 import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.ControlSize
-import com.tlpcraft.adbdesktop.uikit.component.DeviceFrame
+import com.tlpcraft.adbdesktop.uikit.component.DeviceScreen
 import com.tlpcraft.adbdesktop.uikit.component.EmptyState
 import com.tlpcraft.adbdesktop.uikit.component.IconButton
 import com.tlpcraft.adbdesktop.uikit.component.PixelImage
@@ -112,12 +112,12 @@ fun MirrorPanel(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier, 
     MirrorContent(uiState = uiState, onIntent = viewModel::reduceIntent, modifier = modifier)
 }
 
-/** The phone panel: a live device in a phone frame, with its own buttons underneath. */
+/** The phone panel: the live device screen, with its own buttons underneath. */
 @Composable
 fun MirrorContent(uiState: MirrorUiState, onIntent: (MirrorIntent) -> Unit, modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier.fillMaxSize().padding(AppTheme.spacing.lg),
-        verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
+        modifier = modifier.fillMaxSize().padding(AppTheme.spacing.sm),
+        verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         PanelHeader(uiState = uiState, onIntent = onIntent)
@@ -129,11 +129,11 @@ fun MirrorContent(uiState: MirrorUiState, onIntent: (MirrorIntent) -> Unit, modi
                     icon = IconName.Mirror,
                 )
 
-                uiState.mirror is MirrorState.Live -> DeviceFrame(aspectRatio = uiState.mirror.frame.aspectRatio) {
+                uiState.mirror is MirrorState.Live -> DeviceScreen(aspectRatio = uiState.mirror.frame.aspectRatio) {
                     MirrorSurface(frame = uiState.mirror.frame, onIntent = onIntent)
                 }
 
-                else -> DeviceFrame(aspectRatio = IDLE_ASPECT_RATIO) {
+                else -> DeviceScreen(aspectRatio = IDLE_ASPECT_RATIO) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         if (uiState.mirror == MirrorState.Starting) {
                             ProgressIndicator()
@@ -180,7 +180,7 @@ private fun PanelHeader(uiState: MirrorUiState, onIntent: (MirrorIntent) -> Unit
 private val MirrorFrame.aspectRatio: Float
     get() = width.toFloat() / height
 
-/** A typical phone, for the frame shown before the first picture arrives. */
+/** A typical phone, for the screen shown before the first picture arrives. */
 private const val IDLE_ASPECT_RATIO = 9f / 19.5f
 
 @Composable
@@ -194,6 +194,7 @@ private fun DeviceButtons(onClick: (DeviceButton) -> Unit) {
                 icon = button.icon,
                 contentDescription = stringResource(button.label),
                 onClick = { onClick(button) },
+                size = ControlSize.Small,
             )
         }
     }

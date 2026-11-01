@@ -151,7 +151,7 @@ private fun FilterBar(
     showsPackageNotRunning: Boolean,
     onIntent: (LogcatIntent) -> Unit,
 ) {
-    BoxWithConstraints(Modifier.fillMaxWidth().padding(bottom = AppTheme.spacing.lg)) {
+    BoxWithConstraints(Modifier.fillMaxWidth().padding(start = AppTheme.spacing.md, end = AppTheme.spacing.md, bottom = AppTheme.spacing.md)) {
         val search: @Composable RowScope.() -> Unit = {
             SearchField(
                 query = filter.query,

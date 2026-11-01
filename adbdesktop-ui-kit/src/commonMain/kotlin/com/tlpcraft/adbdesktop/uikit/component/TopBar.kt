@@ -24,12 +24,12 @@ import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
 @Composable
 fun TopBar(title: String, modifier: Modifier = Modifier, actions: @Composable RowScope.() -> Unit = {}) {
     BoxWithConstraints(modifier.fillMaxWidth()) {
-        val isNarrow = maxWidth < NARROW_PAGE_WIDTH
+        val isNarrow = maxWidth < NARROW_WIDTH
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = if (isNarrow) NARROW_HEIGHT else HEIGHT)
-                .padding(horizontal = pageInset(isNarrow)),
+                .padding(horizontal = AppTheme.spacing.md),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm),
         ) {
@@ -39,8 +39,9 @@ fun TopBar(title: String, modifier: Modifier = Modifier, actions: @Composable Ro
     }
 }
 
-private val HEIGHT = 76.dp
-private val NARROW_HEIGHT = 56.dp
+private val NARROW_WIDTH = 640.dp
+private val HEIGHT = 56.dp
+private val NARROW_HEIGHT = 48.dp
 
 @UiKitPreview
 @Composable

@@ -140,7 +140,7 @@ private fun WorkspaceBar(
 ) {
     val isCompact = AppTheme.windowWidth == WindowWidth.Compact
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = AppTheme.spacing.lg, vertical = AppTheme.spacing.md),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = AppTheme.spacing.md, vertical = AppTheme.spacing.sm),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
     ) {

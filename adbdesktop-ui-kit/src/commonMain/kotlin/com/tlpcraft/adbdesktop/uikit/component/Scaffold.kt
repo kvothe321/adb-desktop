@@ -23,7 +23,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalDensity
@@ -38,7 +37,7 @@ import com.tlpcraft.adbdesktop.uikit.theme.WindowWidth
 
 /**
  * Top-level window layout: a [topBar] above the main [content], with messages from [messageHostState] floating above
- * it. A [side] panel, when given, floats on the right as a card the user can widen by dragging its edge. It also
+ * it. A [side] panel, when given, fills the right edge and the user can widen it by dragging its border. It also
  * decides [AppTheme.windowWidth] from the room the window gives. `modifier` is for layout only.
  */
 @Composable
@@ -54,7 +53,8 @@ fun Scaffold(
         val sideMaxWidth = maxWidth * SIDE_MAX_SHARE
         CompositionLocalProvider(LocalWindowWidth provides windowWidth) {
             Column(Modifier.fillMaxSize()) {
-                topBar()
+                Box(Modifier.fillMaxWidth().background(AppTheme.colors.surface)) { topBar() }
+                Divider()
                 Row(Modifier.weight(1f).fillMaxWidth()) {
                     Box(Modifier.weight(1f).fillMaxHeight()) {
                         Column(Modifier.fillMaxSize()) { content() }
@@ -96,24 +96,17 @@ private fun SidePanel(maxWidth: Dp, windowWidth: WindowWidth, content: @Composab
     val dragState = rememberDraggableState { delta ->
         dragged = (width - with(density) { delta.toDp() }).coerceIn(SIDE_MIN_WIDTH, maxWidth.coerceAtLeast(SIDE_MIN_WIDTH))
     }
-    Row(Modifier.fillMaxHeight().padding(bottom = AppTheme.spacing.lg)) {
+    Row(Modifier.fillMaxHeight().background(AppTheme.colors.surface)) {
         Box(
             Modifier
                 .width(SIDE_HANDLE_WIDTH)
                 .fillMaxHeight()
                 .pointerHoverIcon(HorizontalResizePointer)
                 .draggable(dragState, Orientation.Horizontal),
-        )
-        Box(
-            Modifier
-                .padding(end = AppTheme.spacing.lg)
-                .width(width)
-                .fillMaxHeight()
-                .surfaceCard(AppTheme.colors, AppTheme.shapes.large)
-                .clip(AppTheme.shapes.large),
         ) {
-            content()
+            Divider(orientation = DividerOrientation.Vertical)
         }
+        Box(Modifier.width(width).fillMaxHeight()) { content() }
     }
 }
 

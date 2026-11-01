@@ -21,8 +21,6 @@ internal data class AppColors(
     val success: Color,
     val warning: Color,
     val error: Color,
-    /** The frame drawn around a mirrored phone screen. */
-    val deviceBezel: Color,
     /** A phone screen that shows nothing yet. */
     val deviceScreen: Color,
     val isDark: Boolean,
@@ -45,7 +43,6 @@ internal val LightColors = AppColors(
     success = Color(0xFF1E9E52),
     warning = Color(0xFFC77C02),
     error = Color(0xFFE0342B),
-    deviceBezel = Color(0xFF1D1D1F),
     deviceScreen = Color(0xFF0B0B0D),
     isDark = false,
     terminalPalette = listOf(
@@ -84,7 +81,6 @@ internal val DarkColors = AppColors(
     success = Color(0xFF30D158),
     warning = Color(0xFFFF9F0A),
     error = Color(0xFFFF453A),
-    deviceBezel = Color(0xFF3A3A3E),
     deviceScreen = Color(0xFF050506),
     isDark = true,
     terminalPalette = listOf(
