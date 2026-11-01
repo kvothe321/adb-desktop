@@ -108,7 +108,7 @@ fun LogcatContent(uiState: LogcatUiState, onIntent: (LogcatIntent) -> Unit, modi
                 EmptyState(
                     title = stringResource(Res.string.logcat_no_device_title),
                     description = stringResource(Res.string.logcat_no_device_description),
-                    icon = IconName.List,
+                    icon = IconName.DocumentText,
                 )
             }
         } else {

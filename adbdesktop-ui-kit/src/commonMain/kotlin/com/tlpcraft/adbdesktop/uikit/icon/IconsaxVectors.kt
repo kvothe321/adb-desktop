@@ -71,6 +71,16 @@ internal val CameraVector: ImageVector by lazy {
     )
 }
 
+internal val CategoryVector: ImageVector by lazy {
+    iconsax(
+        "Category",
+        stroke("M5 10H7C9 10 10 9 10 7V5C10 3 9 2 7 2H5C3 2 2 3 2 5V7C2 9 3 10 5 10Z"),
+        stroke("M17 10H19C21 10 22 9 22 7V5C22 3 21 2 19 2H17C15 2 14 3 14 5V7C14 9 15 10 17 10Z"),
+        stroke("M17 22H19C21 22 22 21 22 19V17C22 15 21 14 19 14H17C15 14 14 15 14 17V19C14 21 15 22 17 22Z"),
+        stroke("M5 22H7C9 22 10 21 10 19V17C10 15 9 14 7 14H5C3 14 2 15 2 17V19C2 21 3 22 5 22Z"),
+    )
+}
+
 internal val CheckVector: ImageVector by lazy {
     iconsax(
         "Check",
@@ -181,12 +191,13 @@ internal val InfoVector: ImageVector by lazy {
     )
 }
 
-internal val ListVector: ImageVector by lazy {
+internal val DocumentTextVector: ImageVector by lazy {
     iconsax(
-        "List",
-        stroke("M3 7H21"),
-        stroke("M3 12H21"),
-        stroke("M3 17H21"),
+        "DocumentText",
+        stroke("M21 7V17C21 20 19.5 22 16 22H8C4.5 22 3 20 3 17V7C3 4 4.5 2 8 2H16C19.5 2 21 4 21 7Z"),
+        stroke("M14.5 4.5V6.5C14.5 7.6 15.4 8.5 16.5 8.5H18.5"),
+        stroke("M8 13H12"),
+        stroke("M8 17H16"),
     )
 }
 
@@ -204,18 +215,23 @@ internal val LockVector: ImageVector by lazy {
 internal val MirrorVector: ImageVector by lazy {
     iconsax(
         "Mirror",
+        stroke("M2 9V8C2 5 4 3 7 3H17C20 3 22 5 22 8V16C22 19 20 21 17 21H16"),
+        stroke("M3.68994 11.7109C8.30994 12.3009 11.6999 15.701 12.2999 20.321"),
+        stroke("M2.62 15.0703C6.01 15.5003 8.5 18.0003 8.94 21.3903"),
+        stroke("M1.97998 18.8613C3.66998 19.0813 4.91998 20.3213 5.13998 22.0213"),
+    )
+}
+
+internal val MonitorVector: ImageVector by lazy {
+    iconsax(
+        "Monitor",
         stroke(
-            "M10 16.9493H6.21C2.84 16.9493 2 16.1093 2 12.7393V6.7393C2 3.3693 2.84 2.5293 6.21 2.5293H16.74C20.11 2.5293 20.95 3.3693 20.95 6." +
-                "7393",
+            "M6.44 2H17.55C21.11 2 22 2.89 22 6.44V12.77C22 16.33 21.11 17.21 17.56 17.21H6.44C2.89 17.22 2 16.33 2 12.78V6.44C2 2.89 2.89 2 6." +
+                "44 2Z",
         ),
-        stroke("M10 21.4692V16.9492"),
-        stroke("M2 12.9492H10"),
-        stroke("M6.73999 21.4707H9.99999"),
-        stroke(
-            "M22 12.7998V18.5098C22 20.8798 21.41 21.4698 19.04 21.4698H15.49C13.12 21.4698 12.53 20.8798 12.53 18.5098V12.7998C12.53 10.4298 1" +
-                "3.12 9.83984 15.49 9.83984H19.04C21.41 9.83984 22 10.4298 22 12.7998Z",
-        ),
-        stroke("M17.2445 18.25H17.2535", width = 2f),
+        stroke("M12 17.2207V22.0007"),
+        stroke("M2 13H22"),
+        stroke("M7.5 22H16.5"),
     )
 }
 
@@ -254,18 +270,6 @@ internal val PauseVector: ImageVector by lazy {
             "M21 19.11V4.89C21 3.54 20.43 3 18.99 3H15.36C13.93 3 13.35 3.54 13.35 4.89V19.11C13.35 20.46 13.92 21 15.36 21H18.99C20.43 21 21 2" +
                 "0.46 21 19.11Z",
         ),
-    )
-}
-
-internal val PinVector: ImageVector by lazy {
-    iconsax(
-        "Pin",
-        stroke(
-            "M21.97 15V9C21.97 4 19.97 2 14.97 2H8.96997C3.96997 2 1.96997 4 1.96997 9V15C1.96997 20 3.96997 22 8.96997 22H14.97C19.97 22 21.97" +
-                " 20 21.97 15Z",
-        ),
-        stroke("M14.97 2V22"),
-        stroke("M7.96997 9.43945L10.53 11.9995L7.96997 14.5595"),
     )
 }
 
@@ -312,11 +316,8 @@ internal val RotateVector: ImageVector by lazy {
 internal val SearchVector: ImageVector by lazy {
     iconsax(
         "Search",
-        stroke("M11 20C15.9706 20 20 15.9706 20 11C20 6.02944 15.9706 2 11 2C6.02944 2 2 6.02944 2 11C2 15.9706 6.02944 20 11 20Z"),
-        stroke(
-            "M18.8978 20.4629C19.1822 22.1242 20.3546 22.4637 21.4838 21.2188C22.5159 20.0805 22.1195 18.9585 20.5969 18.7278C19.4713 18.5472 1" +
-                "8.7052 19.3313 18.8978 20.4629Z",
-        ),
+        stroke("M11.5 21C16.7467 21 21 16.7467 21 11.5C21 6.25329 16.7467 2 11.5 2C6.25329 2 2 6.25329 2 11.5C2 16.7467 6.25329 21 11.5 21Z"),
+        stroke("M22 22L20 20"),
     )
 }
 

@@ -88,7 +88,7 @@ private val QuickAction.icon: IconName
         QuickAction.InstallApk -> IconName.Upload
         QuickAction.Apps -> IconName.Package
         QuickAction.Files -> IconName.Folder
-        QuickAction.Logcat -> IconName.List
+        QuickAction.Logcat -> IconName.DocumentText
         QuickAction.Shell -> IconName.Terminal
     }
 

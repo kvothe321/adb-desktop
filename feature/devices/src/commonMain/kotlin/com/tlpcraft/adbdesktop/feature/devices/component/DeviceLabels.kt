@@ -47,7 +47,7 @@ internal val ConnectionType.icon: IconName
     get() = when (this) {
         ConnectionType.USB -> IconName.Devices
         ConnectionType.WIRELESS -> IconName.Wifi
-        ConnectionType.EMULATOR -> IconName.Mirror
+        ConnectionType.EMULATOR -> IconName.Monitor
     }
 
 internal val ConnectionType.label: StringResource

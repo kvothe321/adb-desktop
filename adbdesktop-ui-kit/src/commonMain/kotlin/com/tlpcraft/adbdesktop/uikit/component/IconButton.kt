@@ -68,6 +68,6 @@ private fun IconButtonPreview() = PreviewContext {
         IconButton(IconName.Refresh, contentDescription = "Refresh", onClick = {})
         IconButton(IconName.Close, contentDescription = "Close", onClick = {}, size = ControlSize.Small)
         IconButton(IconName.Delete, contentDescription = "Delete", onClick = {}, enabled = false)
-        IconButton(IconName.Pin, contentDescription = "Pin", onClick = {}, selected = true)
+        IconButton(IconName.Mirror, contentDescription = "Phone", onClick = {}, selected = true)
     }
 }

@@ -18,10 +18,10 @@ import org.jetbrains.compose.resources.stringResource
 
 /** Top-level destinations, in tab order. Each is reached with Ctrl (Cmd on macOS) plus [shortcutDigit]. */
 enum class Section(val route: NavKey, val label: StringResource, val icon: IconName) {
-    Devices(DevicesRoute, Res.string.section_devices, IconName.Devices),
+    Devices(DevicesRoute, Res.string.section_devices, IconName.Category),
     Apps(AppsRoute, Res.string.section_apps, IconName.Package),
     Files(FilesRoute, Res.string.section_files, IconName.Folder),
-    Logcat(LogcatRoute, Res.string.section_logcat, IconName.List),
+    Logcat(LogcatRoute, Res.string.section_logcat, IconName.DocumentText),
     Shell(ShellRoute, Res.string.section_shell, IconName.Terminal),
     Screen(ScreenRoute, Res.string.section_screen, IconName.Camera),
     Settings(SettingsRoute, Res.string.section_settings, IconName.Settings),
