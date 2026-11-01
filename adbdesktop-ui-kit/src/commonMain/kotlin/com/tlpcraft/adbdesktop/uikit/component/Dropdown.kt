@@ -51,34 +51,19 @@ fun <T> Dropdown(
     val background = if (hovered) AppTheme.colors.surfaceHover else AppTheme.colors.surfaceRaised
 
     Box(modifier) {
-        if (icon != null && isSidebarRail()) {
-            Tooltip(selected?.let(itemLabel) ?: placeholder) {
-                Box(
-                    Modifier
-                        .size(RAIL_TRIGGER_SIZE)
-                        .clip(AppTheme.shapes.pill)
-                        .background(background)
-                        .interactive(interactionSource, enabled = true, role = Role.DropdownList, onClick = { expanded = true }),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Icon(icon, contentDescription = null, size = IconSize.Large, tone = if (selected == null) Tone.Neutral else Tone.Accent)
-                }
-            }
-        } else {
-            DropdownTrigger(
-                label = selected?.let(itemLabel) ?: placeholder,
-                detail = selected?.let { itemDetail?.invoke(it) },
-                isPlaceholder = selected == null,
-                icon = icon,
-                modifier = Modifier
-                    .heightIn(min = ControlSize.Medium.height)
-                    .widthIn(min = 200.dp)
-                    .clip(shape)
-                    .background(background)
-                    .interactive(interactionSource, enabled = true, role = Role.DropdownList, onClick = { expanded = true })
-                    .padding(horizontal = AppTheme.spacing.md, vertical = AppTheme.spacing.sm),
-            )
-        }
+        DropdownTrigger(
+            label = selected?.let(itemLabel) ?: placeholder,
+            detail = selected?.let { itemDetail?.invoke(it) },
+            isPlaceholder = selected == null,
+            icon = icon,
+            modifier = Modifier
+                .heightIn(min = ControlSize.Medium.height)
+                .widthIn(min = 200.dp)
+                .clip(shape)
+                .background(background)
+                .interactive(interactionSource, enabled = true, role = Role.DropdownList, onClick = { expanded = true })
+                .padding(horizontal = AppTheme.spacing.md, vertical = AppTheme.spacing.sm),
+        )
 
         DropdownMenu(
             expanded = expanded,
@@ -137,8 +122,6 @@ private fun DropdownItemText(label: String, detail: String?) {
         if (detail != null) MonospaceText(detail, emphasis = TextEmphasis.Medium, maxLines = 1)
     }
 }
-
-private val RAIL_TRIGGER_SIZE = 44.dp
 
 @UiKitPreview
 @Composable

@@ -1,7 +1,7 @@
 <resources>
     <string name="apps_title">Apps</string>
     <string name="apps_no_device_title">No device selected</string>
-    <string name="apps_no_device_description">Pick an online device in the sidebar to browse its apps.</string>
+    <string name="apps_no_device_description">Pick an online device at the top left to browse its apps.</string>
     <string name="apps_search_placeholder">Search packages</string>
     <string name="apps_filter_all">All</string>
     <string name="apps_filter_user">User</string>

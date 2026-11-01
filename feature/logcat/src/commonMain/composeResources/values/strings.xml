@@ -1,7 +1,7 @@
 <resources>
     <string name="logcat_title">Logcat</string>
     <string name="logcat_no_device_title">No device selected</string>
-    <string name="logcat_no_device_description">Pick an online device in the sidebar to stream its logs.</string>
+    <string name="logcat_no_device_description">Pick an online device at the top left to stream its logs.</string>
     <string name="logcat_waiting">Waiting for log entries</string>
     <string name="logcat_reconnecting">Reconnecting</string>
     <string name="logcat_retry">Reconnect now</string>

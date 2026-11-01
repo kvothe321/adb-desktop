@@ -9,6 +9,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.tlpcraft.adbdesktop.di.appModules
 import com.tlpcraft.adbdesktop.feature.apps.AppsScreen
 import com.tlpcraft.adbdesktop.feature.devices.DevicesScreen
+import com.tlpcraft.adbdesktop.feature.devices.contract.QuickAction
 import com.tlpcraft.adbdesktop.feature.files.FilesScreen
 import com.tlpcraft.adbdesktop.feature.logcat.LogcatScreen
 import com.tlpcraft.adbdesktop.feature.screen.MirrorPanel
@@ -29,12 +30,14 @@ import org.koin.compose.KoinApplication
 import org.koin.dsl.koinConfiguration
 
 @Composable
-fun App(backStack: NavBackStack<NavKey>) {
+fun App(backStack: NavBackStack<NavKey>, isPaletteOpen: Boolean, onPaletteOpenChange: (Boolean) -> Unit) {
     KoinApplication(configuration = koinConfiguration { modules(appModules) }) {
         AppShellScreen(
             currentSection = Section.of(backStack.lastOrNull()),
             onSectionSelect = backStack::show,
-            mirror = { onShowMessage -> MirrorPanel(onShowMessage = onShowMessage) },
+            isPaletteOpen = isPaletteOpen,
+            onPaletteOpenChange = onPaletteOpenChange,
+            phone = { onShowMessage -> MirrorPanel(onShowMessage = onShowMessage) },
         ) { onShowMessage ->
             NavDisplay(
                 backStack = backStack,
@@ -42,7 +45,7 @@ fun App(backStack: NavBackStack<NavKey>) {
                 entryProvider = { route ->
                     NavEntry(route) {
                         when (route) {
-                            DevicesRoute -> DevicesScreen(onShowMessage = onShowMessage)
+                            DevicesRoute -> DevicesScreen(onShowMessage = onShowMessage, onSectionRequest = { backStack.show(it.section) })
                             AppsRoute -> AppsScreen(onShowMessage = onShowMessage)
                             FilesRoute -> FilesScreen(onShowMessage = onShowMessage)
                             LogcatRoute -> LogcatScreen(onShowMessage = onShowMessage)
@@ -57,3 +60,12 @@ fun App(backStack: NavBackStack<NavKey>) {
         }
     }
 }
+
+private val QuickAction.section: Section
+    get() = when (this) {
+        QuickAction.Apps, QuickAction.InstallApk -> Section.Apps
+        QuickAction.Files -> Section.Files
+        QuickAction.Logcat -> Section.Logcat
+        QuickAction.Shell -> Section.Shell
+        QuickAction.Screenshot -> Section.Screen
+    }

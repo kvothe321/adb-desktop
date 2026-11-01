@@ -35,10 +35,10 @@ class DataStorePreferencesDataSource(
         dataStore.edit { it[KEY_THEME_MODE] = mode }
     }
 
-    override fun observeMirrorPinned(): Flow<Boolean?> = observe(KEY_MIRROR_PINNED)
+    override fun observePhonePanelShown(): Flow<Boolean?> = observe(KEY_PHONE_PANEL_SHOWN)
 
-    override suspend fun writeMirrorPinned(isPinned: Boolean) {
-        dataStore.edit { it[KEY_MIRROR_PINNED] = isPinned }
+    override suspend fun writePhonePanelShown(isShown: Boolean) {
+        dataStore.edit { it[KEY_PHONE_PANEL_SHOWN] = isShown }
     }
 
     private fun <T> observe(key: Preferences.Key<T>): Flow<T?> = preferences.map { it[key] }.distinctUntilChanged()
@@ -47,6 +47,6 @@ class DataStorePreferencesDataSource(
         const val TAG = "Preferences"
         val KEY_ADB_PATH = stringPreferencesKey("adb_path")
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
-        val KEY_MIRROR_PINNED = booleanPreferencesKey("mirror_pinned")
+        val KEY_PHONE_PANEL_SHOWN = booleanPreferencesKey("phone_panel_shown")
     }
 }

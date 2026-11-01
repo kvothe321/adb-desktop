@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toAwtImage
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.captureToImage
+import androidx.compose.ui.test.isRoot
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.v2.runDesktopComposeUiTest
 import androidx.compose.ui.unit.DpSize
@@ -49,6 +50,7 @@ import com.tlpcraft.adbdesktop.feature.shell.ShellContent
 import com.tlpcraft.adbdesktop.feature.shell.contract.SessionState
 import com.tlpcraft.adbdesktop.feature.shell.contract.ShellUiState
 import com.tlpcraft.adbdesktop.navigation.Section
+import com.tlpcraft.adbdesktop.shell.AppCommandPalette
 import com.tlpcraft.adbdesktop.shell.AppShellContent
 import com.tlpcraft.adbdesktop.shell.contract.AppShellUiState
 import com.tlpcraft.adbdesktop.shell.contract.DeviceOption
@@ -86,14 +88,15 @@ class ScreenshotTest : FunSpec({
                         setContent {
                             AppTheme(darkTheme = isDark) {
                                 AppShellContent(
-                                    uiState = shellState(isMirrorPinned = section == Section.Files),
+                                    uiState = shellState(),
                                     currentSection = section,
                                     isDarkTheme = isDark,
                                     messageHostState = rememberMessageHostState(),
                                     onIntent = {},
                                     onSectionSelect = {},
+                                    onPaletteOpen = {},
                                     modifier = Modifier.size(size),
-                                    dock = if (section == Section.Screen || section == Section.Files) ({ Mirror(section == Section.Files) }) else null,
+                                    phone = { Mirror(isLive = section != Section.Apps) },
                                 ) {
                                     SectionContent(section)
                                 }
@@ -106,16 +109,31 @@ class ScreenshotTest : FunSpec({
             }
         }
     }
+
+    listOf(false, true).forEach { isDark ->
+        val name = "palette-${if (isDark) "dark" else "light"}"
+        test(name) {
+            runDesktopComposeUiTest(width = 1100, height = 760) {
+                setContent {
+                    AppTheme(darkTheme = isDark) {
+                        AppCommandPalette(uiState = shellState(), isDarkTheme = isDark, onSectionSelect = {}, onIntent = {}, onDismiss = {})
+                    }
+                }
+                File(checkNotNull(outputDirectory)).mkdirs()
+                val roots = onAllNodes(isRoot())
+                ImageIO.write(roots[roots.fetchSemanticsNodes().lastIndex].captureToImage().toAwtImage(), "png", File(outputDirectory, "$name.png"))
+            }
+        }
+    }
 })
 
-private fun shellState(isMirrorPinned: Boolean) = AppShellUiState(
+private fun shellState() = AppShellUiState(
     devices = listOf(DeviceOption("R5CWC46JFLH", "Galaxy S24+"), DeviceOption("emulator-5554", "Pixel 9 Pro")),
     selectedSerial = "R5CWC46JFLH",
-    isMirrorPinned = isMirrorPinned,
 )
 
 @Composable
-private fun Mirror(isPinned: Boolean) {
+private fun Mirror(isLive: Boolean) {
     val width = 90
     val height = 200
     val pixels = ByteArray(width * height * 4) { index ->
@@ -129,7 +147,8 @@ private fun Mirror(isPinned: Boolean) {
         }
     }
     val frame = MirrorFrame(width, height, pixels)
-    MirrorContent(uiState = MirrorUiState(serial = "R5CWC46JFLH", isOn = true, isPinned = isPinned, mirror = MirrorState.Live(frame)), onIntent = {})
+    val state = if (isLive) MirrorUiState(serial = "R5CWC46JFLH", isOn = true, mirror = MirrorState.Live(frame)) else MirrorUiState(serial = "R5CWC46JFLH")
+    MirrorContent(uiState = state, onIntent = {})
 }
 
 @Composable

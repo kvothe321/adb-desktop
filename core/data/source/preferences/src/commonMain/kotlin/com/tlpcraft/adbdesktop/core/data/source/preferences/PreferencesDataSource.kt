@@ -11,7 +11,7 @@ interface PreferencesDataSource {
 
     suspend fun writeThemeMode(mode: String)
 
-    fun observeMirrorPinned(): Flow<Boolean?>
+    fun observePhonePanelShown(): Flow<Boolean?>
 
-    suspend fun writeMirrorPinned(isPinned: Boolean)
+    suspend fun writePhonePanelShown(isShown: Boolean)
 }

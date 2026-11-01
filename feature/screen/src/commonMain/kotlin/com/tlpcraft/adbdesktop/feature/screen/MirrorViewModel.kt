@@ -10,9 +10,7 @@ import com.tlpcraft.adbdesktop.core.domain.model.KeyAction
 import com.tlpcraft.adbdesktop.core.domain.model.MirrorInput
 import com.tlpcraft.adbdesktop.core.domain.service.HostClipboard
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.screen.ObserveMirrorPinnedUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.ObserveMirrorUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.screen.SetMirrorPinnedUseCase
 import com.tlpcraft.adbdesktop.feature.screen.contract.DeviceButton
 import com.tlpcraft.adbdesktop.feature.screen.contract.MirrorIntent
 import com.tlpcraft.adbdesktop.feature.screen.contract.MirrorSideEffect
@@ -34,13 +32,11 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-/** One mirror for the whole window, shown in the Screen section or pinned beside every section. */
+/** One mirror for the whole window, in the phone panel beside every section. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class MirrorViewModel(
     private val observeSelectedDevice: ObserveSelectedDeviceUseCase,
     private val observeMirror: ObserveMirrorUseCase,
-    private val observeMirrorPinned: ObserveMirrorPinnedUseCase,
-    private val setMirrorPinned: SetMirrorPinnedUseCase,
     private val hostClipboard: HostClipboard,
 ) : ViewModel() {
 
@@ -57,16 +53,12 @@ class MirrorViewModel(
         viewModelScope.launch {
             observeSelectedDevice(Unit).collect { device -> _uiState.update { it.copy(serial = device?.serial) } }
         }
-        viewModelScope.launch {
-            observeMirrorPinned(Unit).collect { isPinned -> _uiState.update { it.copy(isPinned = isPinned) } }
-        }
         trackMirror()
     }
 
     fun reduceIntent(intent: MirrorIntent) {
         when (intent) {
             MirrorIntent.MirrorClicked -> _uiState.update { it.copy(isOn = !it.isOn) }
-            MirrorIntent.PinClicked -> viewModelScope.launch { setMirrorPinned(!_uiState.value.isPinned) }
             is MirrorIntent.VisibilityChanged -> isVisible.value = intent.isVisible
             is MirrorIntent.InputGiven -> send(intent.input)
             is MirrorIntent.DeviceButtonClicked -> press(intent.button)

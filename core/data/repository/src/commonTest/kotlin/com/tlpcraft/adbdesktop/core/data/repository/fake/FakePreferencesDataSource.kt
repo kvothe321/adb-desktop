@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 class FakePreferencesDataSource : PreferencesDataSource {
     private val adbPath = MutableStateFlow<String?>(null)
     val themeMode = MutableStateFlow<String?>(null)
-    val mirrorPinned = MutableStateFlow<Boolean?>(null)
+    val phonePanelShown = MutableStateFlow<Boolean?>(null)
 
     override fun observeAdbPath(): Flow<String?> = adbPath
 
@@ -21,9 +21,9 @@ class FakePreferencesDataSource : PreferencesDataSource {
         themeMode.value = mode
     }
 
-    override fun observeMirrorPinned(): Flow<Boolean?> = mirrorPinned
+    override fun observePhonePanelShown(): Flow<Boolean?> = phonePanelShown
 
-    override suspend fun writeMirrorPinned(isPinned: Boolean) {
-        mirrorPinned.value = isPinned
+    override suspend fun writePhonePanelShown(isShown: Boolean) {
+        phonePanelShown.value = isShown
     }
 }

@@ -1,7 +1,7 @@
 <resources>
     <string name="files_title">Files</string>
     <string name="files_no_device_title">No device selected</string>
-    <string name="files_no_device_description">Pick an online device in the sidebar to browse its files.</string>
+    <string name="files_no_device_description">Pick an online device at the top left to browse its files.</string>
     <string name="files_up">Parent folder</string>
     <string name="files_upload">Upload</string>
     <string name="files_new_folder">New folder</string>

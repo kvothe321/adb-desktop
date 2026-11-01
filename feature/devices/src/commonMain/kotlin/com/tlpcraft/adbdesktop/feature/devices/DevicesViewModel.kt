@@ -28,6 +28,7 @@ import com.tlpcraft.adbdesktop.feature.devices.contract.DevicesFailure
 import com.tlpcraft.adbdesktop.feature.devices.contract.DevicesIntent
 import com.tlpcraft.adbdesktop.feature.devices.contract.DevicesSideEffect
 import com.tlpcraft.adbdesktop.feature.devices.contract.DevicesUiState
+import com.tlpcraft.adbdesktop.feature.devices.contract.QuickAction
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -54,6 +55,7 @@ class DevicesViewModel(
     private val observeWirelessDevices: ObserveWirelessDevicesUseCase,
     private val observeAdbPathOverride: ObserveAdbPathOverrideUseCase,
     private val setAdbPathOverride: SetAdbPathOverrideUseCase,
+    private val quickActions: QuickActionRunner,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DevicesUiState())
@@ -85,6 +87,25 @@ class DevicesViewModel(
             is DevicesIntent.AddressChanged -> updateForm { it.copy(address = intent.value, error = null) }
             is DevicesIntent.PairingCodeChanged -> updateForm { it.copy(pairingCode = intent.value, error = null) }
             DevicesIntent.ConnectSubmitted -> submitConnectForm()
+            is DevicesIntent.QuickActionClicked -> runQuickAction(intent.action)
+        }
+    }
+
+    /** Actions that work right here show a spinner on their tile until done; the others open their section. */
+    private fun runQuickAction(action: QuickAction) {
+        val state = _uiState.value
+        val serial = state.selectedDevice?.serial ?: return
+        if (state.runningAction != null) return
+        viewModelScope.launch {
+            val apks = if (action == QuickAction.InstallApk) quickActions.pickApks().ifEmpty { return@launch } else emptyList()
+            _uiState.update { it.copy(runningAction = action) }
+            val effect = when (action) {
+                QuickAction.Screenshot -> quickActions.copyScreenshot(serial)
+                QuickAction.InstallApk -> quickActions.install(serial, apks)
+                QuickAction.Apps, QuickAction.Files, QuickAction.Logcat, QuickAction.Shell -> DevicesSideEffect.SectionRequested(action)
+            }
+            _uiState.update { it.copy(runningAction = null) }
+            _sideEffects.send(effect)
         }
     }
 

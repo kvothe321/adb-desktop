@@ -1,5 +1,9 @@
 package com.tlpcraft.adbdesktop
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -7,6 +11,7 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.navigation3.runtime.rememberNavBackStack
 import com.tlpcraft.adbdesktop.navigation.Section
+import com.tlpcraft.adbdesktop.navigation.isPaletteShortcut
 import com.tlpcraft.adbdesktop.navigation.navigationConfig
 import com.tlpcraft.adbdesktop.navigation.sectionShortcut
 import com.tlpcraft.adbdesktop.navigation.show
@@ -18,6 +23,7 @@ import org.jetbrains.compose.resources.stringResource
 
 fun main() = application {
     val backStack = rememberNavBackStack(navigationConfig, Section.Devices.route)
+    var isPaletteOpen by remember { mutableStateOf(false) }
 
     Window(
         onCloseRequest = ::exitApplication,
@@ -27,9 +33,10 @@ fun main() = application {
         onPreviewKeyEvent = { event ->
             val section = event.sectionShortcut()
             section?.let(backStack::show)
-            section != null
+            if (event.isPaletteShortcut()) isPaletteOpen = true
+            section != null || event.isPaletteShortcut()
         },
     ) {
-        App(backStack)
+        App(backStack = backStack, isPaletteOpen = isPaletteOpen, onPaletteOpenChange = { isPaletteOpen = it })
     }
 }

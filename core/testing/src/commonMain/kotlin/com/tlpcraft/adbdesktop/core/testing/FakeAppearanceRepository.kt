@@ -7,7 +7,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 class FakeAppearanceRepository : AppearanceRepository {
     val themeMode = MutableStateFlow(ThemeMode.SYSTEM)
-    val mirrorPinned = MutableStateFlow(false)
+    val phonePanelShown = MutableStateFlow(false)
 
     override fun observeThemeMode(): Flow<ThemeMode> = themeMode
 
@@ -15,9 +15,9 @@ class FakeAppearanceRepository : AppearanceRepository {
         themeMode.value = mode
     }
 
-    override fun observeMirrorPinned(): Flow<Boolean> = mirrorPinned
+    override fun observePhonePanelShown(): Flow<Boolean> = phonePanelShown
 
-    override suspend fun setMirrorPinned(isPinned: Boolean) {
-        mirrorPinned.value = isPinned
+    override suspend fun setPhonePanelShown(isShown: Boolean) {
+        phonePanelShown.value = isShown
     }
 }

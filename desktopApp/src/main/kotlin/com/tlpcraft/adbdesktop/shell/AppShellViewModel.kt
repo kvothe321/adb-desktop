@@ -7,7 +7,8 @@ import com.tlpcraft.adbdesktop.core.domain.model.ThemeMode
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveDevicesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.ObserveSelectedDeviceUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.device.SelectDeviceUseCase
-import com.tlpcraft.adbdesktop.core.domain.usecase.screen.ObserveMirrorPinnedUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.screen.ObservePhonePanelShownUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.screen.SetPhonePanelShownUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.settings.ObserveThemeModeUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.settings.SetThemeModeUseCase
 import com.tlpcraft.adbdesktop.shell.contract.AppShellIntent
@@ -25,7 +26,8 @@ class AppShellViewModel(
     private val selectDevice: SelectDeviceUseCase,
     private val observeThemeMode: ObserveThemeModeUseCase,
     private val setThemeMode: SetThemeModeUseCase,
-    private val observeMirrorPinned: ObserveMirrorPinnedUseCase,
+    private val observePhonePanelShown: ObservePhonePanelShownUseCase,
+    private val setPhonePanelShown: SetPhonePanelShownUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AppShellUiState())
@@ -45,7 +47,7 @@ class AppShellViewModel(
             observeThemeMode(Unit).collect { mode -> _uiState.update { it.copy(themeMode = mode) } }
         }
         viewModelScope.launch {
-            observeMirrorPinned(Unit).collect { isPinned -> _uiState.update { it.copy(isMirrorPinned = isPinned) } }
+            observePhonePanelShown(Unit).collect { isShown -> _uiState.update { it.copy(isPhonePanelShown = isShown) } }
         }
     }
 
@@ -53,6 +55,7 @@ class AppShellViewModel(
         when (intent) {
             is AppShellIntent.DeviceSelected -> viewModelScope.launch { selectDevice(intent.serial) }
             is AppShellIntent.ThemeToggled -> viewModelScope.launch { setThemeMode(if (intent.isDarkShowing) ThemeMode.LIGHT else ThemeMode.DARK) }
+            AppShellIntent.PhoneToggled -> viewModelScope.launch { setPhonePanelShown(!_uiState.value.isPhonePanelShown) }
         }
     }
 }

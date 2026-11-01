@@ -22,4 +22,6 @@ sealed interface DevicesIntent {
     data class PairingCodeChanged(val value: String) : DevicesIntent
 
     data object ConnectSubmitted : DevicesIntent
+
+    data class QuickActionClicked(val action: QuickAction) : DevicesIntent
 }

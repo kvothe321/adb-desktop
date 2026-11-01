@@ -89,16 +89,16 @@ class NewRepositoriesTest : FunSpec({
             preferences.themeMode.value shouldBe "DARK"
         }
 
-        test("the mirror is not pinned until the user pins it") {
+        test("the phone panel shows until the user hides it") {
             val preferences = FakePreferencesDataSource()
             val repository = AppearanceRepositoryImpl(preferences)
 
-            repository.observeMirrorPinned().test {
-                awaitItem() shouldBe false
-                repository.setMirrorPinned(true)
+            repository.observePhonePanelShown().test {
                 awaitItem() shouldBe true
+                repository.setPhonePanelShown(false)
+                awaitItem() shouldBe false
             }
-            preferences.mirrorPinned.value shouldBe true
+            preferences.phonePanelShown.value shouldBe false
         }
     }
 })
