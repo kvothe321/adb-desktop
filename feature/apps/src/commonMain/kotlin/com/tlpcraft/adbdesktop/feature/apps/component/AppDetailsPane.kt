@@ -3,6 +3,7 @@ package com.tlpcraft.adbdesktop.feature.apps.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -105,7 +106,7 @@ private fun AppDetailsBody(
 
 @Composable
 private fun ActionRow(runningAction: AppAction?, onActionClick: (AppAction) -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm), verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm)) {
         AppAction.entries.forEach { action ->
             Button(
                 text = stringResource(action.label),

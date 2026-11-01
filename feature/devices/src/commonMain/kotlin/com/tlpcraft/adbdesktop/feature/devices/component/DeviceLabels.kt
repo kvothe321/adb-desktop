@@ -17,6 +17,7 @@ import com.tlpcraft.adbdesktop.feature.devices.resources.device_state_sideload
 import com.tlpcraft.adbdesktop.feature.devices.resources.device_state_unauthorized
 import com.tlpcraft.adbdesktop.feature.devices.resources.device_state_unknown
 import com.tlpcraft.adbdesktop.uikit.component.Tone
+import com.tlpcraft.adbdesktop.uikit.icon.IconName
 import org.jetbrains.compose.resources.StringResource
 
 internal val DeviceState.label: StringResource
@@ -40,6 +41,13 @@ internal val DeviceState.tone: Tone
         DeviceState.OFFLINE -> Tone.Error
         DeviceState.AUTHORIZING, DeviceState.CONNECTING -> Tone.Info
         DeviceState.BOOTLOADER, DeviceState.RECOVERY, DeviceState.SIDELOAD, DeviceState.UNKNOWN -> Tone.Neutral
+    }
+
+internal val ConnectionType.icon: IconName
+    get() = when (this) {
+        ConnectionType.USB -> IconName.Devices
+        ConnectionType.WIRELESS -> IconName.Wifi
+        ConnectionType.EMULATOR -> IconName.Mirror
     }
 
 internal val ConnectionType.label: StringResource

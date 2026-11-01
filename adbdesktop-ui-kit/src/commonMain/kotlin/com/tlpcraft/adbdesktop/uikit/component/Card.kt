@@ -19,8 +19,8 @@ import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
 
 /**
- * A bordered surface grouping related content. Becomes clickable and hoverable when [onClick] is set.
- * `modifier` is for layout only.
+ * A rounded surface grouping related content, lifted off the window. Becomes clickable and hoverable when [onClick]
+ * is set, and a [selected] card is outlined in the accent color. `modifier` is for layout only.
  */
 @Composable
 fun Card(
@@ -32,19 +32,21 @@ fun Card(
     val interactionSource = remember { MutableInteractionSource() }
     val hovered by interactionSource.collectIsHoveredAsState()
     val shape = AppTheme.shapes.large
-    val borderColor = if (selected) AppTheme.colors.accent else AppTheme.colors.border
-    val background = if (hovered && onClick != null) AppTheme.colors.surfaceHover else AppTheme.colors.surface
+    val colors = AppTheme.colors
 
     Column(
         modifier = modifier
+            .surfaceCard(colors, shape)
+            .then(if (selected) Modifier.border(2.dp, colors.accent, shape) else Modifier)
             .clip(shape)
-            .background(background)
-            .border(if (selected) 2.dp else 1.dp, borderColor, shape)
+            .then(if (hovered && onClick != null) Modifier.background(colors.surfaceHover.copy(alpha = HOVER_TINT)) else Modifier)
             .then(if (onClick != null) Modifier.interactive(interactionSource, enabled = true, role = Role.Button, onClick = onClick) else Modifier)
-            .padding(AppTheme.spacing.md),
+            .padding(AppTheme.spacing.lg),
         content = content,
     )
 }
+
+private const val HOVER_TINT = 0.5f
 
 @UiKitPreview
 @Composable

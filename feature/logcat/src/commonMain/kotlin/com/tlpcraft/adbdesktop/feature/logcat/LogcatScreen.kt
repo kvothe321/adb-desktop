@@ -2,6 +2,7 @@ package com.tlpcraft.adbdesktop.feature.logcat
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -59,6 +60,8 @@ import com.tlpcraft.adbdesktop.uikit.component.Chip
 import com.tlpcraft.adbdesktop.uikit.component.Divider
 import com.tlpcraft.adbdesktop.uikit.component.EmptyState
 import com.tlpcraft.adbdesktop.uikit.component.MonospaceText
+import com.tlpcraft.adbdesktop.uikit.component.Page
+import com.tlpcraft.adbdesktop.uikit.component.Panel
 import com.tlpcraft.adbdesktop.uikit.component.SearchField
 import com.tlpcraft.adbdesktop.uikit.component.Text
 import com.tlpcraft.adbdesktop.uikit.component.TextEmphasis
@@ -95,10 +98,11 @@ fun LogcatScreen(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier,
 
 @Composable
 fun LogcatContent(uiState: LogcatUiState, onIntent: (LogcatIntent) -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxSize()) {
-        TopBar(title = stringResource(Res.string.logcat_title)) {
-            if (uiState.serial != null) LogcatActions(isPaused = uiState.isPaused, onIntent = onIntent)
-        }
+    Page(
+        title = stringResource(Res.string.logcat_title),
+        modifier = modifier,
+        actions = { if (uiState.serial != null) LogcatActions(isPaused = uiState.isPaused, onIntent = onIntent) },
+    ) {
         if (uiState.serial == null) {
             Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) {
                 EmptyState(
@@ -114,8 +118,9 @@ fun LogcatContent(uiState: LogcatUiState, onIntent: (LogcatIntent) -> Unit, modi
                 showsPackageNotRunning = uiState.showsPackageNotRunning,
                 onIntent = onIntent,
             )
-            Divider()
-            LogBody(uiState = uiState, onRetry = { onIntent(LogcatIntent.RetryClicked) }, modifier = Modifier.weight(1f))
+            Panel(Modifier.weight(1f).fillMaxWidth()) {
+                LogBody(uiState = uiState, onRetry = { onIntent(LogcatIntent.RetryClicked) }, modifier = Modifier.weight(1f))
+            }
         }
     }
 }
@@ -138,6 +143,7 @@ private fun RowScope.LogcatActions(isPaused: Boolean, onIntent: (LogcatIntent) -
     )
 }
 
+/** One line when there is room, otherwise the levels go on a line of their own. */
 @Composable
 private fun FilterBar(
     filter: LogFilter,
@@ -145,37 +151,52 @@ private fun FilterBar(
     showsPackageNotRunning: Boolean,
     onIntent: (LogcatIntent) -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(AppTheme.spacing.md),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
-    ) {
-        SearchField(
-            query = filter.query,
-            onQueryChange = { onIntent(LogcatIntent.QueryChanged(it)) },
-            placeholder = stringResource(Res.string.logcat_search_placeholder),
-            modifier = Modifier.weight(1f),
-        )
-        TextField(
-            value = packageName,
-            onValueChange = { onIntent(LogcatIntent.PackageChanged(it)) },
-            modifier = Modifier.width(240.dp),
-            placeholder = stringResource(Res.string.logcat_package_placeholder),
-            leadingIcon = IconName.Package,
-            monospace = true,
-            trailing = if (showsPackageNotRunning) {
-                { Badge(stringResource(Res.string.logcat_package_not_running), tone = Tone.Warning) }
-            } else {
-                null
-            },
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.xs)) {
-            LogLevel.entries.forEach { level ->
-                Chip(stringResource(level.label), selected = level == filter.minimumLevel, onClick = { onIntent(LogcatIntent.LevelSelected(level)) })
+    BoxWithConstraints(Modifier.fillMaxWidth().padding(bottom = AppTheme.spacing.lg)) {
+        val search: @Composable RowScope.() -> Unit = {
+            SearchField(
+                query = filter.query,
+                onQueryChange = { onIntent(LogcatIntent.QueryChanged(it)) },
+                placeholder = stringResource(Res.string.logcat_search_placeholder),
+                modifier = Modifier.weight(1f),
+            )
+            TextField(
+                value = packageName,
+                onValueChange = { onIntent(LogcatIntent.PackageChanged(it)) },
+                modifier = Modifier.width(240.dp),
+                placeholder = stringResource(Res.string.logcat_package_placeholder),
+                leadingIcon = IconName.Package,
+                monospace = true,
+                trailing = if (showsPackageNotRunning) {
+                    { Badge(stringResource(Res.string.logcat_package_not_running), tone = Tone.Warning) }
+                } else {
+                    null
+                },
+            )
+        }
+        if (maxWidth < SINGLE_LINE_FILTERS_WIDTH) {
+            Column(verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.md)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md), content = search)
+                LevelChips(filter.minimumLevel, onIntent)
+            }
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md)) {
+                search()
+                LevelChips(filter.minimumLevel, onIntent)
             }
         }
     }
 }
+
+@Composable
+private fun LevelChips(selected: LogLevel, onIntent: (LogcatIntent) -> Unit) {
+    Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.xs)) {
+        LogLevel.entries.forEach { level ->
+            Chip(stringResource(level.label), selected = level == selected, onClick = { onIntent(LogcatIntent.LevelSelected(level)) })
+        }
+    }
+}
+
+private val SINGLE_LINE_FILTERS_WIDTH = 900.dp
 
 @Composable
 private fun LogBody(uiState: LogcatUiState, onRetry: () -> Unit, modifier: Modifier = Modifier) {

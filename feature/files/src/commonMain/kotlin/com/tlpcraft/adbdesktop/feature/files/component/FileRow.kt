@@ -10,9 +10,10 @@ import com.tlpcraft.adbdesktop.feature.files.resources.files_delete
 import com.tlpcraft.adbdesktop.feature.files.resources.files_download
 import com.tlpcraft.adbdesktop.feature.files.resources.files_no_access
 import com.tlpcraft.adbdesktop.uikit.component.ControlSize
-import com.tlpcraft.adbdesktop.uikit.component.Icon
 import com.tlpcraft.adbdesktop.uikit.component.IconButton
+import com.tlpcraft.adbdesktop.uikit.component.IconTile
 import com.tlpcraft.adbdesktop.uikit.component.ListRow
+import com.tlpcraft.adbdesktop.uikit.component.Tone
 import com.tlpcraft.adbdesktop.uikit.icon.IconName
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
@@ -37,7 +38,7 @@ internal fun FileRow(
         monospaceSupporting = true,
         modifier = modifier,
         onClick = onClick.takeIf { file.canOpen },
-        leading = { Icon(file.type.icon, contentDescription = null) },
+        leading = { IconTile(file.type.icon, tone = if (file.type.canOpen && file.isAccessible) Tone.Accent else Tone.Neutral) },
         trailing = {
             Row {
                 IconButton(

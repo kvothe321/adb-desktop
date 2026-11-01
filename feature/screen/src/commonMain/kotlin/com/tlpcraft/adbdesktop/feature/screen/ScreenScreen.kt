@@ -44,6 +44,7 @@ import com.tlpcraft.adbdesktop.uikit.component.Badge
 import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.EmptyState
+import com.tlpcraft.adbdesktop.uikit.component.Page
 import com.tlpcraft.adbdesktop.uikit.component.ProgressIndicator
 import com.tlpcraft.adbdesktop.uikit.component.Tone
 import com.tlpcraft.adbdesktop.uikit.component.TopBar
@@ -73,11 +74,12 @@ fun ScreenScreen(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier,
 
 @Composable
 fun ScreenContent(uiState: ScreenUiState, onIntent: (ScreenIntent) -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxSize()) {
-        TopBar(title = stringResource(Res.string.screen_title)) {
-            if (uiState.serial != null) ScreenActions(uiState = uiState, onIntent = onIntent)
-        }
-        Box(Modifier.weight(1f).fillMaxSize().padding(AppTheme.spacing.lg), contentAlignment = Alignment.Center) {
+    Page(
+        title = stringResource(Res.string.screen_title),
+        modifier = modifier,
+        actions = { if (uiState.serial != null) ScreenActions(uiState = uiState, onIntent = onIntent) },
+    ) {
+        Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) {
             when {
                 uiState.serial == null -> EmptyState(
                     title = stringResource(Res.string.screen_no_device_title),

@@ -50,7 +50,7 @@ internal fun AppListPane(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxSize()) {
-        Column(Modifier.padding(AppTheme.spacing.md), verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm)) {
+        Column(Modifier.padding(AppTheme.spacing.lg), verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.md)) {
             SearchField(query = query, onQueryChange = onQueryChange, placeholder = stringResource(Res.string.apps_search_placeholder))
             Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.xs)) {
                 AppFilter.entries.forEach { option ->

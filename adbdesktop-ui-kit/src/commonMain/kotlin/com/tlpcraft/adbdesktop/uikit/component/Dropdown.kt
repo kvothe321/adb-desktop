@@ -1,7 +1,7 @@
 package com.tlpcraft.adbdesktop.uikit.component
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -41,34 +42,51 @@ fun <T> Dropdown(
     placeholder: String,
     modifier: Modifier = Modifier,
     itemDetail: ((T) -> String)? = null,
+    icon: IconName? = null,
 ) {
     var expanded by remember { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     val hovered by interactionSource.collectIsHoveredAsState()
     val shape = AppTheme.shapes.medium
+    val background = if (hovered) AppTheme.colors.surfaceHover else AppTheme.colors.surfaceRaised
 
     Box(modifier) {
-        Row(
-            modifier = Modifier
-                .heightIn(min = ControlSize.Medium.height)
-                .widthIn(min = 200.dp)
-                .clip(shape)
-                .background(if (hovered) AppTheme.colors.surfaceHover else AppTheme.colors.surface)
-                .border(1.dp, AppTheme.colors.border, shape)
-                .interactive(interactionSource, enabled = true, role = Role.DropdownList, onClick = { expanded = true })
-                .padding(horizontal = AppTheme.spacing.sm),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm),
-        ) {
-            Text(
-                text = selected?.let(itemLabel) ?: placeholder,
-                modifier = Modifier.weight(1f, fill = false),
-                emphasis = if (selected == null) TextEmphasis.Medium else TextEmphasis.High,
-                maxLines = 1,
+        if (icon != null && isSidebarRail()) {
+            Tooltip(selected?.let(itemLabel) ?: placeholder) {
+                Box(
+                    Modifier
+                        .size(RAIL_TRIGGER_SIZE)
+                        .clip(AppTheme.shapes.pill)
+                        .background(background)
+                        .interactive(interactionSource, enabled = true, role = Role.DropdownList, onClick = { expanded = true }),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(icon, contentDescription = null, size = IconSize.Large, tone = if (selected == null) Tone.Neutral else Tone.Accent)
+                }
+            }
+        } else {
+            DropdownTrigger(
+                label = selected?.let(itemLabel) ?: placeholder,
+                detail = selected?.let { itemDetail?.invoke(it) },
+                isPlaceholder = selected == null,
+                icon = icon,
+                modifier = Modifier
+                    .heightIn(min = ControlSize.Medium.height)
+                    .widthIn(min = 200.dp)
+                    .clip(shape)
+                    .background(background)
+                    .interactive(interactionSource, enabled = true, role = Role.DropdownList, onClick = { expanded = true })
+                    .padding(horizontal = AppTheme.spacing.md, vertical = AppTheme.spacing.sm),
             )
-            Icon(IconName.ChevronDown, contentDescription = null, size = IconSize.Small)
         }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, containerColor = AppTheme.colors.surface) {
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            shape = AppTheme.shapes.medium,
+            containerColor = AppTheme.colors.surface,
+            border = BorderStroke(1.dp, AppTheme.colors.border),
+        ) {
             if (items.isEmpty()) {
                 DropdownMenuItem(text = { Text(placeholder, emphasis = TextEmphasis.Medium) }, onClick = { expanded = false }, enabled = false)
             }
@@ -91,12 +109,36 @@ fun <T> Dropdown(
 }
 
 @Composable
+private fun DropdownTrigger(
+    label: String,
+    detail: String?,
+    isPlaceholder: Boolean,
+    icon: IconName?,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
+    ) {
+        if (icon != null) Icon(icon, contentDescription = null, size = IconSize.Large, tone = if (isPlaceholder) Tone.Neutral else Tone.Accent)
+        Column(Modifier.weight(1f)) {
+            Text(label, variant = TextVariant.BodyStrong, emphasis = if (isPlaceholder) TextEmphasis.Medium else TextEmphasis.High, maxLines = 1)
+            if (detail != null) Text(detail, variant = TextVariant.Caption, emphasis = TextEmphasis.Medium, maxLines = 1)
+        }
+        Icon(IconName.ChevronDown, contentDescription = null, size = IconSize.Small)
+    }
+}
+
+@Composable
 private fun DropdownItemText(label: String, detail: String?) {
     Column {
         Text(label, maxLines = 1)
         if (detail != null) MonospaceText(detail, emphasis = TextEmphasis.Medium, maxLines = 1)
     }
 }
+
+private val RAIL_TRIGGER_SIZE = 44.dp
 
 @UiKitPreview
 @Composable

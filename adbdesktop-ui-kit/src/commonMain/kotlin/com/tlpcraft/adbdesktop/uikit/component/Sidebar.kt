@@ -4,18 +4,22 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,9 +30,11 @@ import com.tlpcraft.adbdesktop.uikit.icon.IconName
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
+import com.tlpcraft.adbdesktop.uikit.theme.WindowWidth
 
 /**
- * Fixed-width navigation column. [items] fills the top, [footer] sticks to the bottom.
+ * Navigation column on the window background. [items] fills the top, [footer] sticks to the bottom. In a
+ * [WindowWidth.Compact] window it folds into a rail of icons, and its items show their labels as tooltips.
  * `modifier` is for layout only.
  */
 @Composable
@@ -38,27 +44,27 @@ fun Sidebar(
     modifier: Modifier = Modifier,
     items: @Composable ColumnScope.() -> Unit,
 ) {
-    Row(modifier.fillMaxHeight()) {
+    val isRail = AppTheme.windowWidth == WindowWidth.Compact
+    CompositionLocalProvider(LocalIsRail provides isRail) {
         Column(
-            modifier = Modifier
-                .width(200.dp)
+            modifier = modifier
+                .width(if (isRail) RAIL_WIDTH else SIDEBAR_WIDTH)
                 .fillMaxHeight()
-                .background(AppTheme.colors.surface)
-                .padding(AppTheme.spacing.sm),
+                .padding(horizontal = AppTheme.spacing.md, vertical = AppTheme.spacing.lg),
+            horizontalAlignment = if (isRail) Alignment.CenterHorizontally else Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.xxs),
         ) {
             header()
-            Spacer(Modifier.padding(top = AppTheme.spacing.sm))
+            Spacer(Modifier.height(AppTheme.spacing.lg))
             items()
             Spacer(Modifier.weight(1f))
             footer()
         }
-        Divider(orientation = DividerOrientation.Vertical)
     }
 }
 
 /**
- * A navigation destination inside a [Sidebar]. [shortcut] is a hint such as `Ctrl+1`; the shortcut
+ * A navigation destination inside a [Sidebar]. [shortcut] is a hint such as `Ctrl+1`, shown on hover; the shortcut
  * itself is handled by the window. `modifier` is for layout only.
  */
 @Composable
@@ -72,29 +78,65 @@ fun SidebarItem(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val hovered by interactionSource.collectIsHoveredAsState()
-    val background = when {
-        selected -> AppTheme.colors.accentSubtle
-        hovered -> AppTheme.colors.surfaceHover
-        else -> Color.Transparent
+    val colors = AppTheme.colors
+    val shape = AppTheme.shapes.medium
+    val itemModifier = when {
+        selected -> Modifier.surfaceCard(colors, shape)
+        hovered -> Modifier.background(colors.surfaceHover, shape)
+        else -> Modifier.background(Color.Transparent, shape)
     }
     val tone = if (selected) Tone.Accent else Tone.Neutral
+
+    if (LocalIsRail.current) {
+        Tooltip(listOfNotNull(label, shortcut).joinToString("  "), modifier) {
+            Box(
+                Modifier
+                    .padding(vertical = AppTheme.spacing.xxs)
+                    .then(itemModifier)
+                    .clip(shape)
+                    .interactive(interactionSource, enabled = true, role = Role.Tab, onClick = onClick)
+                    .padding(RAIL_ITEM_PADDING),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, contentDescription = label, size = IconSize.Large, tone = tone)
+            }
+        }
+        return
+    }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .heightIn(min = ControlSize.Medium.height)
-            .clip(AppTheme.shapes.medium)
-            .background(background)
+            .heightIn(min = ITEM_HEIGHT)
+            .then(itemModifier)
+            .clip(shape)
             .interactive(interactionSource, enabled = true, role = Role.Tab, onClick = onClick)
-            .padding(horizontal = AppTheme.spacing.sm),
+            .padding(horizontal = AppTheme.spacing.md),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm),
+        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
     ) {
         Icon(icon, contentDescription = null, tone = tone)
-        Text(label, modifier = Modifier.weight(1f), variant = TextVariant.BodyStrong, tone = tone, maxLines = 1)
-        if (shortcut != null) Text(shortcut, variant = TextVariant.Caption, emphasis = TextEmphasis.Disabled)
+        Text(
+            label,
+            modifier = Modifier.weight(1f),
+            variant = TextVariant.BodyStrong,
+            emphasis = if (selected) TextEmphasis.High else TextEmphasis.Medium,
+            maxLines = 1,
+        )
+        if (shortcut != null && hovered) Text(shortcut, variant = TextVariant.Caption, emphasis = TextEmphasis.Disabled)
     }
 }
+
+/** Whether the surrounding [Sidebar] is folded into a rail, so its header and footer can shrink too. */
+@Composable
+fun isSidebarRail(): Boolean = LocalIsRail.current
+
+private val LocalIsRail = staticCompositionLocalOf { false }
+
+private val SIDEBAR_WIDTH = 236.dp
+private val RAIL_WIDTH = 76.dp
+private val ITEM_HEIGHT = 38.dp
+private val RAIL_ITEM_PADDING = 10.dp
 
 @UiKitPreview
 @Composable

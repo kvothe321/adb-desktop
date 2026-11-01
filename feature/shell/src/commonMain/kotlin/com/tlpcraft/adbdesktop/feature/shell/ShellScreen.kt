@@ -37,6 +37,8 @@ import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.Divider
 import com.tlpcraft.adbdesktop.uikit.component.EmptyState
+import com.tlpcraft.adbdesktop.uikit.component.Page
+import com.tlpcraft.adbdesktop.uikit.component.Panel
 import com.tlpcraft.adbdesktop.uikit.component.TerminalColor
 import com.tlpcraft.adbdesktop.uikit.component.TerminalGrid
 import com.tlpcraft.adbdesktop.uikit.component.TerminalRow
@@ -61,8 +63,10 @@ fun ShellScreen(modifier: Modifier = Modifier, viewModel: ShellViewModel = koinV
 
 @Composable
 fun ShellContent(uiState: ShellUiState, onIntent: (ShellIntent) -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxSize()) {
-        TopBar(title = stringResource(Res.string.shell_title)) {
+    Page(
+        title = stringResource(Res.string.shell_title),
+        modifier = modifier,
+        actions = {
             if (uiState.session != SessionState.NoDevice) {
                 Button(
                     text = stringResource(Res.string.shell_clear),
@@ -71,7 +75,8 @@ fun ShellContent(uiState: ShellUiState, onIntent: (ShellIntent) -> Unit, modifie
                     icon = IconName.Delete,
                 )
             }
-        }
+        },
+    ) {
         if (uiState.session == SessionState.NoDevice) {
             Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) {
                 EmptyState(
@@ -81,20 +86,22 @@ fun ShellContent(uiState: ShellUiState, onIntent: (ShellIntent) -> Unit, modifie
                 )
             }
         } else {
-            TerminalGrid(
-                rows = uiState.rows,
-                onGridSizeChange = { rows, columns -> onIntent(ShellIntent.TerminalResized(rows, columns)) },
-                onKeyPress = { event -> handleKey(event, uiState.hasApplicationCursorKeys, onIntent) },
-                onTextInput = { text -> onIntent(ShellIntent.InputTyped(text)) },
-                modifier = Modifier.weight(1f),
-            )
-            if (uiState.session != SessionState.Running && uiState.session != SessionState.Starting) {
-                Divider()
-                SessionClosedBar(
-                    session = uiState.session,
-                    onRestart = { onIntent(ShellIntent.RestartClicked) },
-                    modifier = Modifier.padding(AppTheme.spacing.md),
+            Panel(Modifier.weight(1f).fillMaxWidth()) {
+                TerminalGrid(
+                    rows = uiState.rows,
+                    onGridSizeChange = { rows, columns -> onIntent(ShellIntent.TerminalResized(rows, columns)) },
+                    onKeyPress = { event -> handleKey(event, uiState.hasApplicationCursorKeys, onIntent) },
+                    onTextInput = { text -> onIntent(ShellIntent.InputTyped(text)) },
+                    modifier = Modifier.weight(1f),
                 )
+                if (uiState.session != SessionState.Running && uiState.session != SessionState.Starting) {
+                    Divider()
+                    SessionClosedBar(
+                        session = uiState.session,
+                        onRestart = { onIntent(ShellIntent.RestartClicked) },
+                        modifier = Modifier.padding(AppTheme.spacing.lg),
+                    )
+                }
             }
         }
     }

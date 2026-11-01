@@ -58,10 +58,15 @@ fun MonospaceText(
     }
 }
 
+@Composable
+@ReadOnlyComposable
+internal fun TextVariant.textStyle(): TextStyle = style
+
 private val TextVariant.style: TextStyle
     @Composable
     @ReadOnlyComposable
     get() = when (this) {
+        TextVariant.Display -> AppTheme.typography.display
         TextVariant.Title -> AppTheme.typography.title
         TextVariant.Heading -> AppTheme.typography.heading
         TextVariant.Body -> AppTheme.typography.body

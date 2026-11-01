@@ -1,10 +1,13 @@
 package com.tlpcraft.adbdesktop.uikit.component
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -35,8 +38,25 @@ fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm),
     ) {
-        if (icon != null) Icon(icon, contentDescription = null, size = IconSize.Hero, tone = tone)
-        Text(title, variant = TextVariant.Heading, tone = tone)
+        if (icon != null) {
+            Box(
+                Modifier.size(ICON_CIRCLE).background(
+                    if (tone ==
+                        Tone.Neutral
+                    ) {
+                        AppTheme.colors.surfaceRaised
+                    } else {
+                        tone.color.copy(alpha = TINT_ALPHA)
+                    },
+                    AppTheme.shapes.pill,
+                ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(icon, contentDescription = null, size = IconSize.Large, tone = tone)
+            }
+            Spacer(Modifier.height(AppTheme.spacing.xs))
+        }
+        Text(title, variant = TextVariant.Title, tone = tone)
         if (description != null) {
             BasicText(
                 text = description,
@@ -49,6 +69,9 @@ fun EmptyState(
         }
     }
 }
+
+private val ICON_CIRCLE = 64.dp
+private const val TINT_ALPHA = 0.12f
 
 @UiKitPreview
 @Composable

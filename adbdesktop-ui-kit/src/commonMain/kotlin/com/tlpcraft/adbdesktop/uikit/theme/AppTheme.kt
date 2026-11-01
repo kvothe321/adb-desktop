@@ -33,6 +33,12 @@ object AppTheme {
         @ReadOnlyComposable
         get() = LocalAppSpacing.current
 
+    /** The room the window gives, set by [com.tlpcraft.adbdesktop.uikit.component.Scaffold]. */
+    val windowWidth: WindowWidth
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalWindowWidth.current
+
     internal val colors: AppColors
         @Composable
         @ReadOnlyComposable

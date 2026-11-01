@@ -1,7 +1,6 @@
 package com.tlpcraft.adbdesktop.uikit.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -16,12 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
 import com.tlpcraft.adbdesktop.uikit.preview.UiKitPreview
 import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
 
-/** A toggleable filter option. `modifier` is for layout only. */
+/** A toggleable filter option: a filled pill when selected, a soft one otherwise. `modifier` is for layout only. */
 @Composable
 fun Chip(
     text: String,
@@ -34,9 +32,9 @@ fun Chip(
     val colors = AppTheme.colors
     val shape = AppTheme.shapes.pill
     val background = when {
-        selected -> colors.accentSubtle
+        selected -> colors.textPrimary
         hovered -> colors.surfaceHover
-        else -> colors.surface
+        else -> colors.surfaceRaised
     }
 
     Box(
@@ -44,12 +42,11 @@ fun Chip(
             .heightIn(min = ControlSize.Small.height)
             .clip(shape)
             .background(background)
-            .border(1.dp, if (selected) colors.accent else colors.border, shape)
             .interactive(interactionSource, enabled = true, role = Role.Checkbox, onClick = onClick)
             .padding(horizontal = AppTheme.spacing.md),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text, variant = TextVariant.Label, tone = if (selected) Tone.Accent else Tone.Neutral, maxLines = 1)
+        if (selected) InverseText(text, TextVariant.Label) else Text(text, variant = TextVariant.Label, maxLines = 1)
     }
 }
 

@@ -26,7 +26,7 @@
     <string name="device_connection_usb">USB</string>
     <string name="device_connection_wireless">Wi-Fi</string>
     <string name="device_connection_emulator">Emulator</string>
-    <string name="device_android_version">Android %1$s</string>
+    <string name="device_android">Android</string>
     <string name="device_battery">Battery</string>
     <string name="device_cpu">CPU</string>
     <string name="device_disconnect">Disconnect</string>

@@ -42,6 +42,7 @@ import com.tlpcraft.adbdesktop.feature.devices.resources.message_paired
 import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.EmptyState
+import com.tlpcraft.adbdesktop.uikit.component.Page
 import com.tlpcraft.adbdesktop.uikit.component.ProgressIndicator
 import com.tlpcraft.adbdesktop.uikit.component.Text
 import com.tlpcraft.adbdesktop.uikit.component.TextEmphasis
@@ -71,15 +72,18 @@ fun DevicesScreen(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier
 
 @Composable
 fun DevicesContent(uiState: DevicesUiState, onIntent: (DevicesIntent) -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxSize()) {
-        TopBar(title = stringResource(Res.string.devices_title)) {
+    Page(
+        title = stringResource(Res.string.devices_title),
+        modifier = modifier,
+        actions = {
             Button(
                 text = stringResource(Res.string.devices_connect_wifi),
                 onClick = { onIntent(DevicesIntent.ConnectFormOpened) },
                 variant = ButtonVariant.Primary,
                 icon = IconName.Wifi,
             )
-        }
+        },
+    ) {
         Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) {
             when (val list = uiState.list) {
                 DeviceListState.Loading -> LoadingState()
@@ -131,11 +135,11 @@ private fun DeviceGrid(
     onIntent: (DevicesIntent) -> Unit,
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 320.dp),
+        columns = GridCells.Adaptive(minSize = 300.dp),
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(AppTheme.spacing.lg),
-        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
-        verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
+        contentPadding = PaddingValues(top = AppTheme.spacing.xxs, bottom = AppTheme.spacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.lg),
+        verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.lg),
     ) {
         items(devices, key = { it.serial }) { device ->
             DeviceCard(

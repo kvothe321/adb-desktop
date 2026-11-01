@@ -40,7 +40,7 @@ fun IconButton(
         Box(
             modifier = Modifier
                 .size(size.height)
-                .clip(AppTheme.shapes.medium)
+                .clip(AppTheme.shapes.pill)
                 .background(
                     when {
                         selected -> AppTheme.colors.accentSubtle

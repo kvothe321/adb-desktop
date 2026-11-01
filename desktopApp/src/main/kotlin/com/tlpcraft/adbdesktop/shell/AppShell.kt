@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +37,7 @@ import com.tlpcraft.adbdesktop.uikit.component.Sidebar
 import com.tlpcraft.adbdesktop.uikit.component.SidebarItem
 import com.tlpcraft.adbdesktop.uikit.component.Text
 import com.tlpcraft.adbdesktop.uikit.component.TextVariant
+import com.tlpcraft.adbdesktop.uikit.component.isSidebarRail
 import com.tlpcraft.adbdesktop.uikit.component.rememberMessageHostState
 import com.tlpcraft.adbdesktop.uikit.icon.IconName
 import com.tlpcraft.adbdesktop.uikit.preview.PreviewContext
@@ -120,12 +122,21 @@ fun AppShellContent(
     )
 }
 
+/** In the rail only the logo and a device button remain. */
 @Composable
 private fun SidebarHeader(uiState: AppShellUiState, onDeviceSelect: (DeviceOption) -> Unit) {
-    Column(verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.md)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm)) {
+    val isRail = isSidebarRail()
+    Column(
+        horizontalAlignment = if (isRail) Alignment.CenterHorizontally else Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.lg),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = if (isRail) 0.dp else AppTheme.spacing.xs),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm),
+        ) {
             Image(painterResource(Res.drawable.app_logo), contentDescription = null, modifier = Modifier.size(28.dp))
-            Text(stringResource(Res.string.app_name), variant = TextVariant.Heading)
+            if (!isRail) Text(stringResource(Res.string.app_name), variant = TextVariant.Title)
         }
         Dropdown(
             items = uiState.devices,
@@ -134,14 +145,15 @@ private fun SidebarHeader(uiState: AppShellUiState, onDeviceSelect: (DeviceOptio
             itemLabel = DeviceOption::name,
             itemDetail = DeviceOption::serial,
             placeholder = stringResource(Res.string.device_picker_placeholder),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = if (isRail) Modifier else Modifier.fillMaxWidth(),
+            icon = IconName.Devices,
         )
     }
 }
 
 @Composable
 private fun ThemeToggle(isDarkTheme: Boolean, onThemeToggle: () -> Unit) {
-    Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
+    Box(Modifier.fillMaxWidth(), contentAlignment = if (isSidebarRail()) Alignment.Center else Alignment.CenterStart) {
         IconButton(
             icon = if (isDarkTheme) IconName.Sun else IconName.Moon,
             contentDescription = stringResource(if (isDarkTheme) Res.string.theme_switch_to_light else Res.string.theme_switch_to_dark),

@@ -22,12 +22,12 @@ fun Badge(text: String, modifier: Modifier = Modifier, tone: Tone = Tone.Neutral
     Row(
         modifier = modifier
             .background(tone.color.copy(alpha = BADGE_BACKGROUND_ALPHA), AppTheme.shapes.pill)
-            .padding(horizontal = AppTheme.spacing.sm, vertical = AppTheme.spacing.xxs),
+            .padding(horizontal = AppTheme.spacing.sm, vertical = AppTheme.spacing.xxs + 1.dp),
         horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.size(6.dp).background(tone.color, AppTheme.shapes.pill))
-        Text(text, variant = TextVariant.Caption, tone = tone, maxLines = 1)
+        Text(text, variant = TextVariant.Label, tone = tone, maxLines = 1)
     }
 }
 

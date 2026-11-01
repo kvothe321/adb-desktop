@@ -3,7 +3,9 @@ package com.tlpcraft.adbdesktop.feature.devices.component
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -14,7 +16,7 @@ import com.tlpcraft.adbdesktop.core.domain.model.DeviceState
 import com.tlpcraft.adbdesktop.feature.devices.contract.DeviceItem
 import com.tlpcraft.adbdesktop.feature.devices.contract.DeviceStats
 import com.tlpcraft.adbdesktop.feature.devices.resources.Res
-import com.tlpcraft.adbdesktop.feature.devices.resources.device_android_version
+import com.tlpcraft.adbdesktop.feature.devices.resources.device_android
 import com.tlpcraft.adbdesktop.feature.devices.resources.device_battery
 import com.tlpcraft.adbdesktop.feature.devices.resources.device_cpu
 import com.tlpcraft.adbdesktop.feature.devices.resources.device_disconnect
@@ -24,6 +26,7 @@ import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.Card
 import com.tlpcraft.adbdesktop.uikit.component.ControlSize
+import com.tlpcraft.adbdesktop.uikit.component.IconTile
 import com.tlpcraft.adbdesktop.uikit.component.MonospaceText
 import com.tlpcraft.adbdesktop.uikit.component.ProgressIndicator
 import com.tlpcraft.adbdesktop.uikit.component.ProgressStyle
@@ -38,6 +41,9 @@ import org.jetbrains.compose.resources.stringResource
 
 private const val PERCENT = 100f
 
+/** As tall as a small button, so cards with and without one line up. */
+private val FOOTER_HEIGHT = 30.dp
+
 @Composable
 internal fun DeviceCard(
     device: DeviceItem,
@@ -48,64 +54,80 @@ internal fun DeviceCard(
     modifier: Modifier = Modifier,
 ) {
     Card(modifier = modifier, selected = selected, onClick = onClick.takeIf { device.isOnline }) {
-        Column(verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm)) {
+        Column(verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.lg)) {
             DeviceHeader(device)
             when {
-                device.isOnline && stats != null -> DeviceStatsRows(stats)
+                device.isOnline && stats != null -> DeviceStatsRow(stats)
                 device.state == DeviceState.UNAUTHORIZED -> Text(stringResource(Res.string.device_unauthorized_hint), emphasis = TextEmphasis.Medium)
             }
-            if (device.canDisconnect) {
-                Button(
-                    text = stringResource(Res.string.device_disconnect),
-                    onClick = onDisconnect,
-                    variant = ButtonVariant.Ghost,
-                    size = ControlSize.Small,
-                )
-            }
+            DeviceFooter(device = device, onDisconnect = onDisconnect)
         }
     }
 }
 
 @Composable
 private fun DeviceHeader(device: DeviceItem) {
-    Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm)) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md)) {
+        IconTile(device.connectionType.icon, tone = if (device.isOnline) Tone.Accent else Tone.Neutral)
         Column(Modifier.weight(1f)) {
             Text(device.name ?: device.serial, variant = TextVariant.Heading, maxLines = 1)
             MonospaceText(device.serial, emphasis = TextEmphasis.Medium, maxLines = 1, selectable = true)
         }
-        Badge(stringResource(device.connectionType.label))
         Badge(stringResource(device.state.label), tone = device.state.tone)
     }
 }
 
+/** Big numbers first, the way a balance is shown, with a thin meter under the ones that have a range. */
 @Composable
-private fun DeviceStatsRows(stats: DeviceStats) {
-    Column(verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.xs)) {
-        stats.androidVersion?.let { Text(stringResource(Res.string.device_android_version, it), emphasis = TextEmphasis.Medium) }
+private fun DeviceStatsRow(stats: DeviceStats) {
+    Row(horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.lg)) {
         stats.batteryLevel?.let { level ->
-            MeterRow(label = stringResource(Res.string.device_battery), fraction = level / PERCENT, value = "$level%", tone = batteryTone(level))
+            Stat(
+                label = stringResource(Res.string.device_battery),
+                value = "$level%",
+                fraction = level / PERCENT,
+                tone = batteryTone(level),
+                modifier = Modifier.weight(1f),
+            )
         }
         stats.cpuUsagePercent?.let { usage ->
-            MeterRow(label = stringResource(Res.string.device_cpu), fraction = usage / PERCENT, value = "${usage.toInt()}%", tone = cpuTone(usage))
+            Stat(
+                label = stringResource(Res.string.device_cpu),
+                value = "${usage.toInt()}%",
+                fraction = usage / PERCENT,
+                tone = cpuTone(usage),
+                modifier = Modifier.weight(1f),
+            )
+        }
+        stats.androidVersion?.let { version ->
+            Stat(label = stringResource(Res.string.device_android), value = version, fraction = null, tone = Tone.Neutral, modifier = Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-private fun MeterRow(
+private fun Stat(
     label: String,
-    fraction: Float,
     value: String,
+    fraction: Float?,
     tone: Tone,
+    modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.sm),
-    ) {
-        Text(label, modifier = Modifier.width(56.dp), variant = TextVariant.Caption, emphasis = TextEmphasis.Medium)
-        ProgressIndicator(Modifier.weight(1f), progress = fraction, style = ProgressStyle.Linear, tone = tone)
-        Text(value, modifier = Modifier.width(36.dp), variant = TextVariant.Caption)
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(AppTheme.spacing.xs)) {
+        Text(value, variant = TextVariant.Title, maxLines = 1)
+        Text(label, variant = TextVariant.Caption, emphasis = TextEmphasis.Medium, maxLines = 1)
+        if (fraction != null) ProgressIndicator(Modifier.fillMaxWidth(), progress = fraction, style = ProgressStyle.Linear, tone = tone)
+    }
+}
+
+@Composable
+private fun DeviceFooter(device: DeviceItem, onDisconnect: () -> Unit) {
+    Row(Modifier.heightIn(min = FOOTER_HEIGHT), verticalAlignment = Alignment.CenterVertically) {
+        Badge(stringResource(device.connectionType.label))
+        Spacer(Modifier.weight(1f))
+        if (device.canDisconnect) {
+            Button(text = stringResource(Res.string.device_disconnect), onClick = onDisconnect, variant = ButtonVariant.Ghost, size = ControlSize.Small)
+        }
     }
 }
 

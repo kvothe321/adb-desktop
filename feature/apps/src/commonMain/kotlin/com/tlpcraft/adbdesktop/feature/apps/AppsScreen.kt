@@ -33,6 +33,7 @@ import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.EmptyState
 import com.tlpcraft.adbdesktop.uikit.component.FileDropArea
+import com.tlpcraft.adbdesktop.uikit.component.Page
 import com.tlpcraft.adbdesktop.uikit.component.SplitPane
 import com.tlpcraft.adbdesktop.uikit.component.TopBar
 import com.tlpcraft.adbdesktop.uikit.component.VisibilityEffect
@@ -59,8 +60,10 @@ fun AppsScreen(onShowMessage: (String) -> Unit, modifier: Modifier = Modifier, v
 
 @Composable
 fun AppsContent(uiState: AppsUiState, onIntent: (AppsIntent) -> Unit, modifier: Modifier = Modifier) {
-    Column(modifier.fillMaxSize()) {
-        TopBar(title = stringResource(Res.string.apps_title)) {
+    Page(
+        title = stringResource(Res.string.apps_title),
+        modifier = modifier,
+        actions = {
             if (uiState.serial != null) {
                 Button(
                     text = stringResource(Res.string.apps_install),
@@ -70,7 +73,8 @@ fun AppsContent(uiState: AppsUiState, onIntent: (AppsIntent) -> Unit, modifier: 
                     loading = uiState.isInstalling,
                 )
             }
-        }
+        },
+    ) {
         Box(Modifier.weight(1f).fillMaxSize(), contentAlignment = Alignment.Center) {
             if (uiState.list == AppListState.NoDevice) {
                 EmptyState(
