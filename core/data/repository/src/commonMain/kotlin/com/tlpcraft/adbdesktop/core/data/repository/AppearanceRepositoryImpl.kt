@@ -12,4 +12,8 @@ class AppearanceRepositoryImpl(private val preferencesDataSource: PreferencesDat
         .map { stored -> ThemeMode.entries.firstOrNull { it.name == stored } ?: ThemeMode.SYSTEM }
 
     override suspend fun setThemeMode(mode: ThemeMode) = preferencesDataSource.writeThemeMode(mode.name)
+
+    override fun observeMirrorPinned(): Flow<Boolean> = preferencesDataSource.observeMirrorPinned().map { it ?: false }
+
+    override suspend fun setMirrorPinned(isPinned: Boolean) = preferencesDataSource.writeMirrorPinned(isPinned)
 }

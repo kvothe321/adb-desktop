@@ -22,9 +22,11 @@ import com.tlpcraft.adbdesktop.core.domain.usecase.logcat.ClearLogcatUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.logcat.ObserveAppProcessesUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.logcat.ObserveLogcatUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.CaptureScreenshotUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.screen.ObserveMirrorPinnedUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.ObserveMirrorUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.RecordScreenUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.SaveRecordingUseCase
+import com.tlpcraft.adbdesktop.core.domain.usecase.screen.SetMirrorPinnedUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.screen.StopRecordingUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.settings.ObserveAdbInfoUseCase
 import com.tlpcraft.adbdesktop.core.domain.usecase.settings.ObserveAdbPathOverrideUseCase
@@ -61,6 +63,8 @@ val domainModule = module {
     factoryOf(::ObserveAppProcessesUseCase)
     factoryOf(::CaptureScreenshotUseCase)
     factoryOf(::ObserveMirrorUseCase)
+    factoryOf(::ObserveMirrorPinnedUseCase)
+    factoryOf(::SetMirrorPinnedUseCase)
     factoryOf(::RecordScreenUseCase)
     factoryOf(::SaveRecordingUseCase)
     factoryOf(::StopRecordingUseCase)

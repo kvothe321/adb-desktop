@@ -14,8 +14,9 @@ internal object ScrcpyServerCommand {
     fun socketName(sessionId: Int): String = "scrcpy_${sessionName(sessionId)}"
 
     /**
-     * H.264 video only, no audio or input. Frame headers stay on because a raw stream cannot show where a frame ends, which
-     * would hold back the last frame of a still screen. The dummy byte tells a live server from adb accepting early.
+     * H.264 video and input, no audio. The device clipboard is not sent back, so nothing has to read the control socket.
+     * Frame headers stay on because a raw stream cannot show where a frame ends, which would hold back the last frame of a
+     * still screen. The dummy byte tells a live server from adb accepting early.
      */
     fun shellArguments(sessionId: Int): List<String> = listOf(
         "CLASSPATH=${remotePath(sessionId)}",
@@ -26,7 +27,7 @@ internal object ScrcpyServerCommand {
         "scid=${sessionName(sessionId)}",
         "log_level=warn",
         "audio=false",
-        "control=false",
+        "clipboard_autosync=false",
         "tunnel_forward=true",
         "video_codec=h264",
         "max_size=$MAX_SIZE",

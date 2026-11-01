@@ -47,13 +47,15 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 /**
- * Window chrome: sidebar navigation, device picker and the message host. [content] renders the
- * current section and receives a callback to show transient messages.
+ * Window chrome: sidebar navigation, device picker, the message host and the mirror dock. [content] renders the
+ * current section and [mirror] the device mirror; both receive a callback to show transient messages. The mirror
+ * shows beside the Screen section, or beside every section once pinned.
  */
 @Composable
 fun AppShellScreen(
     currentSection: Section,
     onSectionSelect: (Section) -> Unit,
+    mirror: @Composable (onShowMessage: (String) -> Unit) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: AppShellViewModel = koinViewModel(),
     content: @Composable (onShowMessage: (String) -> Unit) -> Unit,
@@ -63,6 +65,8 @@ fun AppShellScreen(
     val scope = rememberCoroutineScope()
 
     val isDarkTheme = uiState.isDarkTheme(isSystemDark = isSystemInDarkTheme())
+    val onShowMessage: (String) -> Unit = { message -> scope.launch { messageHostState.show(message) } }
+    val isMirrorShown = uiState.isMirrorPinned || currentSection == Section.Screen
 
     AppTheme(darkTheme = isDarkTheme) {
         AppShellContent(
@@ -73,8 +77,9 @@ fun AppShellScreen(
             onIntent = viewModel::reduceIntent,
             onSectionSelect = onSectionSelect,
             modifier = modifier,
+            dock = if (isMirrorShown) ({ mirror(onShowMessage) }) else null,
         ) {
-            content { message -> scope.launch { messageHostState.show(message) } }
+            content(onShowMessage)
         }
     }
 }
@@ -88,11 +93,13 @@ fun AppShellContent(
     onIntent: (AppShellIntent) -> Unit,
     onSectionSelect: (Section) -> Unit,
     modifier: Modifier = Modifier,
+    dock: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit,
 ) {
     Scaffold(
         modifier = modifier,
         messageHostState = messageHostState,
+        dock = dock,
         sidebar = {
             Sidebar(
                 header = { SidebarHeader(uiState = uiState, onDeviceSelect = { onIntent(AppShellIntent.DeviceSelected(it.serial)) }) },
