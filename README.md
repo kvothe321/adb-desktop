@@ -144,3 +144,7 @@ Rules the build enforces:
 - `config/detekt/`: detekt configuration. ktlint and compose-rules settings live in `.editorconfig`.
 - `gradle/libs.versions.toml`: every dependency version.
 - `docs/`: architecture decisions and roadmap.
+
+## Credits
+
+Icons are the linear style of [Iconsax](https://iconsax.io), from the `iconsax` npm package (MIT).

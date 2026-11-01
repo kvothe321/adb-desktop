@@ -27,7 +27,6 @@ kotest = "6.2.6"
 kotlinxCoroutines = "1.11.0"
 kotlinxSerialization = "1.12.0"
 material3 = "1.9.0"
-materialIconsCore = "1.7.3"
 navigation3 = "1.2.0"
 turbine = "1.2.1"
 
@@ -51,7 +50,6 @@ compose-uiTest = { module = "org.jetbrains.compose.ui:ui-test", version.ref = "c
 compose-uiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
 compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
-material-icons-core = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "materialIconsCore" }
 
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }
 

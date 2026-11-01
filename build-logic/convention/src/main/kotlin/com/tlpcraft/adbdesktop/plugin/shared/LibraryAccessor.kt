@@ -20,7 +20,6 @@ internal val VersionCatalog.library: LibraryAccessor
 class LibraryAccessor(private val catalog: VersionCatalog) {
     val androidx: AndroidxLibraries = AndroidxLibraries(catalog)
     val koin: KoinLibraries = KoinLibraries(catalog)
-    val material: MaterialLibraries = MaterialLibraries(catalog)
     val compose: ComposeLibraries = ComposeLibraries(catalog)
 
     // Direct access for non-nested libraries
@@ -84,13 +83,4 @@ class KoinComposeLibraries(private val catalog: VersionCatalog) {
         get() = catalog.library("koin-compose")
     val viewModel: Provider<MinimalExternalModuleDependency>
         get() = catalog.library("koin-compose-viewModel")
-}
-
-class MaterialLibraries(catalog: VersionCatalog) {
-    val icons: IconsLibraries = IconsLibraries(catalog)
-}
-
-class IconsLibraries(private val catalog: VersionCatalog) {
-    val core: Provider<MinimalExternalModuleDependency>
-        get() = catalog.library("material-icons-core")
 }
