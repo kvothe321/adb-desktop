@@ -154,5 +154,7 @@ Rules the build enforces:
 
 Icons are the linear style of [Iconsax](https://iconsax.io), from the `iconsax` npm package (MIT).
 
+The interface is set in [Inter](https://rsms.me/inter/) 4.1 (SIL Open Font License 1.1), with JetBrains Mono for machine output.
+
 Mirroring runs the [scrcpy](https://github.com/Genymobile/scrcpy) 5.0.1 server (Apache 2.0) on the device, and decodes its video
 with FFmpeg (LGPL) through [JavaCPP Presets](https://github.com/bytedeco/javacpp-presets).
