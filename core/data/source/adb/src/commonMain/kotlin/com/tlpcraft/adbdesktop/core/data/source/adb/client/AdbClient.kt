@@ -42,8 +42,10 @@ class AdbClient(
         return result.stdout
     }
 
-    fun stream(vararg args: String): Flow<String> = flow {
-        executor.stream(command(args.asList())).collect { emit(it) }
+    fun stream(vararg args: String): Flow<String> = stream(args.asList())
+
+    fun stream(args: List<String>): Flow<String> = flow {
+        executor.stream(command(args)).collect { emit(it) }
     }
 
     fun interact(input: Flow<String>, vararg args: String): Flow<String> = flow {

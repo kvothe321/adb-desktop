@@ -10,6 +10,7 @@ import com.tlpcraft.adbdesktop.core.data.source.adb.AdbInfoDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbInfoDataSourceImpl
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbLogcatDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbLogcatDataSourceImpl
+import com.tlpcraft.adbdesktop.core.data.source.adb.AdbMirrorDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbPackageDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbPackageDataSourceImpl
 import com.tlpcraft.adbdesktop.core.data.source.adb.AdbScreenDataSource
@@ -20,6 +21,7 @@ import com.tlpcraft.adbdesktop.core.data.source.adb.binary.AdbBinaryResolver
 import com.tlpcraft.adbdesktop.core.data.source.adb.binary.AdbEnvironment
 import com.tlpcraft.adbdesktop.core.data.source.adb.binary.JvmAdbEnvironment
 import com.tlpcraft.adbdesktop.core.data.source.adb.client.AdbClient
+import com.tlpcraft.adbdesktop.core.data.source.adb.mirror.ScrcpyMirrorDataSource
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.CommandExecutor
 import com.tlpcraft.adbdesktop.core.data.source.adb.process.ProcessCommandExecutor
 import org.koin.core.module.dsl.singleOf
@@ -39,5 +41,6 @@ val adbDataSourceModule = module {
     singleOf(::AdbShellDataSourceImpl) bind AdbShellDataSource::class
     singleOf(::AdbFileDataSourceImpl) bind AdbFileDataSource::class
     singleOf(::AdbScreenDataSourceImpl) bind AdbScreenDataSource::class
+    singleOf(::ScrcpyMirrorDataSource) bind AdbMirrorDataSource::class
     singleOf(::AdbInfoDataSourceImpl) bind AdbInfoDataSource::class
 }

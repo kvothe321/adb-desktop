@@ -9,7 +9,7 @@ A desktop GUI for `adb`, built with Compose Multiplatform for Windows, macOS and
 - **Files**: browse the device, upload and download with progress, drop files on the window, delete and create folders.
 - **Logcat**: live stream with level, text and package filters, pause, clear and export.
 - **Shell**: a real terminal on the device, with colors and full-screen programs such as `top` and `vi`.
-- **Screen**: screenshots, copied to the clipboard or saved, and screen recording with a running clock.
+- **Screen**: live mirroring, screenshots, copied to the clipboard or saved, and screen recording with a running clock.
 - **Settings**: choose the adb executable and the theme.
 
 Everything on screen stays current on its own: changes made on the device, by other tools or by this app appear
@@ -148,3 +148,6 @@ Rules the build enforces:
 ## Credits
 
 Icons are the linear style of [Iconsax](https://iconsax.io), from the `iconsax` npm package (MIT).
+
+Mirroring runs the [scrcpy](https://github.com/Genymobile/scrcpy) 5.0.1 server (Apache 2.0) on the device, and decodes its video
+with FFmpeg (LGPL) through [JavaCPP Presets](https://github.com/bytedeco/javacpp-presets).
