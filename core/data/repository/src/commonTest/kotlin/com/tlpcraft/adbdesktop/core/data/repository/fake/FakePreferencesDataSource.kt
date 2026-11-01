@@ -10,8 +10,6 @@ class FakePreferencesDataSource : PreferencesDataSource {
 
     override fun observeAdbPath(): Flow<String?> = adbPath
 
-    override suspend fun readAdbPath(): String? = adbPath.value
-
     override suspend fun writeAdbPath(path: String?) {
         adbPath.value = path
     }
