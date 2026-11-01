@@ -2,7 +2,7 @@ package com.tlpcraft.adbdesktop.feature.shell
 
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
@@ -11,31 +11,57 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import com.tlpcraft.adbdesktop.feature.shell.contract.SessionState
 import com.tlpcraft.adbdesktop.feature.shell.contract.ShellIntent
 import com.tlpcraft.adbdesktop.feature.shell.contract.ShellUiState
-import com.tlpcraft.adbdesktop.feature.shell.contract.TerminalLine
+import com.tlpcraft.adbdesktop.uikit.component.TerminalRow
+import com.tlpcraft.adbdesktop.uikit.component.TerminalSpan
 import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 
 @OptIn(ExperimentalTestApi::class)
 class ShellContentTest : FunSpec({
-    test("Enter submits and the arrow keys walk the history") {
+    val rows = listOf(TerminalRow(1, listOf(TerminalSpan("pixel:/ $ ls"))))
+
+    test("the terminal reports its size, shows its rows and takes keys right away") {
         runComposeUiTest {
             val intents = mutableListOf<ShellIntent>()
-            val lines = listOf(TerminalLine(1, "ls", isCommand = true), TerminalLine(2, "Download", isCommand = false))
             setContent {
-                AppTheme { ShellContent(uiState = ShellUiState(session = SessionState.Running, lines = lines, input = "pwd"), onIntent = { intents += it }) }
+                AppTheme { ShellContent(uiState = ShellUiState(session = SessionState.Running, rows = rows), onIntent = { intents += it }) }
             }
 
-            onNodeWithText("$ ls").assertExists()
-            onNode(hasSetTextAction()).performKeyInput {
+            onNodeWithText("pixel:/ $ ls").assertExists()
+            intents.first().shouldBeInstanceOf<ShellIntent.TerminalResized>()
+
+            onNode(isFocused()).performKeyInput {
                 pressKey(Key.Enter)
-                pressKey(Key.DirectionUp)
-                pressKey(Key.DirectionDown)
+                keyDown(Key.CtrlLeft)
+                pressKey(Key.C)
+                keyUp(Key.CtrlLeft)
             }
 
-            intents shouldContain ShellIntent.CommandSubmitted
-            intents shouldContain ShellIntent.PreviousCommandRequested
-            intents shouldContain ShellIntent.NextCommandRequested
+            intents shouldContain ShellIntent.InputTyped("\r")
+            intents shouldContain ShellIntent.InputTyped("\u0003")
+        }
+    }
+
+    test("Ctrl+Shift+V pastes instead of sending a control code") {
+        runComposeUiTest {
+            val intents = mutableListOf<ShellIntent>()
+            setContent {
+                AppTheme { ShellContent(uiState = ShellUiState(session = SessionState.Running, rows = rows), onIntent = { intents += it }) }
+            }
+
+            onNode(isFocused()).performKeyInput {
+                keyDown(Key.CtrlLeft)
+                keyDown(Key.ShiftLeft)
+                pressKey(Key.V)
+                keyUp(Key.ShiftLeft)
+                keyUp(Key.CtrlLeft)
+            }
+
+            intents.filterIsInstance<ShellIntent.InputTyped>().size shouldBe 0
+            intents shouldContain ShellIntent.PasteRequested
         }
     }
 

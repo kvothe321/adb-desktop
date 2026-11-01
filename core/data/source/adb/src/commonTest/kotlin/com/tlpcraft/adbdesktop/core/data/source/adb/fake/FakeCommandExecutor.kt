@@ -6,6 +6,10 @@ import com.tlpcraft.adbdesktop.core.data.source.adb.process.CommandResult
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 
 /** Answers commands by their arguments (the executable path excluded). Unknown commands succeed with no output. */
 class FakeCommandExecutor : CommandExecutor {
@@ -49,5 +53,13 @@ class FakeCommandExecutor : CommandExecutor {
 
     override fun stream(command: List<String>): Flow<String> = streams[command.drop(1)].orEmpty().asFlow()
 
-    override fun interact(command: List<String>, input: Flow<String>): Flow<String> = stream(command)
+    override fun interact(command: List<String>, input: Flow<String>): Flow<String> = channelFlow {
+        val writer = launch { input.collect() }
+        streams[command.drop(1)].orEmpty().forEach { chunk ->
+            send(chunk)
+            yield()
+        }
+        yield()
+        writer.cancel()
+    }
 }

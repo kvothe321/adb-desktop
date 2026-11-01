@@ -1,13 +1,12 @@
 package com.tlpcraft.adbdesktop.feature.shell.contract
 
 sealed interface ShellIntent {
-    data class InputChanged(val value: String) : ShellIntent
+    /** [text] is what the terminal sends, control codes included. */
+    data class InputTyped(val text: String) : ShellIntent
 
-    data object CommandSubmitted : ShellIntent
+    data object PasteRequested : ShellIntent
 
-    data object PreviousCommandRequested : ShellIntent
-
-    data object NextCommandRequested : ShellIntent
+    data class TerminalResized(val rows: Int, val columns: Int) : ShellIntent
 
     data object ClearClicked : ShellIntent
 

@@ -3,41 +3,45 @@ package com.tlpcraft.adbdesktop.feature.shell
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isAltPressed
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tlpcraft.adbdesktop.feature.shell.contract.SessionState
 import com.tlpcraft.adbdesktop.feature.shell.contract.ShellIntent
 import com.tlpcraft.adbdesktop.feature.shell.contract.ShellUiState
-import com.tlpcraft.adbdesktop.feature.shell.contract.TerminalLine
 import com.tlpcraft.adbdesktop.feature.shell.resources.Res
 import com.tlpcraft.adbdesktop.feature.shell.resources.shell_clear
-import com.tlpcraft.adbdesktop.feature.shell.resources.shell_input_placeholder
 import com.tlpcraft.adbdesktop.feature.shell.resources.shell_no_device_description
 import com.tlpcraft.adbdesktop.feature.shell.resources.shell_no_device_title
 import com.tlpcraft.adbdesktop.feature.shell.resources.shell_restart
 import com.tlpcraft.adbdesktop.feature.shell.resources.shell_session_ended
 import com.tlpcraft.adbdesktop.feature.shell.resources.shell_title
+import com.tlpcraft.adbdesktop.feature.shell.terminal.KeyPress
+import com.tlpcraft.adbdesktop.feature.shell.terminal.encodeKey
 import com.tlpcraft.adbdesktop.uikit.component.Button
 import com.tlpcraft.adbdesktop.uikit.component.ButtonVariant
 import com.tlpcraft.adbdesktop.uikit.component.Divider
 import com.tlpcraft.adbdesktop.uikit.component.EmptyState
-import com.tlpcraft.adbdesktop.uikit.component.MonospaceText
+import com.tlpcraft.adbdesktop.uikit.component.TerminalColor
+import com.tlpcraft.adbdesktop.uikit.component.TerminalGrid
+import com.tlpcraft.adbdesktop.uikit.component.TerminalRow
+import com.tlpcraft.adbdesktop.uikit.component.TerminalSpan
 import com.tlpcraft.adbdesktop.uikit.component.Text
-import com.tlpcraft.adbdesktop.uikit.component.TextField
 import com.tlpcraft.adbdesktop.uikit.component.Tone
 import com.tlpcraft.adbdesktop.uikit.component.TopBar
 import com.tlpcraft.adbdesktop.uikit.icon.IconName
@@ -47,9 +51,7 @@ import com.tlpcraft.adbdesktop.uikit.theme.AppTheme
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
-private const val PROMPT = "$ "
-
-/** Interactive shell on the selected device. */
+/** Interactive terminal on the selected device. */
 @Composable
 fun ShellScreen(modifier: Modifier = Modifier, viewModel: ShellViewModel = koinViewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -79,56 +81,41 @@ fun ShellContent(uiState: ShellUiState, onIntent: (ShellIntent) -> Unit, modifie
                 )
             }
         } else {
-            Transcript(lines = uiState.lines, modifier = Modifier.weight(1f))
-            Divider()
-            SessionFooter(session = uiState.session, input = uiState.input, onIntent = onIntent)
-        }
-    }
-}
-
-@Composable
-private fun Transcript(lines: List<TerminalLine>, modifier: Modifier = Modifier, listState: LazyListState = rememberLazyListState()) {
-    LaunchedEffect(lines.lastOrNull()?.id, lines.lastOrNull()?.text) {
-        if (lines.isNotEmpty()) listState.scrollToItem(lines.lastIndex)
-    }
-    SelectionContainer(modifier) {
-        LazyColumn(state = listState, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(AppTheme.spacing.md)) {
-            items(lines, key = { it.id }) { line ->
-                if (line.isCommand) {
-                    MonospaceText(PROMPT + line.text, tone = Tone.Accent)
-                } else {
-                    MonospaceText(line.text)
-                }
+            TerminalGrid(
+                rows = uiState.rows,
+                onGridSizeChange = { rows, columns -> onIntent(ShellIntent.TerminalResized(rows, columns)) },
+                onKeyPress = { event -> handleKey(event, uiState.hasApplicationCursorKeys, onIntent) },
+                modifier = Modifier.weight(1f),
+            )
+            if (uiState.session != SessionState.Running) {
+                Divider()
+                SessionClosedBar(
+                    session = uiState.session,
+                    onRestart = { onIntent(ShellIntent.RestartClicked) },
+                    modifier = Modifier.padding(AppTheme.spacing.md),
+                )
             }
         }
     }
 }
 
-@Composable
-private fun SessionFooter(session: SessionState, input: String, onIntent: (ShellIntent) -> Unit) {
-    Box(Modifier.fillMaxWidth().padding(AppTheme.spacing.md)) {
-        if (session == SessionState.Running) {
-            TextField(
-                value = input,
-                onValueChange = { onIntent(ShellIntent.InputChanged(it)) },
-                placeholder = stringResource(Res.string.shell_input_placeholder),
-                leadingIcon = IconName.Terminal,
-                monospace = true,
-                autoFocus = true,
-                onSubmit = { onIntent(ShellIntent.CommandSubmitted) },
-                onArrowUp = { onIntent(ShellIntent.PreviousCommandRequested) },
-                onArrowDown = { onIntent(ShellIntent.NextCommandRequested) },
-            )
-        } else {
-            SessionClosedBar(session = session, onRestart = { onIntent(ShellIntent.RestartClicked) })
-        }
+/** Ctrl+C belongs to the running program as in any terminal, so paste takes Ctrl+Shift+V. */
+private fun handleKey(event: KeyEvent, hasApplicationCursorKeys: Boolean, onIntent: (ShellIntent) -> Unit): Boolean {
+    if (event.type != KeyEventType.KeyDown) return false
+    if (event.isCtrlPressed && event.isShiftPressed) {
+        if (event.key == Key.V) onIntent(ShellIntent.PasteRequested)
+        return event.key == Key.V
     }
+    val press = KeyPress(event.key, event.utf16CodePoint, event.isCtrlPressed, event.isAltPressed, event.isShiftPressed)
+    val input = encodeKey(press, hasApplicationCursorKeys) ?: return false
+    onIntent(ShellIntent.InputTyped(input))
+    return true
 }
 
 @Composable
-private fun SessionClosedBar(session: SessionState, onRestart: () -> Unit) {
+private fun SessionClosedBar(session: SessionState, onRestart: () -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(AppTheme.spacing.md),
     ) {
@@ -143,21 +130,21 @@ private fun SessionClosedBar(session: SessionState, onRestart: () -> Unit) {
     }
 }
 
-private val previewLines = listOf(
-    TerminalLine(id = 1, text = "getprop ro.product.model", isCommand = true),
-    TerminalLine(id = 2, text = "Pixel 8", isCommand = false),
+private val previewRows = listOf(
+    TerminalRow(1, listOf(TerminalSpan("pixel:/ $ ", foreground = TerminalColor.Green), TerminalSpan("getprop ro.product.model"))),
+    TerminalRow(2, listOf(TerminalSpan("Pixel 8"))),
 )
 
 @UiKitPreview
 @Composable
 private fun ShellContentRunningPreview() = PreviewContext {
-    ShellContent(uiState = ShellUiState(session = SessionState.Running, lines = previewLines, input = "ls /sdcard"), onIntent = {})
+    ShellContent(uiState = ShellUiState(session = SessionState.Running, rows = previewRows), onIntent = {})
 }
 
 @UiKitPreview
 @Composable
 private fun ShellContentEndedPreview() = PreviewContext {
-    ShellContent(uiState = ShellUiState(session = SessionState.Ended, lines = previewLines), onIntent = {})
+    ShellContent(uiState = ShellUiState(session = SessionState.Ended, rows = previewRows), onIntent = {})
 }
 
 @UiKitPreview

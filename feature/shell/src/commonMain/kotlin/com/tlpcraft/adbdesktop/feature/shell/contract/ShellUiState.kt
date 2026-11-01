@@ -1,13 +1,12 @@
 package com.tlpcraft.adbdesktop.feature.shell.contract
 
+import com.tlpcraft.adbdesktop.uikit.component.TerminalRow
+
 data class ShellUiState(
     val session: SessionState = SessionState.NoDevice,
-    val lines: List<TerminalLine> = emptyList(),
-    val input: String = "",
-) {
-    val canSubmit: Boolean
-        get() = session == SessionState.Running && input.isNotBlank()
-}
+    val rows: List<TerminalRow> = emptyList(),
+    val hasApplicationCursorKeys: Boolean = false,
+)
 
 sealed interface SessionState {
     data object NoDevice : SessionState
@@ -18,5 +17,3 @@ sealed interface SessionState {
 
     data class Failed(val details: String) : SessionState
 }
-
-data class TerminalLine(val id: Long, val text: String, val isCommand: Boolean)

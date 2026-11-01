@@ -21,6 +21,12 @@ class JvmHostClipboard : HostClipboard {
         }
     }
 
+    override suspend fun readText(): String? = withContext(Dispatchers.Swing) {
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        // The clipboard belongs to the desktop, which can hold it locked or change it between these two calls.
+        runCatching { clipboard.getData(DataFlavor.stringFlavor) as String }.getOrNull()
+    }
+
     private class ImageSelection(private val image: Image) : Transferable {
         override fun getTransferDataFlavors(): Array<DataFlavor> = arrayOf(DataFlavor.imageFlavor)
 
